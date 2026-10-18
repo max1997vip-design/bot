@@ -1,0 +1,27 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: var(--tg-theme-bg-color, #ffffff); /* Используем цвета темы Telegram */
+    color: var(--tg-theme-text-color, #000000);
+}
+.container {
+    text-align: center;
+}
+#score-display {
+    font-size: 4rem;
+    font-weight: bold;
+    margin: 20px 0;
+}
+#click-button {
+    font-size: 1.5rem;
+    padding: 15px 30px;
+    border-radius: 50px;
+    border: none;
+    background-color: var(--tg-theme-button-color, #2481cc);
+    color: var(--tg-theme-button-text-color, #ffffff);
+    cursor: pointer;
+}
