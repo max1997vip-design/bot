@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Гоночный Кликер PRO</title>
+    <title>RACE CLICKER PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -15,20 +15,27 @@
             <div id="user-name">Пилот</div>
         </div>
 
-        <!-- 3D Трасса -->
+        <!-- КИБЕРПАНК ТРАССА -->
         <div class="track-view" id="track-view">
-            <div class="track-border top-border"></div>
+            <!-- Фон с закатом и сеткой -->
+            <div class="sky-bg"></div>
+            <div class="grid-bg"></div>
+            
+            <!-- Дорога -->
             <div class="road" id="road">
                 <div class="road-lines"></div>
+                <!-- Борты дороги -->
+                <div class="neon-border left"></div>
+                <div class="neon-border right"></div>
             </div>
-            <div class="track-border bottom-border"></div>
             
             <!-- Слой для частиц дыма -->
             <div id="particles-container"></div>
             <!-- Слой для всплывающих цифр -->
             <div id="floating-texts"></div>
 
-            <img id="car-img" src="" alt="Car" class="car" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
+            <!-- Машина -->
+            <img id="car-img" src="" alt="Car" class="car">
         </div>
 
         <!-- Приборная панель -->

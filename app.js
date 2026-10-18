@@ -8,16 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('user-name').textContent = `Пилот: ${userName}`;
 
+    // === НАДЕЖНЫЕ КАРТИНКИ МАШИН (3D/Изометрия) ===
+    // Использован надежный CDN (Flaticon), чтобы все машинки отображались
     const CARS = [
-        { id: 'f1',     name: 'Болид F1',     img: 'https://freepngimg.com/thumb/car/12-2-car-png-hd.png', price: 0,     bonus: 0 },
-        { id: 'sport',  name: 'Спорткар',     img: 'https://freepngimg.com/thumb/car/1-2-car-png-clipart.png', price: 100,   bonus: 1 },
-        { id: 'suv',    name: 'Внедорожник',  img: 'https://freepngimg.com/thumb/car/4-2-car-png.png', price: 500,   bonus: 3 },
-        { id: 'taxi',   name: 'Дрифт-Такси',  img: 'https://freepngimg.com/thumb/car/6-2-car-png-file.png', price: 2000,  bonus: 8 },
-        { id: 'police', name: 'Патруль',      img: 'https://freepngimg.com/thumb/car/7-2-car-png-image.png', price: 8000,  bonus: 20 },
-        { id: 'race',   name: 'Гиперкар',     img: 'https://freepngimg.com/thumb/car/9-2-car-png-pic.png', price: 25000, bonus: 50 }
+        { id: 'f1',     name: 'Болид F1',     img: 'https://cdn-icons-png.flaticon.com/512/3204/3204071.png', price: 0,     bonus: 0 },
+        { id: 'sport',  name: 'Спорткар',     img: 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png', price: 100,   bonus: 1 },
+        { id: 'suv',    name: 'Внедорожник',  img: 'https://cdn-icons-png.flaticon.com/512/3097/3097192.png', price: 500,   bonus: 3 },
+        { id: 'taxi',   name: 'Дрифт-Такси',  img: 'https://cdn-icons-png.flaticon.com/512/3097/3097185.png', price: 2000,  bonus: 8 },
+        { id: 'police', name: 'Патруль',      img: 'https://cdn-icons-png.flaticon.com/512/3097/3097176.png', price: 8000,  bonus: 20 },
+        { id: 'race',   name: 'Гиперкар',     img: 'https://cdn-icons-png.flaticon.com/512/3204/3204073.png', price: 25000, bonus: 50 }
     ];
 
-    // DOM элементы
     const trackView = document.getElementById('track-view');
     const carImg = document.getElementById('car-img');
     const road = document.getElementById('road');
@@ -42,39 +43,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaderboardList = document.getElementById('leaderboard-list');
     const closeLeaderboard = document.getElementById('close-leaderboard');
 
-    // === Стейт ===
     const DEFAULT_STATE = {
-        money: 0,
-        clickPower: 1,
-        autoTurbo: 0,
-        engineCost: 10,
-        turboCost: 50,
-        engineLevel: 1,
-        ownedCars: ['f1'],
-        currentCar: 'f1'
+        money: 0, clickPower: 1, autoTurbo: 0,
+        engineCost: 10, turboCost: 50, engineLevel: 1,
+        ownedCars: ['f1'], currentCar: 'f1'
     };
 
     let gameState = Object.assign({}, DEFAULT_STATE, JSON.parse(localStorage.getItem('raceClickerSave') || '{}'));
 
-    // === Стейт Комбо ===
     let comboCount = 0;
     let lastClickTime = 0;
     let comboTimeout = null;
-    const MAX_COMBO = 20; // Максимальный множитель x3 (20 * 0.1 + 1)
+    const MAX_COMBO = 20;
 
     function saveGame() {
         localStorage.setItem('raceClickerSave', JSON.stringify(gameState));
         scheduleScoreSubmit();
     }
 
-    function getCurrentCar() {
-        return CARS.find(c => c.id === gameState.currentCar) || CARS[0];
-    }
-    function getClickPower() {
-        return gameState.clickPower + getCurrentCar().bonus;
-    }
+    function getCurrentCar() { return CARS.find(c => c.id === gameState.currentCar) || CARS[0]; }
+    function getClickPower() { return gameState.clickPower + getCurrentCar().bonus; }
 
-    // === UI ===
     function updateUI() {
         moneyDisplay.textContent = Math.floor(gameState.money).toLocaleString('ru-RU');
         clickPowerHint.textContent = `${getClickPower()}x`;
@@ -106,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = !owned && !canBuy;
             
             btn.innerHTML = `
-                <img src="${c.img}" alt="${c.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
+                <img src="${c.img}" alt="${c.name}">
                 <span class="car-info">
                     <b>${c.name}</b>
                     <small>${owned ? (active ? '✅ В гараже' : '👆 Выбрать') : `Цена: ${c.price}💰`}</small>
@@ -131,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame();
     }
 
-    // === ВИЗУАЛЬНЫЕ ЭФФЕКТЫ ===
     function createFloatingText(x, y, amount, isCrit) {
         const el = document.createElement('div');
         el.className = `floating-text ${isCrit ? 'crit' : ''}`;
@@ -143,22 +131,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function spawnParticles(isCrit) {
-        const numParticles = isCrit ? 8 : 4;
+        const numParticles = isCrit ? 10 : 5;
         for (let i = 0; i < numParticles; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
-            // Случайное смещение по X
-            const xOffset = (Math.random() - 0.5) * 60;
+            const xOffset = (Math.random() - 0.5) * 80;
             p.style.setProperty('--x-dir', `${xOffset}px`);
             p.style.left = `calc(50% + ${xOffset}px)`;
             
-            // Если крит, делаем частицы огненными (желтыми)
             if (isCrit) {
                 p.style.background = '#ffd60a';
                 p.style.width = '20px';
                 p.style.height = '20px';
             }
-            
             particlesContainer.appendChild(p);
             setTimeout(() => p.remove(), 500);
         }
@@ -187,19 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateComboUI() {
         if (comboCount > 0) {
-            const mult = (1 + comboCount * 0.1).toFixed(1);
-            comboValue.textContent = mult;
+            comboValue.textContent = (1 + comboCount * 0.1).toFixed(1);
             comboDisplay.classList.remove('combo-hidden');
         } else {
             comboDisplay.classList.add('combo-hidden');
         }
     }
 
-    // === СИСТЕМА КЛИКОВ ===
-    clickButton.addEventListener('click', (e) => {
+    clickButton.addEventListener('click', () => {
         const now = Date.now();
-        
-        // Логика комбо
         if (now - lastClickTime < 800) {
             if (comboCount < MAX_COMBO) comboCount++;
         } else {
@@ -207,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         lastClickTime = now;
         
-        // Сброс комбо через 1 секунду простоя
         clearTimeout(comboTimeout);
         comboTimeout = setTimeout(() => {
             comboCount = 0;
@@ -216,31 +196,27 @@ document.addEventListener('DOMContentLoaded', () => {
         
         updateComboUI();
 
-        // Расчет крита
-        const isCrit = Math.random() < 0.15; // 15% шанс
+        const isCrit = Math.random() < 0.15;
         const critMult = isCrit ? 5 : 1;
         const comboMult = 1 + (comboCount * 0.1);
 
-        const basePower = getClickPower();
-        const earnedMoney = Math.floor(basePower * comboMult * critMult);
+        const earnedMoney = Math.floor(getClickPower() * comboMult * critMult);
 
         gameState.money += earnedMoney;
         
-        // Визуальные эффекты
         playDriveAnimation();
         spawnParticles(isCrit);
         
-        // Позиция для всплывающего текста (относительно трассы)
         const rect = clickButton.getBoundingClientRect();
         const trackRect = trackView.getBoundingClientRect();
-        const textX = rect.left - trackRect.left + (Math.random() * 100 - 50); // Разброс
-        const textY = rect.top - trackRect.top; // Над кнопкой
+        const textX = rect.left - trackRect.left + (Math.random() * 100 - 50);
+        const textY = rect.top - trackRect.top;
 
         createFloatingText(textX, textY, earnedMoney, isCrit);
 
         if (isCrit) {
             triggerShake();
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); // Сильная вибрация
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         } else {
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
@@ -249,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame();
     });
 
-    // === УЛУЧШЕНИЯ ===
     btnEngine.addEventListener('click', () => {
         if (gameState.money < gameState.engineCost) return;
         gameState.money -= gameState.engineCost;
@@ -270,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame();
     });
 
-    // === АВТОДОХОД ===
     setInterval(() => {
         if (gameState.autoTurbo > 0) {
             gameState.money += gameState.autoTurbo;
@@ -280,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // === СЕРВЕР ===
     let scoreTimer = null;
     function scheduleScoreSubmit() {
         if (!tg.initData) return;
@@ -301,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { /* тихо */ }
     }
 
-    // === ЛИДЕРЫ ===
     leaderboardBtn.addEventListener('click', async () => {
         leaderboardModal.classList.remove('hidden');
         leaderboardList.textContent = 'Загрузка...';
@@ -336,6 +308,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }[ch]));
     }
 
-    // === СТАРТ ===
     updateUI();
 });
