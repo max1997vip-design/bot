@@ -1,9 +1,8 @@
 :root {
-    --bg: var(--tg-theme-bg-color, #0f1117);
-    --text: var(--tg-theme-text-color, #ffffff);
-    --btn: var(--tg-theme-button-color, #2481cc);
-    --btn-text: var(--tg-theme-button-text-color, #ffffff);
-    --secondary: var(--tg-theme-secondary-bg-color, #1c1f26);
+    --bg: #0f1117;
+    --text: #ffffff;
+    --btn: #2481cc;
+    --secondary: #1c1f26;
     --accent: #ffd60a;
     --success: #30d158;
 }
@@ -20,6 +19,7 @@ body {
     padding: 16px 0 40px;
     background: var(--bg);
     color: var(--text);
+    overflow-x: hidden;
 }
 
 .container {
@@ -37,55 +37,90 @@ body {
     color: transparent;
 }
 
-#user-name {
-    font-size: 0.9rem;
-    opacity: 0.7;
-    margin-bottom: 16px;
+#user-name { font-size: 0.9rem; opacity: 0.7; margin-bottom: 16px; }
+
+/* =========================================
+   3D ТРАССА
+========================================= */
+.track-view {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(to bottom, #050505, #1a1a24);
+    position: relative;
+    perspective: 400px; /* Создает 3D-глубину */
+    overflow: hidden;
+    border-radius: 16px;
+    border: 2px solid #333;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 5px 15px rgba(0,0,0,0.5);
+    margin-bottom: 20px;
 }
 
-/* --- Трек --- */
-#track {
-    position: relative;
-    width: 100%;
-    height: 90px;
-    border-radius: 14px;
-    background: linear-gradient(180deg, #1a1d24, #2a2e37);
-    margin: 12px 0 20px;
+.road {
+    position: absolute;
+    bottom: -50px;
+    left: 15%;
+    width: 70%;
+    height: 400px;
+    background: #2a2a35;
+    transform: rotateX(65deg); /* Наклоняем дорогу */
+    transform-origin: bottom;
     overflow: hidden;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 4px 20px rgba(0,0,0,0.4);
+    border-left: 4px solid #fff;
+    border-right: 4px solid #fff;
 }
 
 .road-lines {
     position: absolute;
-    bottom: 8px;
-    left: 0;
-    width: 200%;
-    height: 4px;
+    top: 0;
+    left: 48%;
+    width: 4%;
+    height: 200%;
     background: repeating-linear-gradient(
-        90deg,
-        #ffd60a 0 20px,
-        transparent 20px 40px
+        to bottom,
+        transparent,
+        transparent 30px,
+        #ffd60a 30px,
+        #ffd60a 60px
     );
-    animation: roadScroll 1.2s linear infinite;
+    animation: roadScroll 0.4s linear infinite;
+    animation-play-state: paused; /* Двигается только при клике */
+}
+
+.road.active .road-lines {
+    animation-play-state: running;
 }
 
 @keyframes roadScroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-40px); }
+    from { transform: translateY(0); }
+    to { transform: translateY(60px); }
 }
 
-#car {
-    font-size: 44px;
+.car {
     position: absolute;
-    bottom: 14px;
-    left: 0;
-    transition: transform 0.1s ease-out, filter 0.3s;
-    filter: drop-shadow(0 0 10px var(--car-glow, #ff3b30))
-            drop-shadow(0 0 20px var(--car-glow, #ff3b30));
-    will-change: transform;
+    bottom: 15px;
+    left: 50%;
+    margin-left: -35px;
+    width: 70px;
+    height: auto;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.6));
+    z-index: 10;
+    transform-origin: center bottom;
 }
 
-/* --- Деньги --- */
+/* Анимация проезда трассы */
+.car.driving {
+    animation: drive3D 0.8s ease-in-out forwards;
+}
+
+@keyframes drive3D {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    60% { transform: translateY(-120px) scale(0.6); opacity: 1; }
+    100% { transform: translateY(-200px) scale(0.2); opacity: 0; }
+}
+
+/* =========================================
+   ИНТЕРФЕЙС И МАГАЗИН
+========================================= */
 #money-display {
     font-size: 2.2rem;
     font-weight: 800;
@@ -94,13 +129,8 @@ body {
     text-shadow: 0 0 20px rgba(255, 214, 10, 0.4);
 }
 
-#click-power-hint {
-    font-size: 0.85rem;
-    opacity: 0.6;
-    margin-bottom: 16px;
-}
+#click-power-hint { font-size: 0.85rem; opacity: 0.6; margin-bottom: 16px; }
 
-/* --- Главная кнопка --- */
 #click-button {
     font-size: 1.5rem;
     padding: 18px 40px;
@@ -119,20 +149,16 @@ body {
 
 #click-button:active { transform: scale(0.96); }
 
-/* --- Магазин --- */
 .shop {
     background: var(--secondary);
     padding: 14px;
     border-radius: 16px;
     margin-bottom: 14px;
     text-align: left;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
-.shop h3 {
-    margin: 0 0 10px;
-    font-size: 1rem;
-    opacity: 0.85;
-}
+.shop h3 { margin: 0 0 10px; font-size: 1rem; opacity: 0.85; }
 
 .shop-btn, .secondary-btn {
     display: block;
@@ -154,13 +180,13 @@ body {
 
 .secondary-btn {
     background: var(--btn);
-    color: var(--btn-text);
+    color: #fff;
     padding: 14px;
     font-size: 1rem;
     margin-top: 8px;
 }
 
-/* --- Машины --- */
+/* Машины в гараже */
 .car-btn {
     display: flex;
     align-items: center;
@@ -178,77 +204,29 @@ body {
 }
 
 .car-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
-.car-btn.active {
-    border-color: var(--accent);
-    background: rgba(255,214,10,0.12);
-}
+.car-btn.active { border-color: var(--accent); background: rgba(255,214,10,0.12); }
 .car-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.car-btn .car-emoji {
-    font-size: 32px;
-    filter: drop-shadow(0 0 8px var(--glow, #fff));
-    flex-shrink: 0;
+.car-btn img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
 }
 
-.car-btn .car-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    line-height: 1.2;
-}
+.car-btn .car-info { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; }
 .car-btn .car-info b { font-size: 0.95rem; }
 .car-btn .car-info small { font-size: 0.75rem; opacity: 0.7; }
 .car-btn .car-info .bonus { color: var(--success); opacity: 1; }
 
-/* --- Модалка --- */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    backdrop-filter: blur(4px);
-}
+/* Модалка лидеров */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
 .modal.hidden { display: none; }
-
-.modal-content {
-    background: var(--secondary);
-    padding: 20px;
-    border-radius: 18px;
-    width: 90%;
-    max-width: 400px;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
+.modal-content { background: var(--secondary); padding: 20px; border-radius: 18px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
 .modal-content h2 { margin-top: 0; }
 
-.leader-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    font-size: 0.9rem;
-}
+.leader-row { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.9rem; }
 .leader-row .rank { font-weight: 800; color: var(--accent); min-width: 28px; }
 .leader-row .name { flex: 1; text-align: left; }
 .leader-row .money { color: var(--success); font-weight: 700; }
 .leader-row.self { background: rgba(255,214,10,0.1); border-radius: 8px; }
-
-/* --- Всплывающий "+N" --- */
-.pop-float {
-    position: absolute;
-    pointer-events: none;
-    font-weight: 800;
-    color: var(--success);
-    font-size: 1.1rem;
-    animation: floatUp 0.8s ease-out forwards;
-    z-index: 50;
-}
-@keyframes floatUp {
-    from { transform: translateY(0); opacity: 1; }
-    to   { transform: translateY(-70px); opacity: 0; }
-}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Гоночный Кликер</title>
+    <title>Гоночный Кликер 3D</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -14,9 +14,12 @@
             <div id="user-name">Привет, Игрок!</div>
         </div>
 
-        <div id="track">
-            <div class="road-lines"></div>
-            <div id="car">🏎️</div>
+        <!-- 3D Трасса -->
+        <div class="track-view">
+            <div class="road">
+                <div class="road-lines"></div>
+            </div>
+            <img id="car-img" src="https://cdn-icons-png.flaticon.com/512/3204/3204071.png" alt="Car" class="car">
         </div>
 
         <div id="money-display">💰 0</div>
@@ -38,6 +41,7 @@
         <button id="leaderboard-btn" class="secondary-btn">🏆 Таблица лидеров</button>
     </div>
 
+    <!-- Модалка лидеров -->
     <div id="leaderboard-modal" class="modal hidden">
         <div class="modal-content">
             <h2>🏆 Топ игроков</h2>
