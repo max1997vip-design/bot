@@ -3,63 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Гоночный Кликер 3D</title>
+    <title>Гоночный Кликер PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏁 Гоночный Кликер</h1>
-            <div id="user-name">Привет, Игрок!</div>
+            <h1>RACE CLICKER</h1>
+            <div id="user-name">Пилот</div>
         </div>
 
         <!-- 3D Трасса -->
         <div class="track-view">
+            <div class="track-border top-border"></div>
             <div class="road">
                 <div class="road-lines"></div>
+                <div class="speed-lines"></div>
             </div>
-            <img id="car-img" src="" alt="Car" class="car">
+            <div class="track-border bottom-border"></div>
+            <!-- Добавлен onerror для подстраховки -->
+            <img id="car-img" src="" alt="Car" class="car" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
         </div>
 
-        <div id="money-display">💰 0</div>
-        <div id="click-power-hint"></div>
-
-        <button id="click-button">ГАЗ! 🏁</button>
-
-        <!-- Улучшения с картинками -->
-        <div class="shop">
-            <h3>⚙️ Улучшения</h3>
-            <button id="upgrade-engine" class="shop-btn">
-                <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Engine">
-                <div class="shop-info">
-                    <b>Двигатель</b>
-                    <small id="engine-price">Цена: 10</small>
-                </div>
-            </button>
-            <button id="upgrade-turbo" class="shop-btn">
-                <img src="https://cdn-icons-png.flaticon.com/512/2877/2877941.png" alt="Turbo">
-                <div class="shop-info">
-                    <b>Турбо</b>
-                    <small id="turbo-price">Цена: 50</small>
-                </div>
-            </button>
+        <!-- Приборная панель -->
+        <div class="dashboard">
+            <div class="dash-item">
+                <span class="dash-label">БАЛАНС</span>
+                <span id="money-display">0</span>
+            </div>
+            <div class="dash-item">
+                <span class="dash-label">МОЩНОСТЬ</span>
+                <span id="click-power-hint" class="power-text">1x</span>
+            </div>
         </div>
 
-        <div class="shop">
-            <h3>🏎️ Гараж</h3>
-            <div id="cars-list"></div>
+        <button id="click-button" class="gas-btn">
+            <span class="gas-text">ГАЗ В ПОЛ!</span>
+            <span class="gas-icon">🏁</span>
+        </button>
+
+        <!-- Улучшения -->
+        <div class="panel">
+            <h3 class="panel-title">ТЮНИНГ</h3>
+            <div class="shop-grid">
+                <button id="upgrade-engine" class="upgrade-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Engine" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2933/2933245.png'">
+                    <div class="upgrade-info">
+                        <b>Двигатель</b>
+                        <small id="engine-price">Уровень 1 · 10💰</small>
+                    </div>
+                </button>
+                <button id="upgrade-turbo" class="upgrade-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2877/2877941.png" alt="Turbo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3595/3595458.png'">
+                    <div class="upgrade-info">
+                        <b>Турбо</b>
+                        <small id="turbo-price">Не куплено · 50💰</small>
+                    </div>
+                </button>
+            </div>
         </div>
 
-        <button id="leaderboard-btn" class="secondary-btn">🏆 Таблица лидеров</button>
+        <!-- Гараж -->
+        <div class="panel">
+            <h3 class="panel-title">ГАРАЖ</h3>
+            <div id="cars-list" class="garage-list"></div>
+        </div>
+
+        <button id="leaderboard-btn" class="leaderboard-btn">🏆 ЗАЛ СЛАВЫ</button>
     </div>
 
     <!-- Модалка лидеров -->
     <div id="leaderboard-modal" class="modal hidden">
         <div class="modal-content">
-            <h2>🏆 Топ игроков</h2>
+            <h2 class="panel-title">ТОП ПИЛОТОВ</h2>
             <div id="leaderboard-list">Загрузка...</div>
-            <button id="close-leaderboard" class="secondary-btn">Закрыть</button>
+            <button id="close-leaderboard" class="close-btn">ЗАКРЫТЬ</button>
         </div>
     </div>
 

@@ -1,54 +1,63 @@
 :root {
-    --bg: #0f1117;
+    --bg: #0a0a0e;
+    --panel-bg: rgba(20, 20, 28, 0.85);
     --text: #ffffff;
-    --btn: #2481cc;
-    --secondary: #1c1f26;
-    --accent: #ffd60a;
-    --success: #30d158;
+    --accent: #00ffcc;
+    --accent-glow: rgba(0, 255, 204, 0.4);
+    --danger: #ff375f;
+    --gold: #ffd60a;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: 'Roboto', sans-serif;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
     margin: 0;
     padding: 16px 0 40px;
-    background: var(--bg);
+    background-color: var(--bg);
+    /* Карбоновый паттерн на фоне */
+    background-image: 
+        linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111), 
+        linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
     color: var(--text);
     overflow-x: hidden;
 }
 
 .container { width: 92%; max-width: 420px; text-align: center; }
 
+/* HEADER */
 .header h1 {
-    font-size: 1.4rem;
-    margin: 8px 0;
-    background: linear-gradient(90deg, #ffd60a, #ff9f0a, #ff375f);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    margin: 10px 0 4px;
+    color: var(--text);
+    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
+    letter-spacing: 2px;
 }
-#user-name { font-size: 0.9rem; opacity: 0.7; margin-bottom: 16px; }
+#user-name { font-size: 0.9rem; opacity: 0.6; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
 
-/* =========================================
-   3D ТРАССА
-========================================= */
+/* 3D ТРАССА */
 .track-view {
     width: 100%;
-    height: 200px;
-    background: linear-gradient(to bottom, #050505, #1a1a24);
+    height: 220px;
     position: relative;
     perspective: 400px;
     overflow: hidden;
-    border-radius: 16px;
-    border: 2px solid #333;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 5px 15px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9);
     margin-bottom: 20px;
+    background: #050505;
 }
+
+.track-border { position: absolute; width: 100%; height: 10px; background: repeating-linear-gradient(90deg, #ff375f 0 20px, #fff 20px 40px); z-index: 5; }
+.top-border { top: 0; opacity: 0.3; }
+.bottom-border { bottom: 0; }
 
 .road {
     position: absolute;
@@ -56,19 +65,20 @@ body {
     left: 15%;
     width: 70%;
     height: 400px;
-    background: #2a2a35;
+    background: linear-gradient(to bottom, #1a1a24, #2a2a35);
     transform: rotateX(65deg);
     transform-origin: bottom;
     overflow: hidden;
-    border-left: 4px solid #fff;
-    border-right: 4px solid #fff;
+    border-left: 4px solid var(--accent);
+    border-right: 4px solid var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .road-lines {
     position: absolute;
     top: 0; left: 48%; width: 4%; height: 200%;
-    background: repeating-linear-gradient(to bottom, transparent, transparent 30px, #ffd60a 30px, #ffd60a 60px);
-    animation: roadScroll 0.4s linear infinite;
+    background: repeating-linear-gradient(to bottom, transparent, transparent 30px, var(--accent) 30px, var(--accent) 60px);
+    animation: roadScroll 0.3s linear infinite;
     animation-play-state: paused;
 }
 
@@ -79,105 +89,185 @@ body {
     to { transform: translateY(60px); }
 }
 
+/* Машина */
 .car {
     position: absolute;
-    bottom: 15px;
+    bottom: 20px;
     left: 50%;
-    margin-left: -40px; /* половина ширины */
-    width: 80px;
+    margin-left: -50px;
+    width: 100px;
     height: auto;
     z-index: 10;
     transform-origin: center bottom;
-    filter: drop-shadow(0 15px 10px rgba(0,0,0,0.8));
+    filter: drop-shadow(0 20px 15px rgba(0,0,0,0.9));
 }
 
-/* Анимация проезда трассы */
-.car.driving { animation: drive3D 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.car.driving { animation: drive3D 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 @keyframes drive3D {
     0% { transform: translateY(0) scale(1); opacity: 1; }
-    50% { transform: translateY(-80px) scale(0.7); opacity: 0.8; filter: blur(1px); }
-    100% { transform: translateY(-180px) scale(0.1); opacity: 0; filter: blur(4px); }
+    40% { transform: translateY(-60px) scale(0.7); opacity: 0.8; }
+    100% { transform: translateY(-180px) scale(0.1); opacity: 0; }
 }
 
-/* =========================================
-   ИНТЕРФЕЙС
-========================================= */
-#money-display { font-size: 2.2rem; font-weight: 800; margin: 8px 0 4px; color: var(--accent); text-shadow: 0 0 20px rgba(255, 214, 10, 0.4); }
-#click-power-hint { font-size: 0.85rem; opacity: 0.6; margin-bottom: 16px; }
-
-#click-button {
-    font-size: 1.5rem; padding: 18px 40px; border-radius: 50px; border: none;
-    background: linear-gradient(135deg, #ff375f, #ff9f0a); color: #fff; cursor: pointer;
-    width: 100%; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;
-    box-shadow: 0 8px 24px rgba(255, 55, 95, 0.4); transition: transform 0.08s;
-}
-#click-button:active { transform: scale(0.96); }
-
-/* Магазин */
-.shop {
-    background: var(--secondary); padding: 14px; border-radius: 16px;
-    margin-bottom: 14px; text-align: left; border: 1px solid rgba(255,255,255,0.05);
-}
-.shop h3 { margin: 0 0 10px; font-size: 1rem; opacity: 0.85; }
-
-/* Новые кнопки улучшений с картинками */
-.shop-btn {
+/* ПРИБОРНАЯ ПАНЕЛЬ */
+.dashboard {
     display: flex;
+    justify-content: space-between;
+    background: var(--panel-bg);
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+}
+
+.dash-item { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.dash-item:last-child { align-items: flex-end; }
+.dash-label { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; font-family: 'Orbitron', sans-serif; }
+
+#money-display {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent-glow);
+    line-height: 1;
+}
+
+.power-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--danger);
+    text-shadow: 0 0 10px rgba(255, 55, 95, 0.4);
+}
+
+/* КНОПКА ГАЗ */
+.gas-btn {
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     width: 100%;
-    padding: 10px 15px;
-    margin: 8px 0;
+    padding: 20px;
     border-radius: 12px;
     border: none;
-    background: rgba(255,255,255,0.08);
+    background: linear-gradient(135deg, #ff375f, #ff9f0a);
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    cursor: pointer;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(255, 55, 95, 0.4), inset 0 2px 0 rgba(255,255,255,0.3);
+    transition: all 0.1s;
+    text-transform: uppercase;
+}
+.gas-btn:active { transform: scale(0.97); box-shadow: 0 4px 10px rgba(255, 55, 95, 0.6); }
+.gas-icon { font-size: 1.6rem; }
+
+/* ПАНЕЛИ (Магазины) */
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: left;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    margin: 0 0 15px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+    padding-bottom: 8px;
+    text-transform: uppercase;
+}
+
+/* Сетка улучшений */
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.upgrade-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
     color: var(--text);
     cursor: pointer;
-    text-align: left;
-    transition: background 0.15s;
+    transition: all 0.2s;
 }
+.upgrade-card:hover:not(:disabled) { background: rgba(255,255,255,0.08); border-color: var(--accent); }
+.upgrade-card:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.shop-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); }
-.shop-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.upgrade-card img { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+.upgrade-info { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+.upgrade-info b { font-size: 0.85rem; }
+.upgrade-info small { font-size: 0.7rem; opacity: 0.6; color: var(--gold); }
 
-.shop-btn img {
-    width: 45px;
-    height: 45px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-}
+/* Гараж */
+.garage-list { display: flex; flex-direction: column; gap: 8px; }
 
-.shop-info { display: flex; flex-direction: column; gap: 2px; }
-.shop-info b { font-size: 1rem; }
-.shop-info small { font-size: 0.8rem; opacity: 0.7; color: var(--accent); }
-
-/* Машины в гараже */
 .car-btn {
-    display: flex; align-items: center; gap: 15px; width: 100%; padding: 10px 15px;
-    margin: 8px 0; border-radius: 12px; border: 2px solid transparent;
-    background: rgba(255,255,255,0.05); color: var(--text); cursor: pointer; text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
 }
-.car-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
-.car-btn.active { border-color: var(--accent); background: rgba(255,214,10,0.12); }
-.car-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.car-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
+.car-btn.active { border-color: var(--accent); background: rgba(0, 255, 204, 0.05); box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.1); }
+.car-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.car-btn img {
-    width: 55px; height: 40px; object-fit: contain;
-    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
-}
+.car-btn img { width: 60px; height: 40px; object-fit: contain; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.8)); }
 .car-btn .car-info { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; }
-.car-btn .car-info b { font-size: 0.95rem; }
-.car-btn .car-info small { font-size: 0.75rem; opacity: 0.7; }
-.car-btn .car-info .bonus { color: var(--success); opacity: 1; }
+.car-btn .car-info b { font-size: 0.9rem; font-family: 'Orbitron', sans-serif; }
+.car-btn .car-info small { font-size: 0.75rem; opacity: 0.6; }
+.car-btn .car-info .bonus { color: var(--accent); opacity: 1; font-weight: bold; }
 
-/* Модалка и лидеры */
-.secondary-btn { background: var(--btn); color: #fff; padding: 14px; font-size: 1rem; border-radius: 10px; border: none; width: 100%; font-weight: bold; cursor: pointer; }
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+/* Кнопка лидеров */
+.leaderboard-btn {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    color: var(--gold);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.leaderboard-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255, 214, 10, 0.4); }
+
+/* Модалка */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(5px); }
 .modal.hidden { display: none; }
-.modal-content { background: var(--secondary); padding: 20px; border-radius: 18px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
-.leader-row { display: flex; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.9rem; }
-.leader-row .rank { font-weight: 800; color: var(--accent); min-width: 28px; }
-.leader-row .name { flex: 1; text-align: left; }
-.leader-row .money { color: var(--success); font-weight: 700; }
-.leader-row.self { background: rgba(255,214,10,0.1); border-radius: 8px; }
+.modal-content { background: #111; border: 1px solid var(--accent); padding: 20px; border-radius: 16px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; box-shadow: 0 0 30px rgba(0,255,204,0.1); }
+
+.leader-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+.leader-row .rank { font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--gold); min-width: 25px; }
+.leader-row .name { flex: 1; text-align: left; font-weight: bold; }
+.leader-row .money { color: var(--accent); font-family: 'Orbitron', sans-serif; font-weight: 700; }
+.leader-row.self { background: rgba(0, 255, 204, 0.1); border-radius: 8px; border: 1px solid rgba(0, 255, 204, 0.3); }
+
+.close-btn { width: 100%; padding: 12px; margin-top: 15px; background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.close-btn:hover { background: rgba(255,255,255,0.2); }

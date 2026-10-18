@@ -3,20 +3,19 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     tg.ready();
 
-    const userName = tg.initDataUnsafe?.user?.first_name || 'Игрок';
+    const userName = tg.initDataUnsafe?.user?.first_name || 'Пилот';
     const myId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
 
-    document.getElementById('user-name').textContent = `Привет, ${userName}!`;
+    document.getElementById('user-name').textContent = `Пилот: ${userName}`;
 
-    // === РЕАЛИСТИЧНЫЕ МАШИНЫ ===
-    // Ссылки на PNG с прозрачным фоном
+    // === МАШИНЫ С НАДЕЖНЫХ ИСТОЧНИКОВ ===
     const CARS = [
-        { id: 'f1',     name: 'Болид F1',     img: 'https://pngimg.com/uploads/f1/f1_PNG14985.png', price: 0,     bonus: 0 },
-        { id: 'sport',  name: 'Спорткар',     img: 'https://pngimg.com/uploads/porsche/porsche_PNG10625.png', price: 100,   bonus: 1 },
-        { id: 'suv',    name: 'Внедорожник',  img: 'https://pngimg.com/uploads/suv/suv_PNG10034.png', price: 500,   bonus: 3 },
-        { id: 'taxi',   name: 'Такси',        img: 'https://pngimg.com/uploads/taxi/taxi_PNG115.png', price: 2000,  bonus: 8 },
-        { id: 'police', name: 'Патруль',      img: 'https://pngimg.com/uploads/police_car/police_car_PNG79.png', price: 8000,  bonus: 20 },
-        { id: 'race',   name: 'Суперкар',     img: 'https://pngimg.com/uploads/ferrari/ferrari_PNG10276.png', price: 25000, bonus: 50 }
+        { id: 'f1',     name: 'Болид F1',     img: 'https://freepngimg.com/thumb/car/12-2-car-png-hd.png', price: 0,     bonus: 0 },
+        { id: 'sport',  name: 'Спорткар',     img: 'https://freepngimg.com/thumb/car/1-2-car-png-clipart.png', price: 100,   bonus: 1 },
+        { id: 'suv',    name: 'Внедорожник',  img: 'https://freepngimg.com/thumb/car/4-2-car-png.png', price: 500,   bonus: 3 },
+        { id: 'taxi',   name: 'Дрифт-Такси',  img: 'https://freepngimg.com/thumb/car/6-2-car-png-file.png', price: 2000,  bonus: 8 },
+        { id: 'police', name: 'Патруль',      img: 'https://freepngimg.com/thumb/car/7-2-car-png-image.png', price: 8000,  bonus: 20 },
+        { id: 'race',   name: 'Гиперкар',     img: 'https://freepngimg.com/thumb/car/9-2-car-png-pic.png', price: 25000, bonus: 50 }
     ];
 
     const carImg = document.getElementById('car-img');
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clickPowerHint = document.getElementById('click-power-hint');
     const clickButton = document.getElementById('click-button');
     
-    // Кнопки улучшений
     const btnEngine = document.getElementById('upgrade-engine');
     const btnTurbo = document.getElementById('upgrade-turbo');
     const enginePriceText = document.getElementById('engine-price');
@@ -44,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autoTurbo: 0,
         engineCost: 10,
         turboCost: 50,
+        engineLevel: 1,
         ownedCars: ['f1'],
         currentCar: 'f1'
     };
@@ -64,16 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === UI ===
     function updateUI() {
-        moneyDisplay.textContent = `💰 ${Math.floor(gameState.money)}`;
-        clickPowerHint.textContent = `Сила клика: ${getClickPower()} · Автодоход: ${gameState.autoTurbo}/сек`;
+        moneyDisplay.textContent = Math.floor(gameState.money).toLocaleString('ru-RU');
+        clickPowerHint.textContent = `${getClickPower()}x`;
 
-        // Обновляем цены под картинками
-        enginePriceText.textContent = `Цена: ${gameState.engineCost} (Клик: ${getClickPower()})`;
+        // Обновляем цены в карточках улучшений
+        enginePriceText.textContent = `Ур. ${gameState.engineLevel} · ${gameState.engineCost}💰`;
         btnEngine.disabled = gameState.money < gameState.engineCost;
 
         turboPriceText.textContent = gameState.autoTurbo > 0
             ? `Активно: +${gameState.autoTurbo}/сек`
-            : `Цена: ${gameState.turboCost}`;
+            : `Цена: ${gameState.turboCost}💰`;
         btnTurbo.disabled = gameState.money < gameState.turboCost || gameState.autoTurbo > 0;
 
         renderCars();
@@ -95,12 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.className = 'car-btn' + (active ? ' active' : '');
             btn.disabled = !owned && !canBuy;
+            
+            // Добавляем onerror прямо в HTML-строку для надежности
             btn.innerHTML = `
-                <img src="${c.img}" alt="${c.name}">
+                <img src="${c.img}" alt="${c.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
                 <span class="car-info">
                     <b>${c.name}</b>
-                    <small>${owned ? (active ? '✅ Активна' : '👆 Выбрать') : `💰 ${c.price}`}</small>
-                    ${c.bonus > 0 ? `<small class="bonus">+${c.bonus} к силе клика</small>` : ''}
+                    <small>${owned ? (active ? '✅ В гараже' : '👆 Выбрать') : `Цена: ${c.price}💰`}</small>
+                    ${c.bonus > 0 ? `<small class="bonus">+${c.bonus} к мощности</small>` : ''}
                 </span>
             `;
             btn.addEventListener('click', () => selectOrBuyCar(c));
@@ -121,11 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame();
     }
 
-    // === ЛОГИКА КЛИКА И 3D АНИМАЦИИ ===
+    // === АНИМАЦИЯ ЕЗДЫ ===
     function playDriveAnimation() {
         carImg.classList.remove('driving');
         road.classList.remove('active');
-        void carImg.offsetWidth; // Перезапуск анимации
+        void carImg.offsetWidth; // Сброс анимации
         
         carImg.classList.add('driving');
         road.classList.add('active');
@@ -133,26 +134,26 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             carImg.classList.remove('driving');
             road.classList.remove('active');
-        }, 800);
+        }, 700);
     }
 
-    clickButton.addEventListener('click', (e) => {
+    clickButton.addEventListener('click', () => {
         const power = getClickPower();
         gameState.money += power;
         
         playDriveAnimation();
-        
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
         updateUI();
         saveGame();
     });
 
-    // === Магазин улучшений ===
+    // === УЛУЧШЕНИЯ ===
     btnEngine.addEventListener('click', () => {
         if (gameState.money < gameState.engineCost) return;
         gameState.money -= gameState.engineCost;
         gameState.clickPower += 1;
+        gameState.engineLevel += 1;
         gameState.engineCost = Math.floor(gameState.engineCost * 1.5);
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         updateUI();
@@ -168,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame();
     });
 
-    // === Автодоход ===
+    // === АВТОДОХОД ===
     setInterval(() => {
         if (gameState.autoTurbo > 0) {
             gameState.money += gameState.autoTurbo;
@@ -178,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // === Отправка очков на сервер ===
+    // === СЕРВЕР ===
     let scoreTimer = null;
     function scheduleScoreSubmit() {
         if (!tg.initData) return;
@@ -199,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { /* тихо */ }
     }
 
-    // === Таблица лидеров ===
+    // === ЛИДЕРЫ ===
     leaderboardBtn.addEventListener('click', async () => {
         leaderboardModal.classList.remove('hidden');
         leaderboardList.textContent = 'Загрузка...';
@@ -207,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const r = await fetch('/api/leaderboard');
             const data = await r.json();
             if (!data.players || !data.players.length) {
-                leaderboardList.textContent = 'Пока никого нет 😴';
+                leaderboardList.textContent = 'Трасса пуста...';
                 return;
             }
             leaderboardList.innerHTML = '';
@@ -215,14 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = document.createElement('div');
                 row.className = 'leader-row' + (p.id === myId ? ' self' : '');
                 row.innerHTML = `
-                    <span class="rank">${['🥇','🥈','🥉'][i] || (i + 1)}</span>
+                    <span class="rank">#${i + 1}</span>
                     <span class="name">${escapeHtml(p.name)}</span>
-                    <span class="money">💰 ${p.money}</span>
+                    <span class="money">💰 ${p.money.toLocaleString('ru-RU')}</span>
                 `;
                 leaderboardList.appendChild(row);
             });
         } catch (e) {
-            leaderboardList.textContent = 'Ошибка загрузки';
+            leaderboardList.textContent = 'Ошибка связи с сервером';
         }
     });
 
@@ -234,6 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }[ch]));
     }
 
-    // === Старт ===
+    // === СТАРТ ===
     updateUI();
 });
