@@ -3,121 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RACE CLICKER PRO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Turbo Clicker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>RACE CLICKER</h1>
-            <div id="user-name">Пилот</div>
-        </div>
-
-        <!-- КИБЕРПАНК ТРАССА -->
-        <div class="track-view" id="track-view">
-            <div class="sky-bg"></div>
-            <div class="grid-bg"></div>
-            
-            <!-- Линии скорости -->
-            <div class="speed-lines" id="speed-lines"></div>
-
-            <!-- Дорога -->
-            <div class="road" id="road">
-                <div class="road-lines"></div>
-                <div class="neon-border left"></div>
-                <div class="neon-border right"></div>
+    <div class="app-container">
+        
+        <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+        <header class="top-bar">
+            <div class="user-info">
+                <div class="avatar">🏎️</div>
+                <div class="user-details">
+                    <span class="user-name" id="user-name">Пилот</span>
+                    <span class="user-rank">Новичок</span>
+                </div>
             </div>
-            
-            <div id="particles-container"></div>
-            <div id="floating-texts"></div>
-
-            <!-- Машина -->
-            <img id="car-img" src="" alt="Car" class="car">
-        </div>
-
-        <!-- Дистанция и прогресс -->
-        <div class="distance-bar">
-            <div class="distance-text">
-                <span>ДИСТАНЦИЯ</span>
-                <span id="distance-value">0 м</span>
-            </div>
-            <div class="progress-track">
-                <div id="progress-fill" class="progress-fill"></div>
-            </div>
-        </div>
-
-        <!-- Приборная панель -->
-        <div class="dashboard">
-            <div class="dash-item">
-                <span class="dash-label">БАЛАНС</span>
+            <div class="balance-card">
+                <span class="coin-icon">💰</span>
                 <span id="money-display">0</span>
             </div>
-            <div class="dash-item">
-                <span class="dash-label">МОЩНОСТЬ</span>
-                <span id="click-power-hint" class="power-text">1x</span>
+        </header>
+
+        <!-- ВКЛАДКА: ГОНКА -->
+        <main id="tab-race" class="tab-content active">
+            <div class="track-container">
+                <div class="road">
+                    <div class="road-lines"></div>
+                </div>
+                <div id="car-container" class="car-container">
+                    <img id="car-img" src="" alt="Car" class="car-image">
+                </div>
+                <!-- Точка появления цифр -->
+                <div id="floating-texts"></div>
             </div>
-        </div>
 
-        <!-- Индикатор комбо -->
-        <div id="combo-display" class="combo-hidden">
-            <span>КОМБО x<span id="combo-value">1.0</span></span>
-            <div class="overdrive-text hidden" id="overdrive-text">OVERDRIVE!</div>
-        </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-label">За клик</span>
+                    <span class="stat-value" id="click-power-display">+1</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">В секунду</span>
+                    <span class="stat-value" id="auto-power-display">+0</span>
+                </div>
+            </div>
 
-        <button id="click-button" class="gas-btn">
-            <span class="gas-text">ГАЗ В ПОЛ!</span>
-            <span class="gas-icon">🏁</span>
-        </button>
-
-        <!-- Улучшения -->
-        <div class="panel">
-            <h3 class="panel-title">ТЮНИНГ</h3>
-            <div class="shop-grid">
-                <button id="upgrade-engine" class="upgrade-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Engine">
-                    <div class="upgrade-info">
-                        <b>Двигатель</b>
-                        <small id="engine-price">Ур. 1 · 10💰</small>
-                    </div>
+            <div class="action-area">
+                <button id="nitro-btn" class="nitro-btn">
+                    <span>🔥</span> НИТРО
                 </button>
-                <button id="upgrade-turbo" class="upgrade-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2877/2877941.png" alt="Turbo">
-                    <div class="upgrade-info">
-                        <b>Турбо</b>
-                        <small id="turbo-price">Цена: 50💰</small>
-                    </div>
+                <button id="click-button" class="main-click-btn">
+                    <span class="click-text">ГАЗ</span>
                 </button>
             </div>
-        </div>
+        </main>
 
-        <!-- Гараж -->
-        <div class="panel">
-            <h3 class="panel-title">ГАРАЖ</h3>
-            <div id="cars-list" class="garage-list"></div>
-        </div>
+        <!-- ВКЛАДКА: ТЮНИНГ -->
+        <main id="tab-upgrades" class="tab-content">
+            <h2 class="section-title">ТЮНИНГ БОЛИДА</h2>
+            <div class="upgrade-list">
+                <div class="upgrade-card" id="upgrade-engine">
+                    <div class="upgrade-icon">⚙️</div>
+                    <div class="upgrade-info">
+                        <h3>Двигатель</h3>
+                        <p>Увеличивает доход за клик</p>
+                        <div class="upgrade-stats">
+                            <span>Ур. <span id="engine-level">1</span></span>
+                            <span class="price" id="engine-price">10 💰</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="upgrade-card" id="upgrade-turbo">
+                    <div class="upgrade-icon">🌀</div>
+                    <div class="upgrade-info">
+                        <h3>Турбонаддув</h3>
+                        <p>Приносит пассивный доход</p>
+                        <div class="upgrade-stats">
+                            <span>Ур. <span id="turbo-level">0</span></span>
+                            <span class="price" id="turbo-price">50 💰</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
 
-        <button id="leaderboard-btn" class="leaderboard-btn">🏆 ЗАЛ СЛАВЫ</button>
+        <!-- ВКЛАДКА: ГАРАЖ -->
+        <main id="tab-garage" class="tab-content">
+            <h2 class="section-title">МОЙ ГАРАЖ</h2>
+            <div id="cars-list" class="garage-list">
+                <!-- Машины генерируются в JS -->
+            </div>
+        </main>
+
+        <!-- НИЖНЕЕ МЕНЮ -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-tab="race">
+                <span class="nav-icon">🏁</span>
+                <span class="nav-text">Гонка</span>
+            </button>
+            <button class="nav-btn" data-tab="upgrades">
+                <span class="nav-icon">🛠️</span>
+                <span class="nav-text">Тюнинг</span>
+            </button>
+            <button class="nav-btn" data-tab="garage">
+                <span class="nav-icon">🏎️</span>
+                <span class="nav-text">Гараж</span>
+            </button>
+            <button class="nav-btn" id="btn-leaderboard">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-text">Топ</span>
+            </button>
+        </nav>
     </div>
 
-    <!-- Модалка Оффлайн-дохода -->
-    <div id="offline-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2 class="panel-title" style="color: var(--gold);">С ВОЗВРАЩЕНИЕМ!</h2>
-            <p style="text-align: center; font-size: 1.1rem;">Пока вас не было, ваш автопилот заработал:</p>
-            <h1 style="text-align: center; color: var(--accent); font-size: 2.5rem; font-family: 'Orbitron'; margin: 10px 0;" id="offline-earnings">+0</h1>
-            <p style="text-align: center; font-size: 0.8rem; opacity: 0.6;" id="offline-time">за 0 часов</p>
-            <button id="claim-offline" class="gas-btn" style="margin-top: 20px; padding: 15px;">ЗАБРАТЬ</button>
-        </div>
-    </div>
-
-    <!-- Модалка лидеров -->
+    <!-- МОДАЛКА ЛИДЕРОВ -->
     <div id="leaderboard-modal" class="modal hidden">
         <div class="modal-content">
-            <h2 class="panel-title">ТОП ПИЛОТОВ</h2>
-            <div id="leaderboard-list">Загрузка...</div>
-            <button id="close-leaderboard" class="close-btn">ЗАКРЫТЬ</button>
+            <h2 class="section-title">ТОП ИГРОКОВ</h2>
+            <div id="leaderboard-list" class="leader-list">Загрузка...</div>
+            <button id="close-leaderboard" class="close-modal-btn">Закрыть</button>
         </div>
     </div>
 
