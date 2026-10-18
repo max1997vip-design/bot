@@ -35,7 +35,6 @@
                 <div id="car-container" class="car-container">
                     <img id="car-img" src="" alt="Car" class="car-image">
                 </div>
-                <!-- Точка появления цифр -->
                 <div id="floating-texts"></div>
             </div>
 
@@ -92,8 +91,39 @@
         <!-- ВКЛАДКА: ГАРАЖ -->
         <main id="tab-garage" class="tab-content">
             <h2 class="section-title">МОЙ ГАРАЖ</h2>
-            <div id="cars-list" class="garage-list">
-                <!-- Машины генерируются в JS -->
+            <div id="cars-list" class="garage-list"></div>
+        </main>
+
+        <!-- ВКЛАДКА: ПРОФИЛЬ -->
+        <main id="tab-profile" class="tab-content">
+            <h2 class="section-title">ПРОФИЛЬ ПИЛОТА</h2>
+            
+            <div class="profile-card">
+                <img id="profile-avatar" class="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Avatar">
+                <h3 id="profile-name">Загрузка...</h3>
+                <p id="profile-id" class="profile-id">ID: ...</p>
+            </div>
+
+            <div class="profile-stats">
+                <div class="profile-stat-item">
+                    <span>🏆 Всего заработано</span>
+                    <b id="stat-total-money">0</b>
+                </div>
+                <div class="profile-stat-item">
+                    <span>🚗 Куплено машин</span>
+                    <b id="stat-cars">1 / 4</b>
+                </div>
+            </div>
+
+            <!-- АДМИН ПАНЕЛЬ (Видят только админы) -->
+            <div id="admin-panel" class="admin-panel hidden">
+                <h3>👑 АДМИН ПАНЕЛЬ</h3>
+                <p style="font-size: 12px; color: #ff3b30; margin-bottom: 15px;">Режим разработчика. Кнопки ниже дают читы.</p>
+                <div class="admin-buttons">
+                    <button id="admin-add-money" class="admin-btn">+1,000,000 💰</button>
+                    <button id="admin-unlock-cars" class="admin-btn">Открыть все машины</button>
+                    <button id="admin-reset" class="admin-btn danger">Сбросить прогресс</button>
+                </div>
             </div>
         </main>
 
@@ -111,14 +141,14 @@
                 <span class="nav-icon">🏎️</span>
                 <span class="nav-text">Гараж</span>
             </button>
-            <button class="nav-btn" id="btn-leaderboard">
-                <span class="nav-icon">🏆</span>
-                <span class="nav-text">Топ</span>
+            <button class="nav-btn" data-tab="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Профиль</span>
             </button>
         </nav>
     </div>
 
-    <!-- МОДАЛКА ЛИДЕРОВ -->
+    <!-- МОДАЛКА ЛИДЕРОВ (вызов из профиля) -->
     <div id="leaderboard-modal" class="modal hidden">
         <div class="modal-content">
             <h2 class="section-title">ТОП ИГРОКОВ</h2>

@@ -9,7 +9,13 @@
     --danger: #ff3b30;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    -webkit-tap-highlight-color: transparent; 
+    user-select: none; 
+}
 
 body {
     font-family: 'Montserrat', sans-serif;
@@ -62,14 +68,14 @@ body {
     color: var(--gold);
 }
 
-/* --- КОНТЕНТ --- */
+/* --- КОНТЕНТ ВКЛАДОК --- */
 .tab-content {
     flex: 1;
     display: none;
     flex-direction: column;
     padding: 20px;
     overflow-y: auto;
-    padding-bottom: 90px; /* Отступ под меню */
+    padding-bottom: 90px; /* Отступ под нижнее меню */
 }
 .tab-content.active { display: flex; }
 
@@ -159,7 +165,7 @@ body {
     100% { transform: translateY(-60px); opacity: 0; }
 }
 
-/* --- СТАТИСТИКА --- */
+/* --- СТАТИСТИКА НА ТРАССЕ --- */
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -223,7 +229,7 @@ body {
 .nitro-btn:disabled { opacity: 0.3; border-color: var(--text-muted); color: var(--text-muted); }
 .nitro-btn.active { background: var(--danger); color: #fff; box-shadow: 0 0 20px var(--danger); }
 
-/* --- УЛУЧШЕНИЯ --- */
+/* --- ТЮНИНГ (УЛУЧШЕНИЯ) --- */
 .upgrade-list { display: flex; flex-direction: column; gap: 15px; }
 .upgrade-card {
     display: flex;
@@ -273,6 +279,77 @@ body {
 }
 .car-card.active .car-card-btn { background: var(--accent); color: #000; }
 
+/* --- ПРОФИЛЬ --- */
+.profile-card {
+    background: var(--panel-bg);
+    padding: 30px 20px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid var(--accent);
+    padding: 2px;
+    background: #000;
+    object-fit: cover;
+}
+
+.profile-card h3 { font-size: 22px; margin-bottom: 5px; text-align: center; }
+.profile-id { color: var(--text-muted); font-size: 14px; }
+
+.profile-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.profile-stat-item {
+    background: var(--panel-bg);
+    padding: 15px 20px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.profile-stat-item b { color: var(--accent); font-size: 16px; }
+
+/* --- АДМИН ПАНЕЛЬ --- */
+.admin-panel {
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    padding: 20px;
+    border-radius: 24px;
+    margin-top: 10px;
+}
+.admin-panel.hidden { display: none; }
+.admin-panel h3 { color: var(--danger); margin-bottom: 10px; text-align: center; }
+
+.admin-buttons { display: flex; flex-direction: column; gap: 10px; }
+.admin-btn {
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Montserrat', sans-serif;
+}
+.admin-btn:hover { background: rgba(255,255,255,0.2); }
+.admin-btn.danger { background: var(--danger); color: #fff; }
+.admin-btn.danger:hover { background: #cc2e26; }
+
 /* --- НИЖНЕЕ МЕНЮ --- */
 .bottom-nav {
     position: absolute;
@@ -299,12 +376,13 @@ body {
     cursor: pointer;
     transition: color 0.2s;
     width: 70px;
+    font-family: 'Montserrat', sans-serif;
 }
 .nav-btn.active { color: var(--accent); }
 .nav-icon { font-size: 20px; }
 .nav-text { font-size: 10px; font-weight: 800; text-transform: uppercase; }
 
-/* --- МОДАЛКА --- */
+/* --- МОДАЛЬНОЕ ОКНО (ЛИДЕРЫ) --- */
 .modal {
     position: fixed;
     inset: 0;
