@@ -16,14 +16,18 @@
         </div>
 
         <!-- 3D Трасса -->
-        <div class="track-view">
+        <div class="track-view" id="track-view">
             <div class="track-border top-border"></div>
-            <div class="road">
+            <div class="road" id="road">
                 <div class="road-lines"></div>
-                <div class="speed-lines"></div>
             </div>
             <div class="track-border bottom-border"></div>
-            <!-- Добавлен onerror для подстраховки -->
+            
+            <!-- Слой для частиц дыма -->
+            <div id="particles-container"></div>
+            <!-- Слой для всплывающих цифр -->
+            <div id="floating-texts"></div>
+
             <img id="car-img" src="" alt="Car" class="car" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
         </div>
 
@@ -39,6 +43,11 @@
             </div>
         </div>
 
+        <!-- Индикатор комбо -->
+        <div id="combo-display" class="combo-hidden">
+            <span>КОМБО x<span id="combo-value">1.0</span></span>
+        </div>
+
         <button id="click-button" class="gas-btn">
             <span class="gas-text">ГАЗ В ПОЛ!</span>
             <span class="gas-icon">🏁</span>
@@ -49,17 +58,17 @@
             <h3 class="panel-title">ТЮНИНГ</h3>
             <div class="shop-grid">
                 <button id="upgrade-engine" class="upgrade-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Engine" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2933/2933245.png'">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Engine">
                     <div class="upgrade-info">
                         <b>Двигатель</b>
-                        <small id="engine-price">Уровень 1 · 10💰</small>
+                        <small id="engine-price">Ур. 1 · 10💰</small>
                     </div>
                 </button>
                 <button id="upgrade-turbo" class="upgrade-card">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2877/2877941.png" alt="Turbo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3595/3595458.png'">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2877/2877941.png" alt="Turbo">
                     <div class="upgrade-info">
                         <b>Турбо</b>
-                        <small id="turbo-price">Не куплено · 50💰</small>
+                        <small id="turbo-price">Цена: 50💰</small>
                     </div>
                 </button>
             </div>

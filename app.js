@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('user-name').textContent = `Пилот: ${userName}`;
 
-    // === МАШИНЫ С НАДЕЖНЫХ ИСТОЧНИКОВ ===
     const CARS = [
         { id: 'f1',     name: 'Болид F1',     img: 'https://freepngimg.com/thumb/car/12-2-car-png-hd.png', price: 0,     bonus: 0 },
         { id: 'sport',  name: 'Спорткар',     img: 'https://freepngimg.com/thumb/car/1-2-car-png-clipart.png', price: 100,   bonus: 1 },
@@ -18,12 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'race',   name: 'Гиперкар',     img: 'https://freepngimg.com/thumb/car/9-2-car-png-pic.png', price: 25000, bonus: 50 }
     ];
 
+    // DOM элементы
+    const trackView = document.getElementById('track-view');
     const carImg = document.getElementById('car-img');
-    const road = document.querySelector('.road');
+    const road = document.getElementById('road');
+    const particlesContainer = document.getElementById('particles-container');
+    const floatingTexts = document.getElementById('floating-texts');
+    
     const moneyDisplay = document.getElementById('money-display');
     const clickPowerHint = document.getElementById('click-power-hint');
-    const clickButton = document.getElementById('click-button');
     
+    const comboDisplay = document.getElementById('combo-display');
+    const comboValue = document.getElementById('combo-value');
+    
+    const clickButton = document.getElementById('click-button');
     const btnEngine = document.getElementById('upgrade-engine');
     const btnTurbo = document.getElementById('upgrade-turbo');
     const enginePriceText = document.getElementById('engine-price');
@@ -49,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let gameState = Object.assign({}, DEFAULT_STATE, JSON.parse(localStorage.getItem('raceClickerSave') || '{}'));
 
+    // === Стейт Комбо ===
+    let comboCount = 0;
+    let lastClickTime = 0;
+    let comboTimeout = null;
+    const MAX_COMBO = 20; // Максимальный множитель x3 (20 * 0.1 + 1)
+
     function saveGame() {
         localStorage.setItem('raceClickerSave', JSON.stringify(gameState));
         scheduleScoreSubmit();
@@ -66,13 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
         moneyDisplay.textContent = Math.floor(gameState.money).toLocaleString('ru-RU');
         clickPowerHint.textContent = `${getClickPower()}x`;
 
-        // Обновляем цены в карточках улучшений
         enginePriceText.textContent = `Ур. ${gameState.engineLevel} · ${gameState.engineCost}💰`;
         btnEngine.disabled = gameState.money < gameState.engineCost;
 
-        turboPriceText.textContent = gameState.autoTurbo > 0
-            ? `Активно: +${gameState.autoTurbo}/сек`
-            : `Цена: ${gameState.turboCost}💰`;
+        turboPriceText.textContent = gameState.autoTurbo > 0 ? `Активно: +${gameState.autoTurbo}/сек` : `Цена: ${gameState.turboCost}💰`;
         btnTurbo.disabled = gameState.money < gameState.turboCost || gameState.autoTurbo > 0;
 
         renderCars();
@@ -95,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.className = 'car-btn' + (active ? ' active' : '');
             btn.disabled = !owned && !canBuy;
             
-            // Добавляем onerror прямо в HTML-строку для надежности
             btn.innerHTML = `
                 <img src="${c.img}" alt="${c.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
                 <span class="car-info">
@@ -122,11 +131,43 @@ document.addEventListener('DOMContentLoaded', () => {
         saveGame();
     }
 
-    // === АНИМАЦИЯ ЕЗДЫ ===
+    // === ВИЗУАЛЬНЫЕ ЭФФЕКТЫ ===
+    function createFloatingText(x, y, amount, isCrit) {
+        const el = document.createElement('div');
+        el.className = `floating-text ${isCrit ? 'crit' : ''}`;
+        el.textContent = `+${amount}`;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        floatingTexts.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+    }
+
+    function spawnParticles(isCrit) {
+        const numParticles = isCrit ? 8 : 4;
+        for (let i = 0; i < numParticles; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            // Случайное смещение по X
+            const xOffset = (Math.random() - 0.5) * 60;
+            p.style.setProperty('--x-dir', `${xOffset}px`);
+            p.style.left = `calc(50% + ${xOffset}px)`;
+            
+            // Если крит, делаем частицы огненными (желтыми)
+            if (isCrit) {
+                p.style.background = '#ffd60a';
+                p.style.width = '20px';
+                p.style.height = '20px';
+            }
+            
+            particlesContainer.appendChild(p);
+            setTimeout(() => p.remove(), 500);
+        }
+    }
+
     function playDriveAnimation() {
         carImg.classList.remove('driving');
         road.classList.remove('active');
-        void carImg.offsetWidth; // Сброс анимации
+        void carImg.offsetWidth;
         
         carImg.classList.add('driving');
         road.classList.add('active');
@@ -134,15 +175,75 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             carImg.classList.remove('driving');
             road.classList.remove('active');
-        }, 700);
+        }, 600);
     }
 
-    clickButton.addEventListener('click', () => {
-        const power = getClickPower();
-        gameState.money += power;
+    function triggerShake() {
+        trackView.classList.remove('shake');
+        void trackView.offsetWidth;
+        trackView.classList.add('shake');
+        setTimeout(() => trackView.classList.remove('shake'), 300);
+    }
+
+    function updateComboUI() {
+        if (comboCount > 0) {
+            const mult = (1 + comboCount * 0.1).toFixed(1);
+            comboValue.textContent = mult;
+            comboDisplay.classList.remove('combo-hidden');
+        } else {
+            comboDisplay.classList.add('combo-hidden');
+        }
+    }
+
+    // === СИСТЕМА КЛИКОВ ===
+    clickButton.addEventListener('click', (e) => {
+        const now = Date.now();
         
+        // Логика комбо
+        if (now - lastClickTime < 800) {
+            if (comboCount < MAX_COMBO) comboCount++;
+        } else {
+            comboCount = 0;
+        }
+        lastClickTime = now;
+        
+        // Сброс комбо через 1 секунду простоя
+        clearTimeout(comboTimeout);
+        comboTimeout = setTimeout(() => {
+            comboCount = 0;
+            updateComboUI();
+        }, 1000);
+        
+        updateComboUI();
+
+        // Расчет крита
+        const isCrit = Math.random() < 0.15; // 15% шанс
+        const critMult = isCrit ? 5 : 1;
+        const comboMult = 1 + (comboCount * 0.1);
+
+        const basePower = getClickPower();
+        const earnedMoney = Math.floor(basePower * comboMult * critMult);
+
+        gameState.money += earnedMoney;
+        
+        // Визуальные эффекты
         playDriveAnimation();
-        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        spawnParticles(isCrit);
+        
+        // Позиция для всплывающего текста (относительно трассы)
+        const rect = clickButton.getBoundingClientRect();
+        const trackRect = trackView.getBoundingClientRect();
+        const textX = rect.left - trackRect.left + (Math.random() * 100 - 50); // Разброс
+        const textY = rect.top - trackRect.top; // Над кнопкой
+
+        createFloatingText(textX, textY, earnedMoney, isCrit);
+
+        if (isCrit) {
+            triggerShake();
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); // Сильная вибрация
+        } else {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
 
         updateUI();
         saveGame();
