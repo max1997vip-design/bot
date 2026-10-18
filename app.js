@@ -8,14 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('user-name').textContent = `Привет, ${userName}!`;
 
-    // === Машины (Картинки) ===
+    // === РЕАЛИСТИЧНЫЕ МАШИНЫ ===
+    // Ссылки на PNG с прозрачным фоном
     const CARS = [
-        { id: 'f1',     name: 'Болид',        img: 'https://cdn-icons-png.flaticon.com/512/3204/3204071.png', price: 0,     bonus: 0 },
-        { id: 'sport',  name: 'Спорткар',     img: 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png', price: 100,   bonus: 1 },
-        { id: 'suv',    name: 'Внедорожник',  img: 'https://cdn-icons-png.flaticon.com/512/3097/3097192.png', price: 500,   bonus: 3 },
-        { id: 'taxi',   name: 'Такси',        img: 'https://cdn-icons-png.flaticon.com/512/3097/3097185.png', price: 2000,  bonus: 8 },
-        { id: 'police', name: 'Патруль',      img: 'https://cdn-icons-png.flaticon.com/512/3097/3097176.png', price: 8000,  bonus: 20 },
-        { id: 'race',   name: 'Гоночный',     img: 'https://cdn-icons-png.flaticon.com/512/3204/3204073.png', price: 25000, bonus: 50 }
+        { id: 'f1',     name: 'Болид F1',     img: 'https://pngimg.com/uploads/f1/f1_PNG14985.png', price: 0,     bonus: 0 },
+        { id: 'sport',  name: 'Спорткар',     img: 'https://pngimg.com/uploads/porsche/porsche_PNG10625.png', price: 100,   bonus: 1 },
+        { id: 'suv',    name: 'Внедорожник',  img: 'https://pngimg.com/uploads/suv/suv_PNG10034.png', price: 500,   bonus: 3 },
+        { id: 'taxi',   name: 'Такси',        img: 'https://pngimg.com/uploads/taxi/taxi_PNG115.png', price: 2000,  bonus: 8 },
+        { id: 'police', name: 'Патруль',      img: 'https://pngimg.com/uploads/police_car/police_car_PNG79.png', price: 8000,  bonus: 20 },
+        { id: 'race',   name: 'Суперкар',     img: 'https://pngimg.com/uploads/ferrari/ferrari_PNG10276.png', price: 25000, bonus: 50 }
     ];
 
     const carImg = document.getElementById('car-img');
@@ -23,8 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const moneyDisplay = document.getElementById('money-display');
     const clickPowerHint = document.getElementById('click-power-hint');
     const clickButton = document.getElementById('click-button');
+    
+    // Кнопки улучшений
     const btnEngine = document.getElementById('upgrade-engine');
     const btnTurbo = document.getElementById('upgrade-turbo');
+    const enginePriceText = document.getElementById('engine-price');
+    const turboPriceText = document.getElementById('turbo-price');
+
     const carsList = document.getElementById('cars-list');
     const leaderboardBtn = document.getElementById('leaderboard-btn');
     const leaderboardModal = document.getElementById('leaderboard-modal');
@@ -61,12 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
         moneyDisplay.textContent = `💰 ${Math.floor(gameState.money)}`;
         clickPowerHint.textContent = `Сила клика: ${getClickPower()} · Автодоход: ${gameState.autoTurbo}/сек`;
 
-        btnEngine.textContent = `⚙️ Двигатель (${gameState.engineCost})`;
+        // Обновляем цены под картинками
+        enginePriceText.textContent = `Цена: ${gameState.engineCost} (Клик: ${getClickPower()})`;
         btnEngine.disabled = gameState.money < gameState.engineCost;
 
-        btnTurbo.textContent = gameState.autoTurbo > 0
-            ? `🔥 Турбо активно: +${gameState.autoTurbo}/сек`
-            : `🔥 Купить турбо (${gameState.turboCost})`;
+        turboPriceText.textContent = gameState.autoTurbo > 0
+            ? `Активно: +${gameState.autoTurbo}/сек`
+            : `Цена: ${gameState.turboCost}`;
         btnTurbo.disabled = gameState.money < gameState.turboCost || gameState.autoTurbo > 0;
 
         renderCars();
@@ -116,16 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === ЛОГИКА КЛИКА И 3D АНИМАЦИИ ===
     function playDriveAnimation() {
-        // Сбрасываем анимацию, чтобы можно было кликать быстро
         carImg.classList.remove('driving');
         road.classList.remove('active');
-        void carImg.offsetWidth; // Магический трюк для перезапуска CSS-анимации
+        void carImg.offsetWidth; // Перезапуск анимации
         
-        // Запускаем
         carImg.classList.add('driving');
         road.classList.add('active');
 
-        // Убираем классы после окончания анимации
         setTimeout(() => {
             carImg.classList.remove('driving');
             road.classList.remove('active');
@@ -136,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const power = getClickPower();
         gameState.money += power;
         
-        playDriveAnimation(); // Запускаем езду!
+        playDriveAnimation();
         
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
