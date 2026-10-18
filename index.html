@@ -17,25 +17,35 @@
 
         <!-- КИБЕРПАНК ТРАССА -->
         <div class="track-view" id="track-view">
-            <!-- Фон с закатом и сеткой -->
             <div class="sky-bg"></div>
             <div class="grid-bg"></div>
             
+            <!-- Линии скорости -->
+            <div class="speed-lines" id="speed-lines"></div>
+
             <!-- Дорога -->
             <div class="road" id="road">
                 <div class="road-lines"></div>
-                <!-- Борты дороги -->
                 <div class="neon-border left"></div>
                 <div class="neon-border right"></div>
             </div>
             
-            <!-- Слой для частиц дыма -->
             <div id="particles-container"></div>
-            <!-- Слой для всплывающих цифр -->
             <div id="floating-texts"></div>
 
             <!-- Машина -->
             <img id="car-img" src="" alt="Car" class="car">
+        </div>
+
+        <!-- Дистанция и прогресс -->
+        <div class="distance-bar">
+            <div class="distance-text">
+                <span>ДИСТАНЦИЯ</span>
+                <span id="distance-value">0 м</span>
+            </div>
+            <div class="progress-track">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
         </div>
 
         <!-- Приборная панель -->
@@ -53,6 +63,7 @@
         <!-- Индикатор комбо -->
         <div id="combo-display" class="combo-hidden">
             <span>КОМБО x<span id="combo-value">1.0</span></span>
+            <div class="overdrive-text hidden" id="overdrive-text">OVERDRIVE!</div>
         </div>
 
         <button id="click-button" class="gas-btn">
@@ -88,6 +99,17 @@
         </div>
 
         <button id="leaderboard-btn" class="leaderboard-btn">🏆 ЗАЛ СЛАВЫ</button>
+    </div>
+
+    <!-- Модалка Оффлайн-дохода -->
+    <div id="offline-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="panel-title" style="color: var(--gold);">С ВОЗВРАЩЕНИЕМ!</h2>
+            <p style="text-align: center; font-size: 1.1rem;">Пока вас не было, ваш автопилот заработал:</p>
+            <h1 style="text-align: center; color: var(--accent); font-size: 2.5rem; font-family: 'Orbitron'; margin: 10px 0;" id="offline-earnings">+0</h1>
+            <p style="text-align: center; font-size: 0.8rem; opacity: 0.6;" id="offline-time">за 0 часов</p>
+            <button id="claim-offline" class="gas-btn" style="margin-top: 20px; padding: 15px;">ЗАБРАТЬ</button>
+        </div>
     </div>
 
     <!-- Модалка лидеров -->

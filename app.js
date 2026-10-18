@@ -5,11 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userName = tg.initDataUnsafe?.user?.first_name || 'Пилот';
     const myId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-
     document.getElementById('user-name').textContent = `Пилот: ${userName}`;
 
-    // === НАДЕЖНЫЕ КАРТИНКИ МАШИН (3D/Изометрия) ===
-    // Использован надежный CDN (Flaticon), чтобы все машинки отображались
+    // === ВАШИ КАРТИНКИ ===
+    // Замените пути в img на ваши локальные файлы (например, 'assets/cars/f1.png')
     const CARS = [
         { id: 'f1',     name: 'Болид F1',     img: 'https://cdn-icons-png.flaticon.com/512/3204/3204071.png', price: 0,     bonus: 0 },
         { id: 'sport',  name: 'Спорткар',     img: 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png', price: 100,   bonus: 1 },
@@ -19,36 +18,38 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'race',   name: 'Гиперкар',     img: 'https://cdn-icons-png.flaticon.com/512/3204/3204073.png', price: 25000, bonus: 50 }
     ];
 
+    // DOM
     const trackView = document.getElementById('track-view');
     const carImg = document.getElementById('car-img');
     const road = document.getElementById('road');
+    const speedLines = document.getElementById('speed-lines');
     const particlesContainer = document.getElementById('particles-container');
     const floatingTexts = document.getElementById('floating-texts');
-    
     const moneyDisplay = document.getElementById('money-display');
     const clickPowerHint = document.getElementById('click-power-hint');
-    
     const comboDisplay = document.getElementById('combo-display');
     const comboValue = document.getElementById('combo-value');
-    
+    const overdriveText = document.getElementById('overdrive-text');
+    const distanceValue = document.getElementById('distance-value');
+    const progressFill = document.getElementById('progress-fill');
     const clickButton = document.getElementById('click-button');
+
+    // Модалки и магазин
+    const offlineModal = document.getElementById('offline-modal');
+    const offlineEarnings = document.getElementById('offline-earnings');
+    const offlineTime = document.getElementById('offline-time');
+    const claimOffline = document.getElementById('claim-offline');
     const btnEngine = document.getElementById('upgrade-engine');
     const btnTurbo = document.getElementById('upgrade-turbo');
     const enginePriceText = document.getElementById('engine-price');
     const turboPriceText = document.getElementById('turbo-price');
-
     const carsList = document.getElementById('cars-list');
-    const leaderboardBtn = document.getElementById('leaderboard-btn');
-    const leaderboardModal = document.getElementById('leaderboard-modal');
-    const leaderboardList = document.getElementById('leaderboard-list');
-    const closeLeaderboard = document.getElementById('close-leaderboard');
 
+    // Стейт
     const DEFAULT_STATE = {
-        money: 0, clickPower: 1, autoTurbo: 0,
-        engineCost: 10, turboCost: 50, engineLevel: 1,
-        ownedCars: ['f1'], currentCar: 'f1'
+        money: 0, clickPower: 1, autoTurbo: 0, engineCost: 10, turboCost: 50, engineLevel: 1,
+        ownedCars: ['f1'], currentCar: 'f1', distance: 0, lastSaved: Date.now()
     };
-
     let gameState = Object.assign({}, DEFAULT_STATE, JSON.parse(localStorage.getItem('raceClickerSave') || '{}'));
 
     let comboCount = 0;
@@ -56,7 +57,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let comboTimeout = null;
     const MAX_COMBO = 20;
 
+    // === ОФФЛАЙН ДОХОД ===
+    function checkOfflineIncome() {
+        if (gameState.autoTurbo > 0 && gameState.lastSaved) {
+            const now = Date.now();
+            const diffSeconds = Math.floor((now - gameState.lastSaved) / 1000);
+            
+            // Максимум 4 часа оффлайна
+            const earnedSeconds = Math.min(diffSeconds, 4 * 3600);
+            const earnedMoney = earnedSeconds * gameState.autoTurbo;
+
+            if (earnedMoney > 0) {
+                offlineEarnings.textContent = `+${earnedMoney.toLocaleString('ru-RU')} 💰`;
+                offlineTime.textContent = `за ${(earnedSeconds / 3600).toFixed(1)} ч.`;
+                offlineModal.classList.remove('hidden');
+                
+                claimOffline.onclick = () => {
+                    gameState.money += earnedMoney;
+                    offlineModal.classList.add('hidden');
+                    updateUI();
+                    saveGame();
+                };
+            }
+        }
+    }
+
     function saveGame() {
+        gameState.lastSaved = Date.now();
         localStorage.setItem('raceClickerSave', JSON.stringify(gameState));
         scheduleScoreSubmit();
     }
@@ -68,6 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
         moneyDisplay.textContent = Math.floor(gameState.money).toLocaleString('ru-RU');
         clickPowerHint.textContent = `${getClickPower()}x`;
 
+        // Дистанция (каждые 1000 метров = новый уровень)
+        distanceValue.textContent = `${Math.floor(gameState.distance)} м`;
+        const nextMilestone = Math.ceil(gameState.distance / 1000) * 1000;
+        const prevMilestone = nextMilestone - 1000;
+        const progressPercent = ((gameState.distance - prevMilestone) / 1000) * 100;
+        progressFill.style.width = `${Math.max(0, progressPercent)}%`;
+
         enginePriceText.textContent = `Ур. ${gameState.engineLevel} · ${gameState.engineCost}💰`;
         btnEngine.disabled = gameState.money < gameState.engineCost;
 
@@ -75,12 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnTurbo.disabled = gameState.money < gameState.turboCost || gameState.autoTurbo > 0;
 
         renderCars();
-        applyCarVisual();
-    }
-
-    function applyCarVisual() {
-        const c = getCurrentCar();
-        carImg.src = c.img;
+        carImg.src = getCurrentCar().img;
     }
 
     function renderCars() {
@@ -88,86 +117,30 @@ document.addEventListener('DOMContentLoaded', () => {
         CARS.forEach(c => {
             const owned = gameState.ownedCars.includes(c.id);
             const active = gameState.currentCar === c.id;
-            const canBuy = !owned && gameState.money >= c.price;
-
             const btn = document.createElement('button');
             btn.className = 'car-btn' + (active ? ' active' : '');
-            btn.disabled = !owned && !canBuy;
+            btn.disabled = !owned && gameState.money < c.price;
             
+            // Если картинки не грузятся, onerror вернет стандартную
             btn.innerHTML = `
-                <img src="${c.img}" alt="${c.name}">
+                <img src="${c.img}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3204/3204071.png'">
                 <span class="car-info">
                     <b>${c.name}</b>
                     <small>${owned ? (active ? '✅ В гараже' : '👆 Выбрать') : `Цена: ${c.price}💰`}</small>
                     ${c.bonus > 0 ? `<small class="bonus">+${c.bonus} к мощности</small>` : ''}
                 </span>
             `;
-            btn.addEventListener('click', () => selectOrBuyCar(c));
+            btn.onclick = () => {
+                if (owned) gameState.currentCar = c.id;
+                else if (gameState.money >= c.price) {
+                    gameState.money -= c.price;
+                    gameState.ownedCars.push(c.id);
+                    gameState.currentCar = c.id;
+                }
+                updateUI(); saveGame();
+            };
             carsList.appendChild(btn);
         });
-    }
-
-    function selectOrBuyCar(c) {
-        if (gameState.ownedCars.includes(c.id)) {
-            gameState.currentCar = c.id;
-        } else if (gameState.money >= c.price) {
-            gameState.money -= c.price;
-            gameState.ownedCars.push(c.id);
-            gameState.currentCar = c.id;
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        }
-        updateUI();
-        saveGame();
-    }
-
-    function createFloatingText(x, y, amount, isCrit) {
-        const el = document.createElement('div');
-        el.className = `floating-text ${isCrit ? 'crit' : ''}`;
-        el.textContent = `+${amount}`;
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-        floatingTexts.appendChild(el);
-        setTimeout(() => el.remove(), 800);
-    }
-
-    function spawnParticles(isCrit) {
-        const numParticles = isCrit ? 10 : 5;
-        for (let i = 0; i < numParticles; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            const xOffset = (Math.random() - 0.5) * 80;
-            p.style.setProperty('--x-dir', `${xOffset}px`);
-            p.style.left = `calc(50% + ${xOffset}px)`;
-            
-            if (isCrit) {
-                p.style.background = '#ffd60a';
-                p.style.width = '20px';
-                p.style.height = '20px';
-            }
-            particlesContainer.appendChild(p);
-            setTimeout(() => p.remove(), 500);
-        }
-    }
-
-    function playDriveAnimation() {
-        carImg.classList.remove('driving');
-        road.classList.remove('active');
-        void carImg.offsetWidth;
-        
-        carImg.classList.add('driving');
-        road.classList.add('active');
-
-        setTimeout(() => {
-            carImg.classList.remove('driving');
-            road.classList.remove('active');
-        }, 600);
-    }
-
-    function triggerShake() {
-        trackView.classList.remove('shake');
-        void trackView.offsetWidth;
-        trackView.classList.add('shake');
-        setTimeout(() => trackView.classList.remove('shake'), 300);
     }
 
     function updateComboUI() {
@@ -176,9 +149,20 @@ document.addEventListener('DOMContentLoaded', () => {
             comboDisplay.classList.remove('combo-hidden');
         } else {
             comboDisplay.classList.add('combo-hidden');
+            trackView.classList.remove('overdrive');
+            overdriveText.classList.add('hidden');
+            speedLines.classList.remove('active');
+        }
+
+        // Включаем Overdrive при максимальном комбо
+        if (comboCount >= MAX_COMBO) {
+            trackView.classList.add('overdrive');
+            overdriveText.classList.remove('hidden');
+            speedLines.classList.add('active');
         }
     }
 
+    // Клик
     clickButton.addEventListener('click', () => {
         const now = Date.now();
         if (now - lastClickTime < 800) {
@@ -193,120 +177,113 @@ document.addEventListener('DOMContentLoaded', () => {
             comboCount = 0;
             updateComboUI();
         }, 1000);
-        
+
         updateComboUI();
 
-        const isCrit = Math.random() < 0.15;
+        const isOverdrive = comboCount >= MAX_COMBO;
+        const isCrit = Math.random() < 0.15; // 15% шанс крита
         const critMult = isCrit ? 5 : 1;
+        const overdriveMult = isOverdrive ? 2 : 1;
         const comboMult = 1 + (comboCount * 0.1);
 
-        const earnedMoney = Math.floor(getClickPower() * comboMult * critMult);
-
+        const earnedMoney = Math.floor(getClickPower() * comboMult * critMult * overdriveMult);
         gameState.money += earnedMoney;
         
-        playDriveAnimation();
-        spawnParticles(isCrit);
+        // Дистанция растет от кликов
+        gameState.distance += getClickPower() * comboMult;
+
+        // Визуал
+        carImg.classList.remove('driving');
+        void carImg.offsetWidth;
+        carImg.classList.add('driving');
         
-        const rect = clickButton.getBoundingClientRect();
-        const trackRect = trackView.getBoundingClientRect();
-        const textX = rect.left - trackRect.left + (Math.random() * 100 - 50);
-        const textY = rect.top - trackRect.top;
-
-        createFloatingText(textX, textY, earnedMoney, isCrit);
-
-        if (isCrit) {
-            triggerShake();
+        if (isCrit || isOverdrive) {
+            trackView.classList.remove('shake');
+            void trackView.offsetWidth;
+            trackView.classList.add('shake');
+            setTimeout(() => trackView.classList.remove('shake'), 300);
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         } else {
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
+        // Всплывающий текст над машиной
+        const el = document.createElement('div');
+        el.className = `floating-text ${isCrit || isOverdrive ? 'crit' : ''}`;
+        el.textContent = `+${earnedMoney}`;
+        el.style.left = `${50 + (Math.random() * 20 - 10)}%`;
+        el.style.top = `100px`;
+        floatingTexts.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+
         updateUI();
         saveGame();
     });
 
-    btnEngine.addEventListener('click', () => {
+    // Улучшения
+    btnEngine.onclick = () => {
         if (gameState.money < gameState.engineCost) return;
         gameState.money -= gameState.engineCost;
         gameState.clickPower += 1;
         gameState.engineLevel += 1;
         gameState.engineCost = Math.floor(gameState.engineCost * 1.5);
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        updateUI();
-        saveGame();
-    });
+        updateUI(); saveGame();
+    };
 
-    btnTurbo.addEventListener('click', () => {
+    btnTurbo.onclick = () => {
         if (gameState.money < gameState.turboCost || gameState.autoTurbo > 0) return;
         gameState.money -= gameState.turboCost;
         gameState.autoTurbo = 1;
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        updateUI();
-        saveGame();
-    });
+        updateUI(); saveGame();
+    };
 
+    // Автодоход
     setInterval(() => {
         if (gameState.autoTurbo > 0) {
             gameState.money += gameState.autoTurbo;
-            playDriveAnimation();
+            gameState.distance += gameState.autoTurbo * 2;
             updateUI();
             saveGame();
         }
     }, 1000);
 
+    // Сервер (лидерборд)
     let scoreTimer = null;
     function scheduleScoreSubmit() {
         if (!tg.initData) return;
         if (scoreTimer) return;
         scoreTimer = setTimeout(() => {
             scoreTimer = null;
-            submitScore();
-        }, 4000);
-    }
-
-    async function submitScore() {
-        try {
-            await fetch('/api/score', {
+            fetch('/api/score', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ initData: tg.initData, money: Math.floor(gameState.money) })
-            });
-        } catch (e) { /* тихо */ }
+            }).catch(()=>{});
+        }, 4000);
     }
 
-    leaderboardBtn.addEventListener('click', async () => {
-        leaderboardModal.classList.remove('hidden');
-        leaderboardList.textContent = 'Загрузка...';
+    document.getElementById('leaderboard-btn').onclick = async () => {
+        const mod = document.getElementById('leaderboard-modal');
+        const list = document.getElementById('leaderboard-list');
+        mod.classList.remove('hidden');
+        list.textContent = 'Загрузка...';
         try {
             const r = await fetch('/api/leaderboard');
             const data = await r.json();
-            if (!data.players || !data.players.length) {
-                leaderboardList.textContent = 'Трасса пуста...';
-                return;
-            }
-            leaderboardList.innerHTML = '';
+            if (!data.players || !data.players.length) { list.textContent = 'Трасса пуста...'; return; }
+            list.innerHTML = '';
             data.players.forEach((p, i) => {
                 const row = document.createElement('div');
                 row.className = 'leader-row' + (p.id === myId ? ' self' : '');
-                row.innerHTML = `
-                    <span class="rank">#${i + 1}</span>
-                    <span class="name">${escapeHtml(p.name)}</span>
-                    <span class="money">💰 ${p.money.toLocaleString('ru-RU')}</span>
-                `;
-                leaderboardList.appendChild(row);
+                row.innerHTML = `<span>#${i + 1} ${p.name}</span><span>💰 ${p.money.toLocaleString('ru-RU')}</span>`;
+                list.appendChild(row);
             });
-        } catch (e) {
-            leaderboardList.textContent = 'Ошибка связи с сервером';
-        }
-    });
+        } catch (e) { list.textContent = 'Ошибка сервера'; }
+    };
 
-    closeLeaderboard.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+    document.getElementById('close-leaderboard').onclick = () => document.getElementById('leaderboard-modal').classList.add('hidden');
 
-    function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, ch => ({
-            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-        }[ch]));
-    }
-
+    // Инициализация
+    checkOfflineIncome();
     updateUI();
 });
