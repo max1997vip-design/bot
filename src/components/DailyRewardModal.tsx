@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playSound } from '../utils/sound';
 
@@ -17,25 +16,56 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
   const streak = user?.dailyStreak || 0;
   const lastClaim = user?.lastDailyClaim ? new Date(user.lastDailyClaim) : null;
   
-  // Проверка, можно ли забрать награду
-  const canClaim = !lastClaim || (Date.now() - lastClaim.getTime()) >= 24 * 60 * 60 * 1000;
-  
-  // Вычисляем, какой день сейчас активен
+  // Состояние для таймера
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [canClaim, setCanClaim] = useState<boolean>(true);
+
+  // Эффект для работы таймера
+  useEffect(() => {
+    const updateTimer = () => {
+      if (!lastClaim) {
+        setCanClaim(true);
+        setTimeLeft(0);
+        return;
+      }
+
+      const nextTime = lastClaim.getTime() + 24 * 60 * 60 * 1000; // 24 часа
+      const left = nextTime - Date.now();
+
+      if (left <= 0) {
+        setCanClaim(true);
+        setTimeLeft(0);
+      } else {
+        setCanClaim(false);
+        setTimeLeft(left);
+      }
+    };
+
+    updateTimer(); // Запускаем сразу
+    const interval = setInterval(updateTimer, 1000); // И каждую секунду
+    return () => clearInterval(interval);
+  }, [lastClaim]);
+
+  // Форматирование времени (ЧЧ:ММ:СС)
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   let activeDay = streak;
   if (canClaim) {
     activeDay = (streak % 7) + 1;
   }
 
   const handleClaim = async () => {
-    if (isLoading) return;
+    if (isLoading || !canClaim) return;
     setIsLoading(true);
     try {
       const success = await claimDaily();
-      if (success) {
-        playSound('coin');
-      } else {
-        console.error('Не удалось забрать награду (ошибка сервера или рано)');
-      }
+      if (success) playSound('coin');
     } finally {
       setIsLoading(false);
     }
@@ -47,11 +77,24 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
       background: 'rgba(0,0,0,0.9)', zIndex: 1000,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px'
     }}>
-      <div style={{ background: '#1a1a1a', borderRadius: '20px', padding: '25px', width: '100%', maxWidth: '400px', border: '1px solid rgba(255,215,0,0.3)' }}>
+      <div style={{ 
+        background: '#1a1a1a', 
+        borderRadius: '20px', 
+        padding: '25px', 
+        width: '100%', 
+        maxWidth: '400px', 
+        border: '1px solid rgba(255,215,0,0.3)',
+        position: 'relative'
+      }}>
+        
+        <button onClick={onClose} style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          ✕
+        </button>
+
         <h2 style={{ color: '#ffd700', textAlign: 'center', margin: '0 0 20px 0' }}>🎁 Ежедневный бонус</h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
-          {REWARDS.map((reward, index) => {
+          {REWARDS.slice(0, 6).map((reward, index) => {
             const day = index + 1;
             const isClaimed = streak >= day && !canClaim;
             const isActive = day === activeDay && canClaim;
@@ -89,18 +132,29 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
           </div>
         </div>
 
+        {/* Таймер или кнопка */}
+        {!canClaim && timeLeft > 0 && (
+          <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+            <span style={{ color: '#aaa', fontSize: '13px' }}>Следующая награда через:</span>
+            <div style={{ color: '#ffd700', fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '2px' }}>
+              {formatTime(timeLeft)}
+            </div>
+          </div>
+        )}
+
         <button
-          onClick={canClaim ? handleClaim : onClose}
+          onClick={canClaim ? handleClaim : undefined}
           disabled={!canClaim || isLoading}
           style={{
             width: '100%', padding: '15px', borderRadius: '12px', border: 'none',
             fontSize: '16px', fontWeight: 'bold',
-            background: !canClaim ? '#333' : isLoading ? '#888' : '#ffd700',
+            background: !canClaim ? 'rgba(255,255,255,0.05)' : isLoading ? '#888' : '#ffd700',
             color: !canClaim ? '#666' : 'black',
-            cursor: (!canClaim || isLoading) ? 'not-allowed' : 'pointer'
+            cursor: (!canClaim || isLoading) ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s'
           }}
         >
-          {isLoading ? 'ПОЛУЧАЕМ...' : canClaim ? 'ЗАБРАТЬ НАГРАДУ' : 'ЗАКРЫТЬ'}
+          {isLoading ? 'ПОЛУЧАЕМ...' : canClaim ? 'ЗАБРАТЬ НАГРАДУ' : 'ПОДОЖДИТЕ'}
         </button>
       </div>
     </div>
