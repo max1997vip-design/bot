@@ -5,6 +5,7 @@ import { leaderboardHandler } from './_lib/handlers/leaderboard.js';
 import { equipHandler } from './_lib/handlers/equip.js';
 import { switchCarHandler } from './_lib/handlers/switchCar.js';
 import { pvpResultHandler } from './_lib/handlers/pvpResult.js';
+import { buyCarHandler } from './_lib/handlers/buyCar.js'; // <-- ДОБАВИТЬ ИМПОРТ
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -16,10 +17,9 @@ export default async function handler(req: any, res: any) {
     case 'pvp': return pvpHandler(req, res);
     case 'leaderboard': return leaderboardHandler(req, res);
     case 'equip': return equipHandler(req, res);
-    
-    // Новые экшены
     case 'switchCar': return switchCarHandler(req, res);
     case 'pvpResult': return pvpResultHandler(req, res);
+    case 'buyCar': return buyCarHandler(req, res); // <-- ДОБАВИТЬ ЭТОТ CASE
     
     default: return res.status(400).json({ error: 'Invalid action' });
   }
