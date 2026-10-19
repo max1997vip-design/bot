@@ -14,6 +14,8 @@ export interface UserData {
   level: number; xp: number; activeCarId: string; createdAt: string;
   referredBy: number | null; referralEarnings: number; rating: number;
   ownedCars?: string[]; 
+  clickLevel?: number;      // <-- ДОБАВЛЕНО
+  offlineLevel?: number;    // <-- ДОБАВЛЕНО
 }
 
 interface GameState {
@@ -28,7 +30,6 @@ interface GameState {
   equipped: Record<string, string | null>;
   lastDroppedItem: any | null;
 
-
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
   syncTaps: () => Promise<void>;
@@ -40,6 +41,10 @@ interface GameState {
   switchCar: (carId: string) => Promise<void>;
   reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
   buyCar: (carId: string, price: number) => Promise<boolean>;
+  
+  // НОВЫЕ МЕТОДЫ
+  upgradeClicker: () => Promise<void>;
+  upgradeOffline: () => Promise<void>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -53,49 +58,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   tap: () => {
     const state = get(); const now = Date.now();
+    const tapPower = state.user?.clickLevel || 1; // <-- Учитываем уровень
+    
     let newTapCount = state.tapCountInSecond; let lastSecond = state.lastTapSecond;
     if (now - lastSecond > 1000) { newTapCount = 1; lastSecond = now; } 
     else { if (newTapCount >= 15) return; newTapCount += 1; }
     set((s) => ({
       tapCountInSecond: newTapCount, lastTapSecond: lastSecond,
-      balance: s.balance + 1,
-      user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + 1 } : null,
-      unsyncedTaps: s.unsyncedTaps + 1,
+      balance: s.balance + tapPower,
+      user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + tapPower } : null,
+      unsyncedTaps: s.unsyncedTaps + tapPower,
     }));
   },
 
-    buyCar: async (carId, price) => {
-    const { user } = get();
-    if (!user) return false;
-    if (user.balance < price) return false;
-
-    const initData = window.Telegram?.WebApp?.initData || '';
-    try {
-      const res = await fetch('/api/game?action=buyCar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, carId }),
-      });
-      
-      const data = await res.json();
-      if (res.ok && data.success) {
-        set((state) => ({
-          balance: data.newBalance,
-          user: state.user ? { 
-            ...state.user, 
-            balance: data.newBalance, 
-            ownedCars: data.ownedCars 
-          } : null
-        }));
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  },
-  
   syncTaps: async () => {
     const { unsyncedTaps, isSyncing } = get();
     if (unsyncedTaps === 0 || isSyncing) return;
@@ -141,13 +116,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     return false;
   },
 
-   startBotRace: async () => {
+  startBotRace: async () => {
     const { user, equipped } = get();
     if (!user) return { success: false };
 
     const playerStats = calculateStats(equipped);
-    
-    // Бот получает от 80% до 90% от статов игрока (дает ~75% побед)
     const deviation = () => 0.80 + Math.random() * 0.10;
     
     const botStats = {
@@ -156,12 +129,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       grip: playerStats.grip * deviation(),
       handling: playerStats.handling * deviation(),
       accel: playerStats.accel * deviation(),
-      rating: playerStats.rating * deviation() // Бот слабее по рейтингу
+      rating: playerStats.rating * deviation()
     };
 
     const calcTime = (stats: any, isBot: boolean = false) => {
       const baseTime = (1000 / stats.topSpeed) * 3600; 
-      // Боту добавляем больше случайного штрафа (чтобы он тупил)
       const penalty = isBot ? (Math.random() * 2.5) : (Math.random() * 1.0);
       return baseTime - (stats.accel * 0.5) - (stats.grip * 0.05) - (stats.handling * 0.05) + penalty;
     };
@@ -181,17 +153,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     return { 
       success: true, 
-      result: { 
-        winner, 
-        log, 
-        playerTime: pTime, 
-        opponentTime: oTime, 
-        ratingChange: winner === 'player' ? 1 : -1,
-        reward 
-      } 
+      result: { winner, log, playerTime: pTime, opponentTime: oTime, ratingChange: winner === 'player' ? 1 : -1, reward } 
     };
   },
-
 
   switchCar: async (carId: string) => {
     const { user } = get();
@@ -240,11 +204,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       
       set((state) => ({
         balance: data.newBalance ?? state.balance,
-        user: state.user ? {
-          ...state.user,
-          balance: data.newBalance ?? state.user.balance,
-          rating: data.newRating ?? state.user.rating
-        } : null
+        user: state.user ? { ...state.user, balance: data.newBalance ?? state.user.balance, rating: data.newRating ?? state.user.rating } : null
       }));
     } catch (e) {
       console.error(e);
@@ -253,5 +213,66 @@ export const useGameStore = create<GameState>((set, get) => ({
         user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null
       }));
     }
+  },
+
+  buyCar: async (carId, price) => {
+    const { user } = get();
+    if (!user) return false;
+    if (user.balance < price) return false;
+
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=buyCar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, carId }),
+      });
+      
+      const data = await res.json();
+      if (res.ok && data.success) {
+        set((state) => ({
+          balance: data.newBalance,
+          user: state.user ? { ...state.user, balance: data.newBalance, ownedCars: data.ownedCars } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  },
+
+  upgradeClicker: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=upgradeClicker', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, clickLevel: data.newClickLevel } : null
+        }));
+      }
+    } catch (e) { console.error(e); }
+  },
+
+  upgradeOffline: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=upgradeOffline', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, offlineLevel: data.newOfflineLevel } : null
+        }));
+      }
+    } catch (e) { console.error(e); }
   }
 }));

@@ -5,7 +5,9 @@ import { leaderboardHandler } from './_lib/handlers/leaderboard.js';
 import { equipHandler } from './_lib/handlers/equip.js';
 import { switchCarHandler } from './_lib/handlers/switchCar.js';
 import { pvpResultHandler } from './_lib/handlers/pvpResult.js';
-import { buyCarHandler } from './_lib/handlers/buyCar.js'; // <-- ДОБАВИТЬ ИМПОРТ
+import { buyCarHandler } from './_lib/handlers/buyCar.js';
+import { upgradeClickerHandler } from './_lib/handlers/upgradeClicker.js';
+import { upgradeOfflineHandler } from './_lib/handlers/upgradeOffline.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -19,8 +21,9 @@ export default async function handler(req: any, res: any) {
     case 'equip': return equipHandler(req, res);
     case 'switchCar': return switchCarHandler(req, res);
     case 'pvpResult': return pvpResultHandler(req, res);
-    case 'buyCar': return buyCarHandler(req, res); // <-- ДОБАВИТЬ ЭТОТ CASE
-    
+    case 'buyCar': return buyCarHandler(req, res);
+    case 'upgradeClicker': return upgradeClickerHandler(req, res);
+    case 'upgradeOffline': return upgradeOfflineHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

@@ -1,5 +1,4 @@
 // src/components/RaceScreen.tsx
-
 import { useCallback, useRef, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { PAINT_COLORS } from '../config/garage';
@@ -16,30 +15,31 @@ export function RaceScreen() {
   const tap = useGameStore((s) => s.tap);
   const balance = useGameStore((s) => s.balance);
   const carColor = useGameStore((s) => s.carColor);
+  
+  const user = useGameStore((s) => s.user);
+  const upgradeClicker = useGameStore((s) => s.upgradeClicker);
+  const upgradeOffline = useGameStore((s) => s.upgradeOffline);
 
-  // Вычисляем цвет и проверяем, выбран ли оригинал
   const activeColorHex = PAINT_COLORS.find((c) => c.id === carColor)?.hex || 'transparent';
   const isOriginal = carColor === 'original';
 
-  // Получаем totalEarned для расчета уровня
-  const totalEarned = useGameStore((s) => s.user?.totalEarned || 0);
-
-  // Формула расчета уровня
+  const totalEarned = user?.totalEarned || 0;
   const level = Math.floor(Math.sqrt(totalEarned / 50)) + 1;
   const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
   const xpNextLevel = Math.pow(level, 2) * 50;
-  const progress = Math.min(
-    100,
-    ((totalEarned - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100
-  );
+  const progress = Math.min(100, ((totalEarned - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100);
 
-  const activeCarId = useGameStore((s) => s.user?.activeCarId || 'audi-tt');
+  const activeCarId = user?.activeCarId || 'audi-tt';
   const activeCar = CARS[activeCarId] || CARS['audi-tt'];
+
+  const clickLevel = user?.clickLevel || 1;
+  const offlineLevel = user?.offlineLevel || 1;
+  const clickCost = Math.floor(1000 * Math.pow(1.5, clickLevel - 1));
+  const offlineCost = Math.floor(5000 * Math.pow(1.8, offlineLevel - 1));
 
   const onCarClick = useCallback(() => {
     const before = useGameStore.getState().balance;
     tap();
-
     const after = useGameStore.getState().balance;
     const accepted = after > before;
 
@@ -67,12 +67,9 @@ export function RaceScreen() {
       <div className="race-background-overlay" />
 
       <div className="race-top-ui">
-        {/* HUD (только баланс, без множителя) */}
         <div className="race-hud">
           <span className="race-hud-coins">{Math.floor(balance).toLocaleString('ru-RU')}</span>
         </div>
-
-        {/* ПОЛОСКА УРОВНЯ */}
         <div className="race-level-bar-wrapper">
           <div className="race-level-text">
             <span>LVL {level}</span>
@@ -84,12 +81,43 @@ export function RaceScreen() {
         </div>
       </div>
 
+      {/* ЛЕВАЯ ПАНЕЛЬ: КЛИКЕР */}
+      <div style={{ position: 'absolute', left: '10px', top: '35%', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <button 
+          onClick={upgradeClicker}
+          style={{ 
+            background: 'rgba(0,255,65,0.15)', border: '1px solid #00FF41', borderRadius: '12px', 
+            padding: '10px', color: 'white', backdropFilter: 'blur(5px)', 
+            display: 'flex', flexDirection: 'column', alignItems: 'center', width: '70px'
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>💪</span>
+          <span style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>LVL {clickLevel}</span>
+          <span style={{ fontSize: '11px', color: '#ffd700', fontWeight: 'bold', marginTop: '2px' }}>{clickCost} 🪙</span>
+        </button>
+      </div>
+
+      {/* ПРАВАЯ ПАНЕЛЬ: ОФФЛАЙН */}
+      <div style={{ position: 'absolute', right: '10px', top: '35%', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <button 
+          onClick={upgradeOffline}
+          style={{ 
+            background: 'rgba(0,191,255,0.15)', border: '1px solid #00bfff', borderRadius: '12px', 
+            padding: '10px', color: 'white', backdropFilter: 'blur(5px)', 
+            display: 'flex', flexDirection: 'column', alignItems: 'center', width: '70px'
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>⏱️</span>
+          <span style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>LVL {offlineLevel}</span>
+          <span style={{ fontSize: '11px', color: '#ffd700', fontWeight: 'bold', marginTop: '2px' }}>{offlineCost} 🪙</span>
+        </button>
+      </div>
+
       <div
         className={`race-car-container ${isRejected ? 'rejected' : ''}`}
         onClick={onCarClick}
         style={carStyles}
       >
-        {/* Обертка для наложения цвета */}
         <div className="race-car-wrapper">
           <img
             src={activeCar.image}
@@ -103,13 +131,8 @@ export function RaceScreen() {
               transition: 'filter 0.4s ease',
             }}
           />
-          
-          {/* Цветной слой */}
           {!isOriginal && (
-            <div
-              className="race-color-overlay"
-              style={{ backgroundColor: activeColorHex }}
-            />
+            <div className="race-color-overlay" style={{ backgroundColor: activeColorHex }} />
           )}
         </div>
 

@@ -7,6 +7,7 @@ import { GarageScreen } from './components/GarageScreen';
 import { CityScreen } from './components/CityScreen'; 
 import { LoadingScreen } from './components/LoadingScreen';
 import WebApp from '@twa-dev/sdk';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Tab = 'race' | 'city' | 'garage' | 'profile';
 
@@ -14,6 +15,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('race');
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offlineEarnings, setOfflineEarnings] = useState(0); // Стейт для оффлайн-дохода
   
   const setUser = useGameStore((state) => state.setUser);
   const syncTaps = useGameStore((state) => state.syncTaps);
@@ -42,6 +44,10 @@ export default function App() {
             data.inventory || [], 
             data.equipped || { engine: null, tires: null, ecu: null, suspension: null }
           );
+          // Если есть оффлайн доход, показываем его
+          if (data.offlineEarnings && data.offlineEarnings > 0) {
+            setOfflineEarnings(data.offlineEarnings);
+          }
           setIsReady(true);
         } else {
           setError(data.error || 'Не удалось загрузить профиль');
@@ -60,21 +66,14 @@ export default function App() {
     return () => clearInterval(syncInterval);
   }, [setUser, syncTaps]);
 
-  // Экран загрузки
-  if (!isReady) {
-    return <LoadingScreen />;
-  }
+  if (!isReady) return <LoadingScreen />;
 
-  // Экран ошибки (если user не загрузился)
   if (error || !user) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
         <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
         <p style={{ color: '#aaa', marginBottom: 20 }}>{error || 'Пользователь не найден'}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          style={{ padding: '12px 24px', background: '#00FF41', color: 'black', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer' }}
-        >
+        <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#00FF41', color: 'black', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer' }}>
           Перезагрузить
         </button>
       </div>
@@ -104,6 +103,33 @@ export default function App() {
           <span className="nav-icon">👤</span><span className="nav-label">Профиль</span>
         </button>
       </nav>
+
+      {/* МОДАЛКА ОФФЛАЙН-ДОХОДА */}
+      <AnimatePresence>
+        {offlineEarnings > 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }}
+              style={{ background: '#1a1a1a', padding: '30px', borderRadius: '20px', textAlign: 'center', border: '1px solid #ffd700', boxShadow: '0 0 30px rgba(255,215,0,0.2)' }}
+            >
+              <h2 style={{ color: '#ffd700', margin: '0 0 10px 0' }}>С возвращением!</h2>
+              <p style={{ color: '#ccc', marginBottom: '20px' }}>Пока вас не было, механики заработали:</p>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#00FF41', marginBottom: '25px', textShadow: '0 0 10px rgba(0,255,65,0.5)' }}>
+                +{offlineEarnings.toLocaleString('ru-RU')} 🪙
+              </div>
+              <button 
+                onClick={() => setOfflineEarnings(0)}
+                style={{ background: '#00FF41', color: 'black', border: 'none', padding: '14px 40px', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', width: '100%' }}
+              >
+                Забрать
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -18,6 +18,7 @@ export async function syncHandler(req: any, res: any) {
     let user = await db.query.users.findFirst({ where: eq(users.id, telegramUser.id) });
     const isNewUser = !user;
     let bonusCoins = 0;
+    let offlineEarnings = 0;
 
     if (isNewUser) {
       let referredById: number | null = null;
@@ -45,23 +46,41 @@ export async function syncHandler(req: any, res: any) {
         balance: bonusCoins,
         totalEarned: bonusCoins,
         referredBy: referredById,
-        activeCarId: 'audi-tt',      // <-- Исправлено на audi-tt
-        ownedCars: ['audi-tt'],      // <-- Добавлен массив купленных машин
+        activeCarId: 'audi-tt',
+        ownedCars: ['audi-tt'],
       }).returning();
       user = createdUser;
     } else {
-      await db.update(users).set({
-        username: telegramUser.username || null,
-        firstName: telegramUser.first_name || null,
-        photoUrl: telegramUser.photo_url || null,
-        lastSeenAt: new Date(),
-      }).where(eq(users.id, telegramUser.id));
+      // СЧИТАЕМ ОФФЛАЙН ДОХОД
+      const now = new Date();
+      // ВОТ ЗДЕСЬ БЫЛА ОШИБКА, ДОБАВИЛ ПРОВЕРКУ if (user)
+      if (user) {
+        const lastSeen = user.lastSeenAt ? new Date(user.lastSeenAt) : now;
+        const diffSeconds = Math.max(0, Math.floor((now.getTime() - lastSeen.getTime()) / 1000));
+        const cappedSeconds = Math.min(diffSeconds, 12 * 3600); 
+        
+        if (cappedSeconds > 60 && (user.offlineLevel || 1) > 0) {
+          const hourlyRate = (user.offlineLevel || 1) * 500;
+          offlineEarnings = Math.floor((cappedSeconds / 3600) * hourlyRate);
+        }
+
+        await db.update(users).set({
+          username: telegramUser.username || null,
+          firstName: telegramUser.first_name || null,
+          photoUrl: telegramUser.photo_url || null,
+          lastSeenAt: now,
+          balance: sql`${users.balance} + ${offlineEarnings}`,
+          totalEarned: sql`${users.totalEarned} + ${offlineEarnings}`
+        }).where(eq(users.id, telegramUser.id));
+        
+        // Начисляем локально, чтобы отдать на фронт
+        user.balance += offlineEarnings;
+      }
     }
 
     const inventory = await db.query.userItems.findMany({ where: eq(userItems.userId, telegramUser.id) });
     const equipped = await db.query.equippedItems.findMany({ where: eq(equippedItems.userId, telegramUser.id) });
     
-    // <-- Добавлен suspension в дефолтный мап
     const equippedMap: Record<string, string | null> = { engine: null, tires: null, ecu: null, suspension: null };
     equipped.forEach(e => { equippedMap[e.slot] = e.itemId; });
 
@@ -72,9 +91,12 @@ export async function syncHandler(req: any, res: any) {
         balance: user!.balance ?? 0, 
         totalEarned: user!.totalEarned ?? 0, 
         referralEarnings: user!.referralEarnings ?? 0,
-        ownedCars: user!.ownedCars ?? ['audi-tt'], // <-- Возвращаем на фронт
-        activeCarId: user!.activeCarId ?? 'audi-tt' // <-- Возвращаем на фронт
+        ownedCars: user!.ownedCars ?? ['audi-tt'],
+        activeCarId: user!.activeCarId ?? 'audi-tt',
+        clickLevel: user!.clickLevel ?? 1,
+        offlineLevel: user!.offlineLevel ?? 1
       },
+      offlineEarnings,
       inventory: inventory.map(i => i.itemId),
       equipped: equippedMap,
       isNewUser,
