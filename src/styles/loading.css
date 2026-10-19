@@ -1,0 +1,101 @@
+/* src/styles/loading.css */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999; /* Поверх всего */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #050505;
+  overflow: hidden;
+}
+
+/* Слой с картинкой */
+.loading-bg {
+  position: absolute;
+  inset: 0;
+  /* ЗАМЕНИ ЭТУ КАРТИНКУ НА СВОЮ (например, красивый вид гаража или ночного города) */
+  background-image: url('/images/bg-night-city.jpg'); 
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px) brightness(0.4); /* Размываем и затемняем фон */
+  z-index: 1;
+}
+
+/* Градиент, чтобы текст читался лучше */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(9,10,12,0.3) 0%, #090A0C 100%);
+  z-index: 2;
+}
+
+/* Контент по центру */
+.loading-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  padding: 20px;
+}
+
+/* Логотип */
+.loading-logo {
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+}
+
+.loading-logo span {
+  color: var(--accent);
+  text-shadow: 0 0 20px var(--accent-glow-strong);
+}
+
+/* Полоса загрузки */
+.loading-bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 15px var(--accent);
+  border-radius: 10px;
+  transition: width 0.1s linear;
+}
+
+/* Текст и проценты */
+.loading-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
+.loading-text {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.loading-percent {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}

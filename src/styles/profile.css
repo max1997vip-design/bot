@@ -1,0 +1,189 @@
+.profile-screen {
+  padding: 24px;
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Шапка профиля */
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.profile-avatar,
+.profile-avatar-placeholder {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 25px var(--accent-glow);
+  object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1c23, #252832);
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: 0 0 15px var(--accent-glow);
+}
+
+.level-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  background: var(--accent);
+  color: #0a0b0e;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 2px solid var(--bg-base);
+  box-shadow: 0 0 15px var(--accent-glow-strong);
+  letter-spacing: 0.5px;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+
+.profile-username {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* XP Bar */
+.xp-section {
+  background: var(--bg-surface);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.xp-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.xp-label-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.xp-label-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.xp-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 10px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Сетка статистики */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
+
+.stat-card:active {
+  transform: scale(0.98);
+  border-color: var(--accent-glow);
+}
+
+.stat-icon { font-size: 22px; margin-bottom: 4px; }
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Карточка информации */
+.profile-info-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 4px 16px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-row:last-child { border-bottom: none; }
+
+.info-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+.info-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-active {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow);
+}

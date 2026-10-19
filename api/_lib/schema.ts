@@ -1,0 +1,74 @@
+import {
+  pgTable, bigint, text, integer, timestamp, boolean, jsonb, uuid, primaryKey,
+} from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: bigint('id', { mode: 'number' }).primaryKey(),
+  username: text('username'),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  photoUrl: text('photo_url'),
+  balance: bigint('balance', { mode: 'number' }).notNull().default(0),
+  totalEarned: bigint('total_earned', { mode: 'number' }).notNull().default(0),
+  starsBalance: integer('stars_balance').notNull().default(0),
+  activeCarId: text('active_car_id').notNull().default('starter'),
+  carColor: text('car_color').notNull().default('original'), 
+  level: integer('level').notNull().default(1),
+  xp: bigint('xp', { mode: 'number' }).notNull().default(0),
+  isAdmin: boolean('is_admin').notNull().default(false),
+  isBanned: boolean('is_banned').notNull().default(false),
+  referredBy: bigint('referred_by', { mode: 'number' }),
+  referralEarnings: bigint('referral_earnings', { mode: 'number' }).notNull().default(0),
+  rating: integer('rating').notNull().default(100),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
+  lastOnlineAt: timestamp('last_online_at').notNull().defaultNow(),
+});
+
+export const ownedCars = pgTable('owned_cars', {
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  carId: text('car_id').notNull(),
+  purchasedAt: timestamp('purchased_at').notNull().defaultNow(),
+}, (t) => ({ pk: primaryKey({ columns: [t.userId, t.carId] }) }));
+
+// Оставляем для совместимости, но больше не используем
+export const upgrades = pgTable('upgrades', {
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  upgradeId: text('upgrade_id').notNull(),
+  level: integer('level').notNull().default(0),
+}, (t) => ({ pk: primaryKey({ columns: [t.userId, t.upgradeId] }) }));
+
+// НОВЫЕ ТАБЛИЦЫ ДЛЯ ПРЕДМЕТОВ
+export const userItems = pgTable('user_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  itemId: text('item_id').notNull(),
+  obtainedAt: timestamp('obtained_at').notNull().defaultNow(),
+});
+
+export const equippedItems = pgTable('equipped_items', {
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  slot: text('slot').notNull(),
+  itemId: text('item_id'),
+}, (t) => ({ pk: primaryKey({ columns: [t.userId, t.slot] }) }));
+
+export const purchases = pgTable('purchases', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: bigint('user_id', { mode: 'number' }).notNull(),
+  itemId: text('item_id').notNull(),
+  starsAmount: integer('stars_amount').notNull(),
+  status: text('status').notNull().default('pending'),
+  telegramPaymentChargeId: text('telegram_payment_charge_id').unique(),
+  providerPaymentChargeId: text('provider_payment_charge_id'),
+  rawPayload: jsonb('raw_payload'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+});
+
+export const achievements = pgTable('achievements', {
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  achievementId: text('achievement_id').notNull(),
+  unlockedAt: timestamp('unlocked_at').notNull().defaultNow(),
+}, (t) => ({ pk: primaryKey({ columns: [t.userId, t.achievementId] }) }));
+
+export type User = typeof users.$inferSelect;

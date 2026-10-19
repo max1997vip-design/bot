@@ -1,8 +1,36 @@
 {
-  "name": "race-clicker",
-  "version": "1.0.0",
+  "name": "racing-idle-rpg",
+  "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
   "dependencies": {
-    "@upstash/redis": "^1.34.3"
+    "@neondatabase/serverless": "^0.10.0",
+    "@twa-dev/sdk": "^7.0.0",
+    "@upstash/redis": "^1.34.0",
+    "drizzle-orm": "^0.36.0",
+    "framer-motion": "^11.11.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vercel/node": "^3.2.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "dotenv": "^18.0.8",
+    "drizzle-kit": "^0.28.0",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0"
   }
 }

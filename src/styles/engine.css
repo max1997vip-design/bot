@@ -1,0 +1,79 @@
+.engine-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.engine-rating {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 200, 0, 0.08);
+  border: 1px solid rgba(255, 200, 0, 0.25);
+}
+
+.engine-rating-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffcf4a;
+  line-height: 1;
+}
+
+.engine-rating-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  margin-top: 2px;
+}
+
+.engine-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.engine-stat {
+  padding: 12px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.engine-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.engine-stat-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.engine-stat-value small {
+  font-size: 11px;
+  color: #888;
+  font-weight: 500;
+}
+
+.engine-stat-delta {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffb088;
+}
+
+.engine-stat-delta.good {
+  color: #7fe08a;
+}
