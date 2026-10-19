@@ -18,6 +18,7 @@ export interface UserData {
   photoUrl: string | null; balance: number; totalEarned: number; starsBalance: number;
   level: number; xp: number; activeCarId: string; createdAt: string;
   referredBy: number | null; referralEarnings: number; rating: number;
+  ownedCars?: string[]; // <-- ДОБАВЛЕНО
 }
 
 interface GameState {
@@ -39,12 +40,19 @@ interface GameState {
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
+  
+  // НОВЫЕ МЕТОДЫ
+  switchCar: (carId: string) => Promise<void>;
+  reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   user: null, balance: 0, unsyncedTaps: 0, isSyncing: false,
   tapCountInSecond: 0, lastTapSecond: 0, carColor: 'original',
-  inventory: [], equipped: { engine: null, tires: null, ecu: null }, lastDroppedItem: null,
+  inventory: [], 
+  // ДОБАВЛЕН suspension
+  equipped: { engine: null, tires: null, ecu: null, suspension: null }, 
+  lastDroppedItem: null,
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
@@ -137,17 +145,96 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     if (winner === 'player') {
       const reward = 1000 + playerStats.rating * 10;
-      set({ 
-        balance: balance + reward, 
-        user: { ...user, balance: balance + reward, rating: user.rating + 1 } 
+      
+      // ВМЕСТО СТАРОГО ЗАПРОСА НА TAP, ИСПОЛЬЗУЕМ НАШ НОВЫЙ МЕТОД
+      // Он и деньги сохранит, и рейтинг прибавит
+      get().reportPvpResult({
+        won: true,
+        ratingDelta: 1,
+        coinsDelta: reward
+      });
+    } else {
+      // Если проиграли, рейтинг можно немного списать (например, -1)
+      // Если не хочешь списывать, поставь ratingDelta: 0
+      get().reportPvpResult({
+        won: false,
+        ratingDelta: -1, 
+        coinsDelta: 0
+      });
+    }
+    
+    return { success: true, result: { winner, log, playerTime: pTime, opponentTime: oTime, ratingChange: winner === 'player' ? 1 : -1 } };
+  },
+
+  // --- НОВЫЕ МЕТОДЫ ---
+
+  switchCar: async (carId: string) => {
+    const { user } = get();
+    if (!user) return;
+    
+    const prevCarId = user.activeCarId;
+    // Оптимистичное обновление (сразу меняем картинку)
+    set({ user: { ...user, activeCarId: carId } });
+
+    try {
+      const initData = window.Telegram?.WebApp?.initData || '';
+      const res = await fetch('/api/game?action=switchCar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, carId }),
+      });
+      if (!res.ok) throw new Error('Failed to switch car');
+    } catch (e) {
+      console.error(e);
+      // Если сервер не ответил, откатываем назад
+      set((state) => ({
+        user: state.user ? { ...state.user, activeCarId: prevCarId } : null
+      }));
+    }
+  },
+
+  reportPvpResult: async ({ won, ratingDelta, coinsDelta }) => {
+    const { user } = get();
+    if (!user) return;
+
+    const prevBalance = user.balance;
+    const prevRating = user.rating;
+
+    // Оптимистичное обновление (чтобы UI не ждал)
+    set({
+      balance: Math.max(0, user.balance + coinsDelta),
+      user: {
+        ...user,
+        balance: Math.max(0, user.balance + coinsDelta),
+        rating: Math.max(0, user.rating + ratingDelta)
+      }
+    });
+
+    try {
+      const initData = window.Telegram?.WebApp?.initData || '';
+      const res = await fetch('/api/game?action=pvpResult', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, won, ratingDelta, coinsDelta }),
       });
       
-      const initData = window.Telegram?.WebApp?.initData || '';
-      fetch('/api/game?action=tap', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, amount: reward }),
-      }).catch(console.error);
+      if (!res.ok) throw new Error('Server error');
+      const data = await res.json();
+      
+      // Синхронизируем с тем, что пришло с сервера (источник истины)
+      set((state) => ({
+        balance: data.newBalance ?? state.balance,
+        user: state.user ? {
+          ...state.user,
+          balance: data.newBalance ?? state.user.balance,
+          rating: data.newRating ?? state.user.rating
+        } : null
+      }));
+    } catch (e) {
+      console.error(e);
+      // Откат при ошибке
+      set((state) => ({
+        balance: prevBalance,
+        user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null
+      }));
     }
-    return { success: true, result: { winner, log, playerTime: pTime, opponentTime: oTime, ratingChange: winner === 'player' ? 1 : 0 } };
-  },
+  }
 }));

@@ -11,7 +11,10 @@ export const users = pgTable('users', {
   balance: bigint('balance', { mode: 'number' }).notNull().default(0),
   totalEarned: bigint('total_earned', { mode: 'number' }).notNull().default(0),
   starsBalance: integer('stars_balance').notNull().default(0),
-  activeCarId: text('active_car_id').notNull().default('starter'),
+  
+  activeCarId: text('active_car_id').notNull().default('audi-tt'),
+  ownedCars: jsonb('owned_cars').$type<string[]>().notNull().default(['audi-tt']),
+  
   carColor: text('car_color').notNull().default('original'), 
   level: integer('level').notNull().default(1),
   xp: bigint('xp', { mode: 'number' }).notNull().default(0),
@@ -31,14 +34,12 @@ export const ownedCars = pgTable('owned_cars', {
   purchasedAt: timestamp('purchased_at').notNull().defaultNow(),
 }, (t) => ({ pk: primaryKey({ columns: [t.userId, t.carId] }) }));
 
-// Оставляем для совместимости, но больше не используем
 export const upgrades = pgTable('upgrades', {
   userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   upgradeId: text('upgrade_id').notNull(),
   level: integer('level').notNull().default(0),
 }, (t) => ({ pk: primaryKey({ columns: [t.userId, t.upgradeId] }) }));
 
-// НОВЫЕ ТАБЛИЦЫ ДЛЯ ПРЕДМЕТОВ
 export const userItems = pgTable('user_items', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),

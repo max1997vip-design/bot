@@ -45,7 +45,8 @@ export async function syncHandler(req: any, res: any) {
         balance: bonusCoins,
         totalEarned: bonusCoins,
         referredBy: referredById,
-        activeCarId: 'starter',
+        activeCarId: 'audi-tt',      // <-- Исправлено на audi-tt
+        ownedCars: ['audi-tt'],      // <-- Добавлен массив купленных машин
       }).returning();
       user = createdUser;
     } else {
@@ -60,12 +61,20 @@ export async function syncHandler(req: any, res: any) {
     const inventory = await db.query.userItems.findMany({ where: eq(userItems.userId, telegramUser.id) });
     const equipped = await db.query.equippedItems.findMany({ where: eq(equippedItems.userId, telegramUser.id) });
     
-    const equippedMap: Record<string, string | null> = { engine: null, tires: null, ecu: null };
+    // <-- Добавлен suspension в дефолтный мап
+    const equippedMap: Record<string, string | null> = { engine: null, tires: null, ecu: null, suspension: null };
     equipped.forEach(e => { equippedMap[e.slot] = e.itemId; });
 
     return res.status(200).json({
       success: true,
-      user: { ...user!, balance: user!.balance ?? 0, totalEarned: user!.totalEarned ?? 0, referralEarnings: user!.referralEarnings ?? 0 },
+      user: { 
+        ...user!, 
+        balance: user!.balance ?? 0, 
+        totalEarned: user!.totalEarned ?? 0, 
+        referralEarnings: user!.referralEarnings ?? 0,
+        ownedCars: user!.ownedCars ?? ['audi-tt'], // <-- Возвращаем на фронт
+        activeCarId: user!.activeCarId ?? 'audi-tt' // <-- Возвращаем на фронт
+      },
       inventory: inventory.map(i => i.itemId),
       equipped: equippedMap,
       isNewUser,
