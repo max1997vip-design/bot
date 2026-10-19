@@ -14,8 +14,8 @@ export interface UserData {
   level: number; xp: number; activeCarId: string; createdAt: string;
   referredBy: number | null; referralEarnings: number; rating: number;
   ownedCars?: string[]; 
-  clickLevel?: number;      // <-- ДОБАВЛЕНО
-  offlineLevel?: number;    // <-- ДОБАВЛЕНО
+  clickLevel?: number;      
+  offlineLevel?: number;    
 }
 
 interface GameState {
@@ -41,8 +41,7 @@ interface GameState {
   switchCar: (carId: string) => Promise<void>;
   reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
   buyCar: (carId: string, price: number) => Promise<boolean>;
-  
-  // НОВЫЕ МЕТОДЫ
+  sellItem: (itemId: string) => Promise<boolean>;
   upgradeClicker: () => Promise<void>;
   upgradeOffline: () => Promise<void>;
 }
@@ -58,7 +57,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   tap: () => {
     const state = get(); const now = Date.now();
-    const tapPower = state.user?.clickLevel || 1; // <-- Учитываем уровень
+    const tapPower = state.user?.clickLevel || 1; 
     
     let newTapCount = state.tapCountInSecond; let lastSecond = state.lastTapSecond;
     if (now - lastSecond > 1000) { newTapCount = 1; lastSecond = now; } 
@@ -274,5 +273,36 @@ export const useGameStore = create<GameState>((set, get) => ({
         }));
       }
     } catch (e) { console.error(e); }
-  }
+  },
+
+  sellItem: async (itemId) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=sellItem', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, itemId }),
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        set((state) => {
+          // Удаляем только ОДИН экземпляр предмета из инвентаря
+          const newInventory = [...state.inventory];
+          const index = newInventory.indexOf(itemId);
+          if (index !== -1) newInventory.splice(index, 1);
+
+          return {
+            balance: data.newBalance,
+            inventory: newInventory,
+            user: state.user ? { ...state.user, balance: data.newBalance } : null
+          };
+        });
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  },
 }));

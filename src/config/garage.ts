@@ -14,7 +14,7 @@ export const GARAGE_HOTSPOTS = [
   { id: 'engine' as UpgradeType, label: 'Двигатель', x: '50%', y: '45%' },
   
   // НОВАЯ ТОЧКА ПОДВЕСКИ (поставь туда, где она логично смотрится)
-  { id: 'suspension' as UpgradeType, label: 'Подвеска', x: '25%', y: '80%' },
+  { id: 'suspension' as UpgradeType, label: 'Подвеска', x: '85%', y: '65%' },
   
   // Точка покраски — внизу
   { id: 'paint' as UpgradeType,  label: 'Покраска',  x: '5%', y: '25%' },

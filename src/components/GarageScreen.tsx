@@ -5,14 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { GARAGE_HOTSPOTS, UpgradeType, PAINT_COLORS, CAR_POSITION } from '../config/garage';
-import { ITEMS, RARITY_COLORS, calculateStats } from '../config/items';
+import { ITEMS, RARITY_COLORS, calculateStats, SELL_PRICES } from '../config/items';
 import { CARS } from '../config/cars';
 import '../styles/garage.css';
 
 export const GarageScreen: React.FC = () => {
   const [activeUpgrade, setActiveUpgrade] = useState<UpgradeType | null>(null);
   
-  // ИСПОЛЬЗУЕМ ТОЧЕЧНЫЕ СЕЛЕКТОРЫ ВМЕСТО ДЕСТРУКТУРИЗАЦИИ
   const user = useGameStore((s) => s.user);
   const carColor = useGameStore((s) => s.carColor);
   const setCarColor = useGameStore((s) => s.setCarColor);
@@ -20,6 +19,7 @@ export const GarageScreen: React.FC = () => {
   const equipped = useGameStore((s) => s.equipped);
   const equipItem = useGameStore((s) => s.equipItem);
   const switchCar = useGameStore((s) => s.switchCar);
+  const sellItem = useGameStore((s) => s.sellItem); // <-- ДОБАВЛЕНО
 
   const activeCarId = user?.activeCarId || 'audi-tt';
   const activeCar = CARS[activeCarId] || CARS['audi-tt'];
@@ -58,7 +58,7 @@ export const GarageScreen: React.FC = () => {
     return (
       <div className="inventory-list">
         <p style={{ color: '#aaa', marginBottom: '10px', fontSize: '13px' }}>
-          Нажмите на предмет, чтобы надеть:
+          Нажмите на предмет, чтобы надеть, или продайте за монеты:
         </p>
         
         {uniqueItems.length === 0 && (
@@ -70,23 +70,66 @@ export const GarageScreen: React.FC = () => {
         {uniqueItems.map(itemId => {
           const item = ITEMS[itemId];
           const isEquipped = equipped[item.slot] === itemId;
+          const sellPrice = SELL_PRICES[item.rarity];
           
           return (
             <div 
               key={itemId} 
               className={`inventory-item ${isEquipped ? 'equipped' : ''}`}
-              style={{ borderColor: RARITY_COLORS[item.rarity] }}
-              onClick={() => equipItem(item.slot, itemId)}
+              style={{ 
+                borderColor: RARITY_COLORS[item.rarity],
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '10px 15px',
+                cursor: isEquipped ? 'default' : 'pointer',
+                background: 'rgba(255,255,255,0.02)',
+                borderRadius: '8px',
+                marginBottom: '8px',
+                borderWidth: '1px',
+                borderStyle: 'solid'
+              }}
+              onClick={() => !isEquipped && equipItem(item.slot, itemId)}
             >
-              <div className="item-name" style={{ color: RARITY_COLORS[item.rarity] }}>
-                {item.name} {isEquipped && '✓ (Надето)'}
+              <div>
+                <div className="item-name" style={{ color: RARITY_COLORS[item.rarity], fontWeight: 'bold' }}>
+                  {item.name} {isEquipped && '✓'}
+                </div>
+                <div className="item-stats" style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>
+                  {item.stats.power > 0 && <span>+{item.stats.power} HP </span>}
+                  {item.stats.topSpeed > 0 && <span>+{item.stats.topSpeed} Vmax </span>}
+                  {item.stats.grip > 0 && <span>+{item.stats.grip} Сцеп. </span>}
+                  {item.stats.handling > 0 && <span>+{item.stats.handling} Управ. </span>}
+                </div>
               </div>
-              <div className="item-stats">
-                {item.stats.power > 0 && <span>+{item.stats.power} HP </span>}
-                {item.stats.topSpeed > 0 && <span>+{item.stats.topSpeed} Vmax </span>}
-                {item.stats.grip > 0 && <span>+{item.stats.grip} Сцепление </span>}
-                {item.stats.handling > 0 && <span>+{item.stats.handling} Управляемость </span>}
-              </div>
+
+              {!isEquipped ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); 
+                    if (window.confirm(`Продать ${item.name} за ${sellPrice} монет?`)) {
+                      sellItem(itemId);
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(255, 68, 68, 0.15)',
+                    border: '1px solid rgba(255, 68, 68, 0.5)',
+                    color: '#ff4444',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  💰 {sellPrice}
+                </button>
+              ) : (
+                <span style={{ fontSize: '11px', color: '#00FF41', fontWeight: 'bold' }}>
+                  Надето
+                </span>
+              )}
             </div>
           );
         })}

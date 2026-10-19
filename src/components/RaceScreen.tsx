@@ -115,7 +115,7 @@ export function RaceScreen() {
         onClick={() => setShowUpgrades(true)}
         style={{
           position: 'absolute',
-          bottom: '90px',
+          bottom: '260px',
           right: '20px',
           zIndex: 100,
           background: 'linear-gradient(135deg, #00FF41, #00bfff)',

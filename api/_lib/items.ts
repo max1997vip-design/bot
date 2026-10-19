@@ -59,3 +59,11 @@ export function calculateStats(equipped: Record<string, string | null>) {
   const rating = Math.round((base.power + base.topSpeed) / 2 + base.grip + base.handling);
   return { ...base, accel, rating };
 }
+
+export const SELL_PRICES: Record<ItemRarity, number> = {
+  common: 100,
+  uncommon: 500,
+  rare: 2500,
+  epic: 15000,
+  legendary: 75000,
+};

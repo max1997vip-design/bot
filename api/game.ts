@@ -8,6 +8,7 @@ import { pvpResultHandler } from './_lib/handlers/pvpResult.js';
 import { buyCarHandler } from './_lib/handlers/buyCar.js';
 import { upgradeClickerHandler } from './_lib/handlers/upgradeClicker.js';
 import { upgradeOfflineHandler } from './_lib/handlers/upgradeOffline.js';
+import { sellItemHandler } from './_lib/handlers/sellItem.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -22,6 +23,7 @@ export default async function handler(req: any, res: any) {
     case 'switchCar': return switchCarHandler(req, res);
     case 'pvpResult': return pvpResultHandler(req, res);
     case 'buyCar': return buyCarHandler(req, res);
+    case 'sellItem': return sellItemHandler(req, res);
     case 'upgradeClicker': return upgradeClickerHandler(req, res);
     case 'upgradeOffline': return upgradeOfflineHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
