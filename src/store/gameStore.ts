@@ -16,7 +16,9 @@ export interface UserData {
   referredBy: number | null; referralEarnings: number; rating: number;
   ownedCars?: string[]; 
   clickLevel?: number;      
-  offlineLevel?: number;    
+  offlineLevel?: number;
+  dailyStreak?: number;
+  lastDailyClaim?: string | null;
 }
 
 interface GameState {
@@ -29,6 +31,7 @@ interface GameState {
   carColor: string;
   inventory: string[];
   equipped: Record<string, string | null>;
+  dailyStreak?: number;
   lastDroppedItem: any | null;
 
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
@@ -37,6 +40,7 @@ interface GameState {
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
+  claimDaily: () => Promise<boolean>;
   
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
@@ -324,6 +328,34 @@ export const useGameStore = create<GameState>((set, get) => ({
         inventory: state.inventory,
         user: state.user
       });
+      return false;
+    }
+  },
+
+    claimDaily: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=claimDaily', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        set((state) => ({
+          balance: data.newBalance,
+          user: state.user ? { 
+            ...state.user, 
+            balance: data.newBalance, 
+            dailyStreak: data.dailyStreak, 
+            lastDailyClaim: data.lastDailyClaim 
+          } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
       return false;
     }
   },

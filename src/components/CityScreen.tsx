@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RacesScreen } from './RacesScreen';
 import { CarDealership } from './CarDealership'; // <-- Импортируем наш салон
 import '../styles/city.css';
+import { DailyRewardModal } from './DailyRewardModal';
 
 export const CityScreen = () => {
   const [activeLocation, setActiveLocation] = useState<'menu' | 'track'>('menu');
@@ -12,6 +13,7 @@ export const CityScreen = () => {
   
   // Стейт для открытия автосалона
   const [showDealership, setShowDealership] = useState(false);
+  const [showDaily, setShowDaily] = useState(false);
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -40,6 +42,12 @@ export const CityScreen = () => {
                 <span className="city-icon">💰</span>
                 <h3>Топ Баланса</h3>
                 <p>Самые богатые гонщики</p>
+              </div>
+
+              <div className="city-card" onClick={() => setShowDaily(true)}>
+                <span className="city-icon">🎁</span>
+                <h3>Бонус</h3>
+                <p>Ежедневная награда</p>
               </div>
 
               {/* АВТОСАЛОН ТЕПЕРЬ АКТИВЕН */}
@@ -92,6 +100,10 @@ export const CityScreen = () => {
       {/* МОДАЛКА АВТОСАЛОНА */}
       {showDealership && (
         <CarDealership onClose={() => setShowDealership(false)} />
+      )}
+
+       {showDaily && (
+        <DailyRewardModal onClose={() => setShowDaily(false)} />
       )}
     </div>
   );

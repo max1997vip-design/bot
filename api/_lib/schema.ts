@@ -26,6 +26,8 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
   lastOnlineAt: timestamp('last_online_at').notNull().defaultNow(),
+  dailyStreak: integer('daily_streak').notNull().default(0),
+  lastDailyClaim: timestamp('last_daily_claim', { withTimezone: true }),
   
   // НОВЫЕ ПОЛЯ
   clickLevel: integer('click_level').notNull().default(1),
