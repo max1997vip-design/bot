@@ -34,12 +34,6 @@ export const ownedCars = pgTable('owned_cars', {
   purchasedAt: timestamp('purchased_at').notNull().defaultNow(),
 }, (t) => ({ pk: primaryKey({ columns: [t.userId, t.carId] }) }));
 
-export const upgrades = pgTable('upgrades', {
-  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  upgradeId: text('upgrade_id').notNull(),
-  level: integer('level').notNull().default(0),
-}, (t) => ({ pk: primaryKey({ columns: [t.userId, t.upgradeId] }) }));
-
 export const userItems = pgTable('user_items', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),

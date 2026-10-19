@@ -10,7 +10,6 @@ import './styles/variables.css'; // Сначала переменные!
 import './styles/base.css';
 import './styles/animations.css';
 import './styles/race.css';
-import './styles/tuning.css';
 import './styles/garage.css';
 import './styles/profile.css';
 import './styles/referral.css';
