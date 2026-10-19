@@ -1,6 +1,7 @@
 // src/store/gameStore.ts
 import { create } from 'zustand';
-import { calculateStats } from '../config/items';
+import { calculateStats, ITEMS, SELL_PRICES } from '../config/items';
+
 
 declare global {
   interface Window {
@@ -275,33 +276,54 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (e) { console.error(e); }
   },
 
-  sellItem: async (itemId) => {
+    sellItem: async (itemId) => {
+    const state = get();
+    const user = state.user;
+    if (!user) return false;
+
+    const item = ITEMS[itemId];
+    if (!item) return false;
+    const price = SELL_PRICES[item.rarity] || 100;
+
+    // 1. СРАЗУ ОБНОВЛЯЕМ UI (без ожидания сервера)
+    const newInventory = [...state.inventory];
+    const index = newInventory.indexOf(itemId);
+    if (index === -1) return false;
+    
+    newInventory.splice(index, 1); // Удаляем один экземпляр
+    const newBalance = state.balance + price;
+
+    set({
+      balance: newBalance,
+      inventory: newInventory,
+      user: { ...user, balance: newBalance }
+    });
+
+    // 2. ОТПРАВЛЯЕМ НА СЕРВЕР В ФОНЕ
     const initData = window.Telegram?.WebApp?.initData || '';
     try {
       const res = await fetch('/api/game?action=sellItem', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData, itemId }),
       });
+      
+      if (!res.ok) throw new Error('Server error');
       const data = await res.json();
       
-      if (res.ok && data.success) {
-        set((state) => {
-          // Удаляем только ОДИН экземпляр предмета из инвентаря
-          const newInventory = [...state.inventory];
-          const index = newInventory.indexOf(itemId);
-          if (index !== -1) newInventory.splice(index, 1);
-
-          return {
-            balance: data.newBalance,
-            inventory: newInventory,
-            user: state.user ? { ...state.user, balance: data.newBalance } : null
-          };
-        });
-        return true;
-      }
-      return false;
+      // Обновляем баланс, если сервер насчитал иначе
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { ...s.user, balance: data.newBalance } : null
+      }));
+      return true;
     } catch (e) {
-      console.error(e);
+      console.error('Sell error:', e);
+      // 3. ОТКАТ ПРИ ОШИБКЕ (если сервер упал)
+      set({
+        balance: state.balance,
+        inventory: state.inventory,
+        user: state.user
+      });
       return false;
     }
   },

@@ -11,6 +11,7 @@ import '../styles/garage.css';
 
 export const GarageScreen: React.FC = () => {
   const [activeUpgrade, setActiveUpgrade] = useState<UpgradeType | null>(null);
+  const [sellingId, setSellingId] = useState<string | null>(null); // Стейт для индикации продажи
   
   const user = useGameStore((s) => s.user);
   const carColor = useGameStore((s) => s.carColor);
@@ -19,7 +20,7 @@ export const GarageScreen: React.FC = () => {
   const equipped = useGameStore((s) => s.equipped);
   const equipItem = useGameStore((s) => s.equipItem);
   const switchCar = useGameStore((s) => s.switchCar);
-  const sellItem = useGameStore((s) => s.sellItem); // <-- ДОБАВЛЕНО
+  const sellItem = useGameStore((s) => s.sellItem); 
 
   const activeCarId = user?.activeCarId || 'audi-tt';
   const activeCar = CARS[activeCarId] || CARS['audi-tt'];
@@ -71,6 +72,7 @@ export const GarageScreen: React.FC = () => {
           const item = ITEMS[itemId];
           const isEquipped = equipped[item.slot] === itemId;
           const sellPrice = SELL_PRICES[item.rarity];
+          const isSelling = sellingId === itemId; // Проверяем, продается ли этот предмет сейчас
           
           return (
             <div 
@@ -82,14 +84,15 @@ export const GarageScreen: React.FC = () => {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 padding: '10px 15px',
-                cursor: isEquipped ? 'default' : 'pointer',
+                cursor: (isEquipped || isSelling) ? 'default' : 'pointer',
                 background: 'rgba(255,255,255,0.02)',
                 borderRadius: '8px',
                 marginBottom: '8px',
                 borderWidth: '1px',
-                borderStyle: 'solid'
+                borderStyle: 'solid',
+                opacity: isSelling ? 0.5 : 1 // Визуально тускнеет при продаже
               }}
-              onClick={() => !isEquipped && equipItem(item.slot, itemId)}
+              onClick={() => !isEquipped && !isSelling && equipItem(item.slot, itemId)}
             >
               <div>
                 <div className="item-name" style={{ color: RARITY_COLORS[item.rarity], fontWeight: 'bold' }}>
@@ -107,23 +110,26 @@ export const GarageScreen: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation(); 
-                    if (window.confirm(`Продать ${item.name} за ${sellPrice} монет?`)) {
-                      sellItem(itemId);
-                    }
+                    if (isSelling) return;
+                    // Включаем индикатор загрузки и моментально продаем
+                    setSellingId(itemId);
+                    sellItem(itemId).finally(() => setSellingId(null));
                   }}
+                  disabled={isSelling}
                   style={{
-                    background: 'rgba(255, 68, 68, 0.15)',
+                    background: isSelling ? 'rgba(255,255,255,0.1)' : 'rgba(255, 68, 68, 0.15)',
                     border: '1px solid rgba(255, 68, 68, 0.5)',
-                    color: '#ff4444',
+                    color: isSelling ? '#aaa' : '#ff4444',
                     borderRadius: '6px',
                     padding: '6px 10px',
                     fontSize: '11px',
                     fontWeight: 'bold',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    cursor: isSelling ? 'wait' : 'pointer',
+                    whiteSpace: 'nowrap',
+                    minWidth: '60px'
                   }}
                 >
-                  💰 {sellPrice}
+                  {isSelling ? '...' : `💰 ${sellPrice}`}
                 </button>
               ) : (
                 <span style={{ fontSize: '11px', color: '#00FF41', fontWeight: 'bold' }}>
