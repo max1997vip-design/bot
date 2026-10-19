@@ -31,22 +31,18 @@ export const RacesScreen = () => {
   const league = getLeague(currentRating);
 
   const handleStartBotRace = async () => {
-    if (status !== 'idle') return; // Защита от спама кликами
+    if (status !== 'idle') return; 
     setStatus('racing');
     setRaceData(null);
 
     try {
-      // 1. Считаем результат
       const res = await startBotRace();
-      
-      // 2. Ждем 3.5 секунды (чтобы полоски красиво проехали)
       await new Promise(resolve => setTimeout(resolve, 3500));
 
       if (res.success && res.result) {
         setRaceData(res.result);
         setStatus('result');
         
-        // 3. Отправляем результат на сервер
         reportPvpResult({
           won: res.result.winner === 'player',
           ratingDelta: res.result.ratingChange,
@@ -69,14 +65,13 @@ export const RacesScreen = () => {
     try {
       const initData = WebApp.initData || '';
       
-      // Отправляем запрос сразу
       const fetchPromise = fetch('/api/game?action=pvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData }),
       }).then(r => r.json());
 
-      // Ждем минимум 3.5 секунды (полоски)
+      // Ждем 3.5 сек для анимации, даже если сервер ответит быстрее
       const [data] = await Promise.all([
         fetchPromise,
         new Promise(resolve => setTimeout(resolve, 3500))
@@ -107,7 +102,6 @@ export const RacesScreen = () => {
     } catch (e) { console.error(e); }
   };
 
-  // Вычисляем длительность полосок
   const getBarDurations = () => {
     if (!raceData) return { player: 3.5, opponent: 3.5 };
     const minTime = Math.min(raceData.playerTime, raceData.opponentTime);
@@ -143,61 +137,59 @@ export const RacesScreen = () => {
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {status === 'racing' && (
-          <motion.div key="racing" className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="simulation-container">
-              <h3 className="sim-title">Заезд 1000м...</h3>
-              
-              <div className="sim-track">
-                <span className="sim-label">Соперник</span>
-                <div className="sim-bar-bg">
-                  <motion.div 
-                    className="sim-bar-fill opponent" 
-                    initial={{ scaleX: 0, transformOrigin: 'left' }} 
-                    animate={{ scaleX: 1 }} 
-                    transition={{ duration: 3.5, ease: "linear" }}
-                    style={{ width: '100%' }}
-                  >
-                    <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
-                  </motion.div>
+      {/* ЕДИНЫЙ ОВЕРЛЕЙ ДЛЯ ГОНКИ И РЕЗУЛЬТАТА */}
+      <AnimatePresence>
+        {(status === 'racing' || status === 'result') && (
+          <motion.div 
+            key="race-overlay-container"
+            className="race-overlay" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+          >
+            {status === 'racing' && (
+              <div className="simulation-container">
+                <h3 className="sim-title">Заезд 1000м...</h3>
+                <div className="sim-track">
+                  <span className="sim-label">Соперник</span>
+                  <div className="sim-bar-bg">
+                    <motion.div className="sim-bar-fill opponent" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: 3.5, ease: "linear" }} style={{ width: '100%' }}>
+                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
+                    </motion.div>
+                  </div>
+                </div>
+                <div className="sim-track">
+                  <span className="sim-label">Вы</span>
+                  <div className="sim-bar-bg">
+                    <motion.div className="sim-bar-fill player" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: 3.5, ease: "linear" }} style={{ width: '100%' }}>
+                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
+                    </motion.div>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="sim-track">
-                <span className="sim-label">Вы</span>
-                <div className="sim-bar-bg">
-                  <motion.div 
-                    className="sim-bar-fill player" 
-                    initial={{ scaleX: 0, transformOrigin: 'left' }} 
-                    animate={{ scaleX: 1 }} 
-                    transition={{ duration: 3.5, ease: "linear" }}
-                    style={{ width: '100%' }}
-                  >
-                    <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
-                  </motion.div>
+            {status === 'result' && raceData && (
+              <motion.div 
+                className="race-result-modal"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', damping: 20 }}
+              >
+                <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
+                  {raceData.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
+                </h2>
+                {raceData.ratingChange !== undefined && (
+                  <p style={{ color: raceData.ratingChange > 0 ? '#00FF41' : '#ff4444', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px' }}>
+                    Рейтинг: {raceData.ratingChange > 0 ? '+' : ''}{raceData.ratingChange}
+                  </p>
+                )}
+                <div className="race-log">
+                  {raceData.log.map((line: string, i: number) => <p key={i}>{line}</p>)}
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {status === 'result' && raceData && (
-          <motion.div key="result" className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="race-result-modal">
-              <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
-                {raceData.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
-              </h2>
-              {raceData.ratingChange !== undefined && (
-                <p style={{ color: raceData.ratingChange > 0 ? '#00FF41' : '#ff4444', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px' }}>
-                  Рейтинг: {raceData.ratingChange > 0 ? '+' : ''}{raceData.ratingChange}
-                </p>
-              )}
-              <div className="race-log">
-                {raceData.log.map((line: string, i: number) => <p key={i}>{line}</p>)}
-              </div>
-              <button className="race-close-btn" onClick={() => setStatus('idle')}>Закрыть</button>
-            </div>
+                <button className="race-close-btn" onClick={() => setStatus('idle')}>Закрыть</button>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
