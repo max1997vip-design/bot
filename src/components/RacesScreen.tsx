@@ -16,7 +16,11 @@ const getLeague = (rating: number) => {
 };
 
 export const RacesScreen = () => {
-  const { equipped, startBotRace, user, reportPvpResult } = useGameStore(); 
+  // ТОЧЕЧНЫЕ СЕЛЕКТОРЫ
+  const equipped = useGameStore((s) => s.equipped);
+  const startBotRace = useGameStore((s) => s.startBotRace);
+  const user = useGameStore((s) => s.user);
+
   const [status, setStatus] = useState<'idle' | 'racing' | 'result'>('idle');
   const [raceData, setRaceData] = useState<any>(null);
   
@@ -50,7 +54,6 @@ export const RacesScreen = () => {
       const data = await res.json();
       if (data.success) {
         setRaceData(data.result);
-        // Обновляем стор напрямую (или можно использовать reportPvpResult, если бэкенд PvP его поддерживает)
         useGameStore.setState((state) => ({ 
           balance: data.newBalance,
           user: state.user ? { ...state.user, balance: data.newBalance, rating: data.newRating } : null

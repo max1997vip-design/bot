@@ -6,14 +6,20 @@ import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { GARAGE_HOTSPOTS, UpgradeType, PAINT_COLORS, CAR_POSITION } from '../config/garage';
 import { ITEMS, RARITY_COLORS, calculateStats } from '../config/items';
-import { CARS } from '../config/cars'; // <-- ДОБАВЛЕН ИМПОРТ
+import { CARS } from '../config/cars';
 import '../styles/garage.css';
 
 export const GarageScreen: React.FC = () => {
   const [activeUpgrade, setActiveUpgrade] = useState<UpgradeType | null>(null);
   
-  // Достаем всё нужное из стора
-  const { user, carColor, setCarColor, inventory, equipped, equipItem, switchCar } = useGameStore();
+  // ИСПОЛЬЗУЕМ ТОЧЕЧНЫЕ СЕЛЕКТОРЫ ВМЕСТО ДЕСТРУКТУРИЗАЦИИ
+  const user = useGameStore((s) => s.user);
+  const carColor = useGameStore((s) => s.carColor);
+  const setCarColor = useGameStore((s) => s.setCarColor);
+  const inventory = useGameStore((s) => s.inventory);
+  const equipped = useGameStore((s) => s.equipped);
+  const equipItem = useGameStore((s) => s.equipItem);
+  const switchCar = useGameStore((s) => s.switchCar);
 
   const activeCarId = user?.activeCarId || 'audi-tt';
   const activeCar = CARS[activeCarId] || CARS['audi-tt'];
@@ -40,10 +46,6 @@ export const GarageScreen: React.FC = () => {
   const activeColorHex = PAINT_COLORS.find((c) => c.id === carColor)?.hex || 'transparent';
   const isOriginal = carColor === 'original';
 
-  // Расчет текущих характеристик (можно вывести где-нибудь в гараже)
-  const currentStats = calculateStats(equipped);
-
-  // Рендер списка предметов для конкретного слота
   const renderUpgradeSection = (slot: string) => {
     const slotItems = inventory.filter(id => ITEMS[id]?.slot === slot);
     const uniqueItems = Array.from(new Set(slotItems));
@@ -96,7 +98,6 @@ export const GarageScreen: React.FC = () => {
     <div className="garage-screen">
       <div className="garage-bg" />
 
-      {/* Селектор машин (появляется, если машин больше 1) */}
       {ownedCars.length > 1 && (
         <div style={{ position: 'absolute', top: 20, left: 0, width: '100%', display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 50 }}>
           {ownedCars.map(id => (
@@ -122,7 +123,6 @@ export const GarageScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Машина */}
       <div
         className="garage-car-container"
         style={{ top: CAR_POSITION.y, left: CAR_POSITION.x, width: CAR_POSITION.width }}
@@ -132,7 +132,7 @@ export const GarageScreen: React.FC = () => {
         
         <div className="car-image-wrapper">
           <img
-            src={activeCar.image} // <-- ИСПОЛЬЗУЕМ ДИНАМИЧЕСКУЮ КАРТИНКУ
+            src={activeCar.image}
             alt={activeCar.name}
             className="garage-car-img"
             style={{ 
@@ -147,7 +147,6 @@ export const GarageScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Точки на фоне */}
       {GARAGE_HOTSPOTS.map((spot) => (
         <motion.div
           key={spot.id}
@@ -164,7 +163,6 @@ export const GarageScreen: React.FC = () => {
         </motion.div>
       ))}
 
-      {/* Модалка */}
       <AnimatePresence>
         {activeUpgrade && (
           <motion.div
@@ -188,7 +186,6 @@ export const GarageScreen: React.FC = () => {
               </div>
 
               <div className="garage-modal-body">
-                {/* ПОКРАСКА */}
                 {activeUpgrade === 'paint' && (
                   <div className="paint-section">
                     <p className="paint-desc">Выберите цвет кузова:</p>
@@ -210,9 +207,7 @@ export const GarageScreen: React.FC = () => {
                   </div>
                 )}
 
-                {/* ИНВЕНТАРЬ ДЛЯ ДВИГАТЕЛЯ, ШИН И ПРОШИВКИ */}
-                {['engine', 'tires', 'suspension', 'ecu'].includes(activeUpgrade) && renderUpgradeSection(activeUpgrade)
-                }
+                {['engine', 'tires', 'suspension', 'ecu'].includes(activeUpgrade) && renderUpgradeSection(activeUpgrade)}
               </div>
             </motion.div>
           </motion.div>

@@ -7,15 +7,17 @@ import { GarageScreen } from './components/GarageScreen';
 import { CityScreen } from './components/CityScreen'; 
 import { LoadingScreen } from './components/LoadingScreen';
 import WebApp from '@twa-dev/sdk';
-import { AnimatePresence } from 'framer-motion';
 
 type Tab = 'race' | 'city' | 'garage' | 'profile';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('race');
   const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const setUser = useGameStore((state) => state.setUser);
   const syncTaps = useGameStore((state) => state.syncTaps);
+  const user = useGameStore((state) => state.user);
 
   useEffect(() => {
     WebApp.ready();
@@ -35,17 +37,20 @@ export default function App() {
         const data = await res.json();
         
         if (data.user && data.user.id) {
-          // ИСПРАВЛЕНИЕ ЗДЕСЬ: Передаем inventory и equipped из ответа сервера
           setUser(
             data.user, 
             data.inventory || [], 
-            data.equipped || { engine: null, tires: null, ecu: null }
+            data.equipped || { engine: null, tires: null, ecu: null, suspension: null }
           );
+          setIsReady(true);
+        } else {
+          setError(data.error || 'Не удалось загрузить профиль');
+          setIsReady(true);
         }
       } catch (e) {
         console.error('Ошибка sync:', e);
-      } finally {
-        setTimeout(() => setIsReady(true), 2500); 
+        setError('Ошибка сети. Проверьте интернет.');
+        setIsReady(true);
       }
     };
     
@@ -55,12 +60,29 @@ export default function App() {
     return () => clearInterval(syncInterval);
   }, [setUser, syncTaps]);
 
+  // Экран загрузки
+  if (!isReady) {
+    return <LoadingScreen />;
+  }
+
+  // Экран ошибки (если user не загрузился)
+  if (error || !user) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
+        <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
+        <p style={{ color: '#aaa', marginBottom: 20 }}>{error || 'Пользователь не найден'}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          style={{ padding: '12px 24px', background: '#00FF41', color: 'black', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer' }}
+        >
+          Перезагрузить
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
-      <AnimatePresence>
-        {!isReady && <LoadingScreen />}
-      </AnimatePresence>
-
       <main className="main-content">
         {activeTab === 'race' && <RaceScreen />}
         {activeTab === 'city' && <CityScreen />}
