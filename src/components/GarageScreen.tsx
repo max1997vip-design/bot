@@ -6,13 +6,18 @@ import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { GARAGE_HOTSPOTS, UpgradeType, PAINT_COLORS, CAR_POSITION } from '../config/garage';
 import { ITEMS, RARITY_COLORS, calculateStats } from '../config/items';
+import { CARS } from '../config/cars'; // <-- ДОБАВЛЕН ИМПОРТ
 import '../styles/garage.css';
 
 export const GarageScreen: React.FC = () => {
   const [activeUpgrade, setActiveUpgrade] = useState<UpgradeType | null>(null);
   
-  // Достаем всё нужное из нового стора
-  const { carColor, setCarColor, inventory, equipped, equipItem } = useGameStore();
+  // Достаем всё нужное из стора
+  const { user, carColor, setCarColor, inventory, equipped, equipItem, switchCar } = useGameStore();
+
+  const activeCarId = user?.activeCarId || 'audi-tt';
+  const activeCar = CARS[activeCarId] || CARS['audi-tt'];
+  const ownedCars = user?.ownedCars || ['audi-tt'];
 
   const handleUpgradeClick = (id: UpgradeType) => {
     setActiveUpgrade(id);
@@ -40,12 +45,9 @@ export const GarageScreen: React.FC = () => {
 
   // Рендер списка предметов для конкретного слота
   const renderUpgradeSection = (slot: string) => {
-    // Оставляем только предметы для этого слота
     const slotItems = inventory.filter(id => ITEMS[id]?.slot === slot);
-    // Убираем дубликаты (если выпало 3 одинаковых мотора)
     const uniqueItems = Array.from(new Set(slotItems));
     
-    // Сортируем по редкости (сначала легендарки)
     uniqueItems.sort((a, b) => {
       const rarities = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
       return rarities.indexOf(ITEMS[a].rarity) - rarities.indexOf(ITEMS[b].rarity);
@@ -94,6 +96,32 @@ export const GarageScreen: React.FC = () => {
     <div className="garage-screen">
       <div className="garage-bg" />
 
+      {/* Селектор машин (появляется, если машин больше 1) */}
+      {ownedCars.length > 1 && (
+        <div style={{ position: 'absolute', top: 20, left: 0, width: '100%', display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 50 }}>
+          {ownedCars.map(id => (
+            <button
+              key={id}
+              onClick={() => switchCar(id)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                background: id === activeCarId ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.5)',
+                border: id === activeCarId ? '2px solid #fff' : '2px solid rgba(255,255,255,0.1)',
+                color: id === activeCarId ? '#fff' : '#888',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                backdropFilter: 'blur(5px)',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {CARS[id]?.name || id}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Машина */}
       <div
         className="garage-car-container"
@@ -104,8 +132,8 @@ export const GarageScreen: React.FC = () => {
         
         <div className="car-image-wrapper">
           <img
-            src="/cars/audi-tt-front.png"
-            alt="Car"
+            src={activeCar.image} // <-- ИСПОЛЬЗУЕМ ДИНАМИЧЕСКУЮ КАРТИНКУ
+            alt={activeCar.name}
             className="garage-car-img"
             style={{ 
               filter: isOriginal 

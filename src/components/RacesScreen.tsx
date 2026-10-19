@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { calculateStats } from '../config/items'; // <-- Используем calculateStats вместо getRacingStats
+import { calculateStats } from '../config/items'; 
 import WebApp from '@twa-dev/sdk';
 import '../styles/races.css';
 
@@ -16,14 +16,14 @@ const getLeague = (rating: number) => {
 };
 
 export const RacesScreen = () => {
-  const { equipped, startBotRace, user } = useGameStore(); // <-- Берем equipped
+  const { equipped, startBotRace, user, reportPvpResult } = useGameStore(); 
   const [status, setStatus] = useState<'idle' | 'racing' | 'result'>('idle');
   const [raceData, setRaceData] = useState<any>(null);
   
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
 
-  const stats = calculateStats(equipped); // <-- Считаем статы
+  const stats = calculateStats(equipped); 
   const currentRating = user?.rating || 0;
   const league = getLeague(currentRating);
 
@@ -50,10 +50,11 @@ export const RacesScreen = () => {
       const data = await res.json();
       if (data.success) {
         setRaceData(data.result);
-        useGameStore.setState({ 
+        // Обновляем стор напрямую (или можно использовать reportPvpResult, если бэкенд PvP его поддерживает)
+        useGameStore.setState((state) => ({ 
           balance: data.newBalance,
-          user: user ? { ...user, balance: data.newBalance, rating: data.newRating } : null
-        }); 
+          user: state.user ? { ...state.user, balance: data.newBalance, rating: data.newRating } : null
+        })); 
       } else setStatus('idle');
     } catch (e) { console.error(e); setStatus('idle'); }
   };
