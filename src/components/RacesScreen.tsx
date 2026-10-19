@@ -100,16 +100,6 @@ export const RacesScreen = () => {
     } catch (e) { console.error(e); }
   };
 
-  const getBarDurations = () => {
-    if (!raceData) return { player: 3.5, opponent: 3.5 };
-    const minTime = Math.min(raceData.playerTime, raceData.opponentTime);
-    return {
-      player: (raceData.playerTime / minTime) * 3.5,
-      opponent: (raceData.opponentTime / minTime) * 3.5
-    };
-  };
-  const durations = getBarDurations();
-
   return (
     <div className="races-screen">
       <div className="races-header" style={{ position: 'relative' }}>
@@ -135,69 +125,63 @@ export const RacesScreen = () => {
         </div>
       </div>
 
-      {/* Модалка гонки (Один общий оверлей) */}
-      <AnimatePresence>
-        {(status === 'racing' || status === 'result') && (
-          <motion.div 
-            className="race-overlay" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            style={{ 
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-              background: 'rgba(0,0,0,0.85)', zIndex: 1000, 
-              display: 'flex', alignItems: 'center', justifyContent: 'center' 
-            }}
-          >
-            {/* Без AnimatePresence, просто условный рендеринг контента */}
-            {status === 'racing' && (
-              <div className="simulation-container">
-                <h3 className="sim-title">Заезд 1000м...</h3>
-                <div className="sim-track">
-                  <span className="sim-label">Соперник</span>
-                  <div className="sim-bar-bg">
-                    <motion.div className="sim-bar-fill opponent" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: 3.5, ease: "linear" }} style={{ width: '100%' }}>
-                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
-                    </motion.div>
-                  </div>
-                </div>
-                <div className="sim-track">
-                  <span className="sim-label">Вы</span>
-                  <div className="sim-bar-bg">
-                    <motion.div className="sim-bar-fill player" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: 3.5, ease: "linear" }} style={{ width: '100%' }}>
-                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
-                    </motion.div>
-                  </div>
+      {/* ОКНО ГОНКИ (БЕЗ AnimatePresence, чтобы не было глюков при закрытии) */}
+      {status !== 'idle' && (
+        <div 
+          className="race-overlay" 
+          style={{ 
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+            background: 'rgba(0,0,0,0.85)', zIndex: 1000, 
+            display: 'flex', alignItems: 'center', justifyContent: 'center' 
+          }}
+        >
+          {status === 'racing' && (
+            <div className="simulation-container">
+              <h3 className="sim-title">Заезд 1000м...</h3>
+              <div className="sim-track">
+                <span className="sim-label">Соперник</span>
+                <div className="sim-bar-bg">
+                  <motion.div className="sim-bar-fill opponent" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: 3.5, ease: "linear" }} style={{ width: '100%' }}>
+                    <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
+                  </motion.div>
                 </div>
               </div>
-            )}
-
-            {status === 'result' && raceData && (
-              <motion.div 
-                className="race-result-modal"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: 'spring', damping: 20 }}
-              >
-                <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
-                  {raceData.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
-                </h2>
-                {raceData.ratingChange !== undefined && (
-                  <p style={{ color: raceData.ratingChange > 0 ? '#00FF41' : '#ff4444', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px' }}>
-                    Рейтинг: {raceData.ratingChange > 0 ? '+' : ''}{raceData.ratingChange}
-                  </p>
-                )}
-                <div className="race-log">
-                  {raceData.log.map((line: string, i: number) => <p key={i}>{line}</p>)}
+              <div className="sim-track">
+                <span className="sim-label">Вы</span>
+                <div className="sim-bar-bg">
+                  <motion.div className="sim-bar-fill player" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: 3.5, ease: "linear" }} style={{ width: '100%' }}>
+                    <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
+                  </motion.div>
                 </div>
-                <button className="race-close-btn" onClick={() => setStatus('idle')}>Закрыть</button>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </div>
+            </div>
+          )}
 
-      {/* Модалка лидерборда */}
+          {status === 'result' && raceData && (
+            <motion.div 
+              className="race-result-modal"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', damping: 20 }}
+            >
+              <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
+                {raceData.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
+              </h2>
+              {raceData.ratingChange !== undefined && (
+                <p style={{ color: raceData.ratingChange > 0 ? '#00FF41' : '#ff4444', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px' }}>
+                  Рейтинг: {raceData.ratingChange > 0 ? '+' : ''}{raceData.ratingChange}
+                </p>
+              )}
+              <div className="race-log">
+                {raceData.log.map((line: string, i: number) => <p key={i}>{line}</p>)}
+              </div>
+              <button className="race-close-btn" onClick={() => setStatus('idle')}>Закрыть</button>
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {/* Модалка лидерборда (с AnimatePresence) */}
       <AnimatePresence>
         {showLeaderboard && (
           <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

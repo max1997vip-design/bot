@@ -113,8 +113,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const playerStats = calculateStats(equipped);
     
-    // Бот получает статы игрока, но с разбросом от -5% до +5%
-    const deviation = () => 0.95 + Math.random() * 0.1;
+    // Бот получает от 80% до 90% от статов игрока (дает ~75% побед)
+    const deviation = () => 0.80 + Math.random() * 0.10;
     
     const botStats = {
       power: playerStats.power * deviation(),
@@ -122,16 +122,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       grip: playerStats.grip * deviation(),
       handling: playerStats.handling * deviation(),
       accel: playerStats.accel * deviation(),
-      rating: playerStats.rating + (Math.random() * 20 - 10)
+      rating: playerStats.rating * deviation() // Бот слабее по рейтингу
     };
 
-    const calcTime = (stats: any) => {
+    const calcTime = (stats: any, isBot: boolean = false) => {
       const baseTime = (1000 / stats.topSpeed) * 3600; 
-      return baseTime - (stats.accel * 0.5) - (stats.grip * 0.05) - (stats.handling * 0.05) + (Math.random() * 1.5);
+      // Боту добавляем больше случайного штрафа (чтобы он тупил)
+      const penalty = isBot ? (Math.random() * 2.5) : (Math.random() * 1.0);
+      return baseTime - (stats.accel * 0.5) - (stats.grip * 0.05) - (stats.handling * 0.05) + penalty;
     };
 
-    const pTime = calcTime(playerStats);
-    const oTime = calcTime(botStats);
+    const pTime = calcTime(playerStats, false);
+    const oTime = calcTime(botStats, true);
     const winner = pTime < oTime ? 'player' : 'opponent';
     
     const log = [
