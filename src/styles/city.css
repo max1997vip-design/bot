@@ -23,6 +23,14 @@
   font-weight: 800;
 }
 
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Всегда 2 колонки */
+  gap: 15px;
+  width: 100%;
+  padding-bottom: 20px; /* Отступ снизу, чтобы ничего не обрезалось */
+}
+
 .city-card {
   background: var(--bg-surface);
   border: 1px solid rgba(255, 255, 255, 0.05);
