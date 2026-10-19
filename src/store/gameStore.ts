@@ -107,19 +107,22 @@ export const useGameStore = create<GameState>((set, get) => ({
     return false;
   },
 
-  // ТЕПЕРЬ ЭТО ПРОСТО МАТЕМАТИКА. ЗАПРОСЫ ДЕЛАЕТ UI.
-  startBotRace: async () => {
+   startBotRace: async () => {
     const { user, equipped } = get();
     if (!user) return { success: false };
 
     const playerStats = calculateStats(equipped);
-    const botRating = Math.max(0, playerStats.rating + (Math.random() * 10 - 5));
+    
+    // Бот получает статы игрока, но с разбросом от -5% до +5%
+    const deviation = () => 0.95 + Math.random() * 0.1;
     
     const botStats = {
-      power: 150 + botRating, topSpeed: 180 + botRating * 0.5,
-      grip: botRating * 0.5, handling: botRating * 0.5,
-      accel: Math.max(1.5, 7.0 - (botRating * 0.005)),
-      rating: botRating
+      power: playerStats.power * deviation(),
+      topSpeed: playerStats.topSpeed * deviation(),
+      grip: playerStats.grip * deviation(),
+      handling: playerStats.handling * deviation(),
+      accel: playerStats.accel * deviation(),
+      rating: playerStats.rating + (Math.random() * 20 - 10)
     };
 
     const calcTime = (stats: any) => {
@@ -132,13 +135,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const winner = pTime < oTime ? 'player' : 'opponent';
     
     const log = [
-      `🏁 Старт! Соперник: Бот (Рейтинг: ${botRating.toFixed(0)})`,
+      `🏁 Старт! Соперник: Бот (Рейтинг: ${botStats.rating.toFixed(0)})`,
       `Вы проехали 1000м за ${pTime.toFixed(2)} сек.`,
       `Бот проехал за ${oTime.toFixed(2)} сек.`,
       winner === 'player' ? `🏆 Победа! +1 рейтинг.` : `💨 Поражение...`
     ];
 
-    // Считаем награду заранее
     const reward = winner === 'player' ? (1000 + playerStats.rating * 10) : 0;
 
     return { 
@@ -153,6 +155,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       } 
     };
   },
+
 
   switchCar: async (carId: string) => {
     const { user } = get();
