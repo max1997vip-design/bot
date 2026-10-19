@@ -2,14 +2,9 @@
 import { create } from 'zustand';
 import { calculateStats } from '../config/items';
 
-// ВОЗВРАЩАЕМ ОБЪЯВЛЕНИЕ ДЛЯ TELEGRAM SDK
 declare global {
   interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData: string;
-      };
-    };
+    Telegram?: { WebApp?: { initData: string; }; };
   }
 }
 
@@ -18,7 +13,7 @@ export interface UserData {
   photoUrl: string | null; balance: number; totalEarned: number; starsBalance: number;
   level: number; xp: number; activeCarId: string; createdAt: string;
   referredBy: number | null; referralEarnings: number; rating: number;
-  ownedCars?: string[]; // <-- ДОБАВЛЕНО
+  ownedCars?: string[]; 
 }
 
 interface GameState {
@@ -39,9 +34,8 @@ interface GameState {
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
-  startBotRace: () => Promise<{ success: boolean; result?: any }>;
   
-  // НОВЫЕ МЕТОДЫ
+  startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
   reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
 }
@@ -50,7 +44,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   user: null, balance: 0, unsyncedTaps: 0, isSyncing: false,
   tapCountInSecond: 0, lastTapSecond: 0, carColor: 'original',
   inventory: [], 
-  // ДОБАВЛЕН suspension
   equipped: { engine: null, tires: null, ecu: null, suspension: null }, 
   lastDroppedItem: null,
 
@@ -114,8 +107,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     return false;
   },
 
+  // ТЕПЕРЬ ЭТО ПРОСТО МАТЕМАТИКА. ЗАПРОСЫ ДЕЛАЕТ UI.
   startBotRace: async () => {
-    const { user, equipped, balance } = get();
+    const { user, equipped } = get();
     if (!user) return { success: false };
 
     const playerStats = calculateStats(equipped);
@@ -136,6 +130,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const pTime = calcTime(playerStats);
     const oTime = calcTime(botStats);
     const winner = pTime < oTime ? 'player' : 'opponent';
+    
     const log = [
       `🏁 Старт! Соперник: Бот (Рейтинг: ${botRating.toFixed(0)})`,
       `Вы проехали 1000м за ${pTime.toFixed(2)} сек.`,
@@ -143,37 +138,26 @@ export const useGameStore = create<GameState>((set, get) => ({
       winner === 'player' ? `🏆 Победа! +1 рейтинг.` : `💨 Поражение...`
     ];
 
-    if (winner === 'player') {
-      const reward = 1000 + playerStats.rating * 10;
-      
-      // ВМЕСТО СТАРОГО ЗАПРОСА НА TAP, ИСПОЛЬЗУЕМ НАШ НОВЫЙ МЕТОД
-      // Он и деньги сохранит, и рейтинг прибавит
-      get().reportPvpResult({
-        won: true,
-        ratingDelta: 1,
-        coinsDelta: reward
-      });
-    } else {
-      // Если проиграли, рейтинг можно немного списать (например, -1)
-      // Если не хочешь списывать, поставь ratingDelta: 0
-      get().reportPvpResult({
-        won: false,
-        ratingDelta: -1, 
-        coinsDelta: 0
-      });
-    }
-    
-    return { success: true, result: { winner, log, playerTime: pTime, opponentTime: oTime, ratingChange: winner === 'player' ? 1 : -1 } };
-  },
+    // Считаем награду заранее
+    const reward = winner === 'player' ? (1000 + playerStats.rating * 10) : 0;
 
-  // --- НОВЫЕ МЕТОДЫ ---
+    return { 
+      success: true, 
+      result: { 
+        winner, 
+        log, 
+        playerTime: pTime, 
+        opponentTime: oTime, 
+        ratingChange: winner === 'player' ? 1 : -1,
+        reward 
+      } 
+    };
+  },
 
   switchCar: async (carId: string) => {
     const { user } = get();
     if (!user) return;
-    
     const prevCarId = user.activeCarId;
-    // Оптимистичное обновление (сразу меняем картинку)
     set({ user: { ...user, activeCarId: carId } });
 
     try {
@@ -185,10 +169,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!res.ok) throw new Error('Failed to switch car');
     } catch (e) {
       console.error(e);
-      // Если сервер не ответил, откатываем назад
-      set((state) => ({
-        user: state.user ? { ...state.user, activeCarId: prevCarId } : null
-      }));
+      set((state) => ({ user: state.user ? { ...state.user, activeCarId: prevCarId } : null }));
     }
   },
 
@@ -199,7 +180,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     const prevBalance = user.balance;
     const prevRating = user.rating;
 
-    // Оптимистичное обновление (чтобы UI не ждал)
     set({
       balance: Math.max(0, user.balance + coinsDelta),
       user: {
@@ -219,7 +199,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!res.ok) throw new Error('Server error');
       const data = await res.json();
       
-      // Синхронизируем с тем, что пришло с сервера (источник истины)
       set((state) => ({
         balance: data.newBalance ?? state.balance,
         user: state.user ? {
@@ -230,7 +209,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       }));
     } catch (e) {
       console.error(e);
-      // Откат при ошибке
       set((state) => ({
         balance: prevBalance,
         user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null

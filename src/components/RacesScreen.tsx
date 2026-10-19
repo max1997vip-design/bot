@@ -16,9 +16,9 @@ const getLeague = (rating: number) => {
 };
 
 export const RacesScreen = () => {
-  // ТОЧЕЧНЫЕ СЕЛЕКТОРЫ
   const equipped = useGameStore((s) => s.equipped);
   const startBotRace = useGameStore((s) => s.startBotRace);
+  const reportPvpResult = useGameStore((s) => s.reportPvpResult);
   const user = useGameStore((s) => s.user);
 
   const [status, setStatus] = useState<'idle' | 'racing' | 'result'>('idle');
@@ -27,39 +27,75 @@ export const RacesScreen = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
 
-  const stats = calculateStats(equipped); 
   const currentRating = user?.rating || 0;
   const league = getLeague(currentRating);
 
   const handleStartBotRace = async () => {
+    if (status !== 'idle') return; // Защита от спама кликами
     setStatus('racing');
     setRaceData(null);
+
     try {
+      // 1. Считаем результат
       const res = await startBotRace();
-      if (res.success) setRaceData(res.result);
-      else setStatus('idle');
-    } catch (e) { console.error(e); setStatus('idle'); }
+      
+      // 2. Ждем 3.5 секунды (чтобы полоски красиво проехали)
+      await new Promise(resolve => setTimeout(resolve, 3500));
+
+      if (res.success && res.result) {
+        setRaceData(res.result);
+        setStatus('result');
+        
+        // 3. Отправляем результат на сервер
+        reportPvpResult({
+          won: res.result.winner === 'player',
+          ratingDelta: res.result.ratingChange,
+          coinsDelta: res.result.reward
+        });
+      } else {
+        setStatus('idle');
+      }
+    } catch (e) {
+      console.error(e);
+      setStatus('idle');
+    }
   };
 
   const handlePvP = async () => {
+    if (status !== 'idle') return;
     setStatus('racing');
     setRaceData(null);
+
     try {
       const initData = WebApp.initData || '';
-      const res = await fetch('/api/game?action=pvp', {
+      
+      // Отправляем запрос сразу
+      const fetchPromise = fetch('/api/game?action=pvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData }),
-      });
-      const data = await res.json();
+      }).then(r => r.json());
+
+      // Ждем минимум 3.5 секунды (полоски)
+      const [data] = await Promise.all([
+        fetchPromise,
+        new Promise(resolve => setTimeout(resolve, 3500))
+      ]);
+
       if (data.success) {
         setRaceData(data.result);
+        setStatus('result');
         useGameStore.setState((state) => ({ 
           balance: data.newBalance,
           user: state.user ? { ...state.user, balance: data.newBalance, rating: data.newRating } : null
         })); 
-      } else setStatus('idle');
-    } catch (e) { console.error(e); setStatus('idle'); }
+      } else {
+        setStatus('idle');
+      }
+    } catch (e) {
+      console.error(e);
+      setStatus('idle');
+    }
   };
 
   const fetchLeaderboard = async () => {
@@ -71,19 +107,13 @@ export const RacesScreen = () => {
     } catch (e) { console.error(e); }
   };
 
-  useEffect(() => {
-    if (status === 'racing' && raceData) {
-      const timer = setTimeout(() => setStatus('result'), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [status, raceData]);
-
+  // Вычисляем длительность полосок
   const getBarDurations = () => {
-    if (!raceData) return { player: 3, opponent: 3 };
+    if (!raceData) return { player: 3.5, opponent: 3.5 };
     const minTime = Math.min(raceData.playerTime, raceData.opponentTime);
     return {
-      player: (raceData.playerTime / minTime) * 3,
-      opponent: (raceData.opponentTime / minTime) * 3
+      player: (raceData.playerTime / minTime) * 3.5,
+      opponent: (raceData.opponentTime / minTime) * 3.5
     };
   };
   const durations = getBarDurations();
@@ -100,13 +130,13 @@ export const RacesScreen = () => {
       </div>
 
       <div className="race-modes">
-        <div className="race-card" onClick={handleStartBotRace} style={{ cursor: 'pointer' }}>
+        <div className={`race-card ${status !== 'idle' ? 'disabled' : ''}`} onClick={handleStartBotRace} style={{ cursor: status === 'idle' ? 'pointer' : 'not-allowed', opacity: status === 'idle' ? 1 : 0.5 }}>
           <div className="race-icon">🤖</div>
           <h3>Тренировка с ботом</h3>
           <p>+1 рейтинг за победу</p>
         </div>
         
-        <div className="race-card pvp-card" onClick={handlePvP} style={{ cursor: 'pointer' }}>
+        <div className={`race-card pvp-card ${status !== 'idle' ? 'disabled' : ''}`} onClick={handlePvP} style={{ cursor: status === 'idle' ? 'pointer' : 'not-allowed', opacity: status === 'idle' ? 1 : 0.5 }}>
           <div className="race-icon">⚔️</div>
           <h3>PvP Гонка</h3>
           <p>Награда х5, +5 рейтинга</p>
@@ -115,15 +145,21 @@ export const RacesScreen = () => {
 
       <AnimatePresence mode="wait">
         {status === 'racing' && (
-          <motion.div key="racing" className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.2 } }}>
+          <motion.div key="racing" className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="simulation-container">
               <h3 className="sim-title">Заезд 1000м...</h3>
               
               <div className="sim-track">
                 <span className="sim-label">Соперник</span>
                 <div className="sim-bar-bg">
-                  <motion.div className="sim-bar-fill opponent" initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: raceData ? durations.opponent : 3, ease: "linear" }}>
-                    <span className="car-icon">🏎️</span>
+                  <motion.div 
+                    className="sim-bar-fill opponent" 
+                    initial={{ scaleX: 0, transformOrigin: 'left' }} 
+                    animate={{ scaleX: 1 }} 
+                    transition={{ duration: 3.5, ease: "linear" }}
+                    style={{ width: '100%' }}
+                  >
+                    <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
                   </motion.div>
                 </div>
               </div>
@@ -131,8 +167,14 @@ export const RacesScreen = () => {
               <div className="sim-track">
                 <span className="sim-label">Вы</span>
                 <div className="sim-bar-bg">
-                  <motion.div className="sim-bar-fill player" initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: raceData ? durations.player : 3, ease: "linear" }}>
-                    <span className="car-icon">🚗</span>
+                  <motion.div 
+                    className="sim-bar-fill player" 
+                    initial={{ scaleX: 0, transformOrigin: 'left' }} 
+                    animate={{ scaleX: 1 }} 
+                    transition={{ duration: 3.5, ease: "linear" }}
+                    style={{ width: '100%' }}
+                  >
+                    <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
                   </motion.div>
                 </div>
               </div>
