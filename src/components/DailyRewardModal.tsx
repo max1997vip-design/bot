@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { playSound } from '../utils/sound';
@@ -11,6 +12,7 @@ const REWARDS = [1000, 2500, 5000, 10000, 25000, 50000, 100000];
 export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
   const claimDaily = useGameStore((s) => s.claimDaily);
+  const [isLoading, setIsLoading] = useState(false);
 
   const streak = user?.dailyStreak || 0;
   const lastClaim = user?.lastDailyClaim ? new Date(user.lastDailyClaim) : null;
@@ -18,15 +20,25 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
   // Проверка, можно ли забрать награду
   const canClaim = !lastClaim || (Date.now() - lastClaim.getTime()) >= 24 * 60 * 60 * 1000;
   
-  // Вычисляем, какой день сейчас активен (для подсветки)
+  // Вычисляем, какой день сейчас активен
   let activeDay = streak;
   if (canClaim) {
     activeDay = (streak % 7) + 1;
   }
 
   const handleClaim = async () => {
-    const success = await claimDaily();
-    if (success) playSound('coin');
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const success = await claimDaily();
+      if (success) {
+        playSound('coin');
+      } else {
+        console.error('Не удалось забрать награду (ошибка сервера или рано)');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -43,7 +55,6 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
             const day = index + 1;
             const isClaimed = streak >= day && !canClaim;
             const isActive = day === activeDay && canClaim;
-            const isFuture = day > activeDay;
             
             return (
               <div key={day} style={{
@@ -80,16 +91,16 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
 
         <button
           onClick={canClaim ? handleClaim : onClose}
-          disabled={!canClaim}
+          disabled={!canClaim || isLoading}
           style={{
             width: '100%', padding: '15px', borderRadius: '12px', border: 'none',
             fontSize: '16px', fontWeight: 'bold',
-            background: canClaim ? '#ffd700' : '#333',
-            color: canClaim ? 'black' : '#666',
-            cursor: canClaim ? 'pointer' : 'not-allowed'
+            background: !canClaim ? '#333' : isLoading ? '#888' : '#ffd700',
+            color: !canClaim ? '#666' : 'black',
+            cursor: (!canClaim || isLoading) ? 'not-allowed' : 'pointer'
           }}
         >
-          {canClaim ? 'ЗАБРАТЬ НАГРАДУ' : 'ЗАКРЫТЬ'}
+          {isLoading ? 'ПОЛУЧАЕМ...' : canClaim ? 'ЗАБРАТЬ НАГРАДУ' : 'ЗАКРЫТЬ'}
         </button>
       </div>
     </div>
