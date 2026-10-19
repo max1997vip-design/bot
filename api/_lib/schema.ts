@@ -26,12 +26,14 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
   lastOnlineAt: timestamp('last_online_at').notNull().defaultNow(),
+  
+  clickLevel: integer('click_level').notNull().default(1),
+  offlineLevel: integer('offline_level').notNull().default(1),
+  
   dailyStreak: integer('daily_streak').notNull().default(0),
   lastDailyClaim: timestamp('last_daily_claim', { withTimezone: true }),
   
-  // НОВЫЕ ПОЛЯ
-  clickLevel: integer('click_level').notNull().default(1),
-  offlineLevel: integer('offline_level').notNull().default(1),
+    dailyQuests: jsonb('daily_quests').$type<any>(),
 });
 
 export const ownedCars = pgTable('owned_cars', {

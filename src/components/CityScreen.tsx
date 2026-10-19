@@ -2,18 +2,18 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RacesScreen } from './RacesScreen';
-import { CarDealership } from './CarDealership'; // <-- Импортируем наш салон
+import { CarDealership } from './CarDealership'; 
+import { DailyRewardModal } from './DailyRewardModal'; // <-- ДОБАВЛЕНО
+import { QuestModal } from './QuestModal'; // <-- ДОБАВЛЕНО
 import '../styles/city.css';
-import { DailyRewardModal } from './DailyRewardModal';
 
 export const CityScreen = () => {
   const [activeLocation, setActiveLocation] = useState<'menu' | 'track'>('menu');
   const [showTopBalance, setShowTopBalance] = useState(false);
   const [topBalanceData, setTopBalanceData] = useState<any[]>([]);
-  
-  // Стейт для открытия автосалона
   const [showDealership, setShowDealership] = useState(false);
-  const [showDaily, setShowDaily] = useState(false);
+  const [showDaily, setShowDaily] = useState(false); // <-- ДОБАВЛЕНО
+  const [showQuests, setShowQuests] = useState(false); // <-- ДОБАВЛЕНО
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -44,19 +44,25 @@ export const CityScreen = () => {
                 <p>Самые богатые гонщики</p>
               </div>
 
-              <div className="city-card" onClick={() => setShowDaily(true)}>
-                <span className="city-icon">🎁</span>
-                <h3>Бонус</h3>
-                <p>Ежедневная награда</p>
-              </div>
-
-              {/* АВТОСАЛОН ТЕПЕРЬ АКТИВЕН */}
               <div className="city-card" onClick={() => setShowDealership(true)}>
                 <span className="city-icon">🏢</span>
                 <h3>Автосалон</h3>
                 <p>Покупка новых машин</p>
               </div>
               
+              <div className="city-card" onClick={() => setShowDaily(true)}>
+                <span className="city-icon">🎁</span>
+                <h3>Бонус</h3>
+                <p>Ежедневная награда</p>
+              </div>
+
+              {/* НОВАЯ КАРТОЧКА ЗАДАНИЙ */}
+              <div className="city-card" onClick={() => setShowQuests(true)}>
+                <span className="city-icon">📋</span>
+                <h3>Задания</h3>
+                <p>Квесты на сегодня</p>
+              </div>
+
               <div className="city-card disabled">
                 <span className="city-icon">🔧</span>
                 <h3>Мастерская</h3>
@@ -74,7 +80,6 @@ export const CityScreen = () => {
         )}
       </AnimatePresence>
 
-      {/* МОДАЛКА ТОПА БАЛАНСА */}
       <AnimatePresence>
         {showTopBalance && (
           <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -97,13 +102,16 @@ export const CityScreen = () => {
         )}
       </AnimatePresence>
 
-      {/* МОДАЛКА АВТОСАЛОНА */}
       {showDealership && (
         <CarDealership onClose={() => setShowDealership(false)} />
       )}
-
-       {showDaily && (
+      
+      {showDaily && (
         <DailyRewardModal onClose={() => setShowDaily(false)} />
+      )}
+
+      {showQuests && (
+        <QuestModal onClose={() => setShowQuests(false)} />
       )}
     </div>
   );

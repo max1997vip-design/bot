@@ -3,6 +3,7 @@ import { users, userItems } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
 import { ALL_ITEM_IDS, ITEMS, RARITY_DROP_CHANCE } from '../items.js';
+import { getOrCreateQuests } from '../quests.js'; // <-- ДОБАВЛЕНО
 
 export async function tapHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -14,13 +15,21 @@ export async function tapHandler(req: any, res: any) {
   if (typeof amount !== 'number' || amount <= 0 || amount > 10000) return res.status(400).json({ error: 'Invalid amount' });
 
   try {
+    // 1. Сначала достаем юзера, чтобы получить его текущие квесты
+    const [user] = await db.select().from(users).where(eq(users.id, telegramId));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // 2. Обновляем прогресс квеста на клики
+    const quests = getOrCreateQuests(user.dailyQuests);
+    quests.progress.click_1000 = Math.min(1000, (quests.progress.click_1000 || 0) + amount);
+
+    // 3. Обновляем баланс и сохраняем квесты
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
       totalEarned: sql`${users.totalEarned} + ${amount}`,
       lastOnlineAt: new Date(),
+      dailyQuests: quests // <-- Сохраняем обновленные квесты
     }).where(eq(users.id, telegramId)).returning();
-
-    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
 
     let droppedItem = null;
     
@@ -46,7 +55,8 @@ export async function tapHandler(req: any, res: any) {
       success: true,
       newBalance: updatedUser.balance,
       newTotalEarned: updatedUser.totalEarned,
-      droppedItem
+      droppedItem,
+      quests // <-- Отдаем на фронт
     });
   } catch (error) {
     return res.status(500).json({ error: 'Internal server error' });

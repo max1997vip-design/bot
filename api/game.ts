@@ -10,6 +10,8 @@ import { upgradeClickerHandler } from './_lib/handlers/upgradeClicker.js';
 import { upgradeOfflineHandler } from './_lib/handlers/upgradeOffline.js';
 import { sellItemHandler } from './_lib/handlers/sellItem.js';
 import { claimDailyHandler } from './_lib/handlers/claimDaily.js';
+import { getQuestsHandler } from './_lib/handlers/getQuests.js'; // <-- ДОБАВЛЕНО
+import { claimQuestHandler } from './_lib/handlers/claimQuest.js'; // <-- ДОБАВЛЕНО
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -24,10 +26,12 @@ export default async function handler(req: any, res: any) {
     case 'switchCar': return switchCarHandler(req, res);
     case 'pvpResult': return pvpResultHandler(req, res);
     case 'buyCar': return buyCarHandler(req, res);
-    case 'sellItem': return sellItemHandler(req, res);
     case 'upgradeClicker': return upgradeClickerHandler(req, res);
     case 'upgradeOffline': return upgradeOfflineHandler(req, res);
+    case 'sellItem': return sellItemHandler(req, res);
     case 'claimDaily': return claimDailyHandler(req, res);
+    case 'getQuests': return getQuestsHandler(req, res); // <-- ДОБАВЛЕНО
+    case 'claimQuest': return claimQuestHandler(req, res); // <-- ДОБАВЛЕНО
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

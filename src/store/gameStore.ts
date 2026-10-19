@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { calculateStats, ITEMS, SELL_PRICES } from '../config/items';
 
-
 declare global {
   interface Window {
     Telegram?: { WebApp?: { initData: string; }; };
@@ -31,7 +30,6 @@ interface GameState {
   carColor: string;
   inventory: string[];
   equipped: Record<string, string | null>;
-  dailyStreak?: number;
   lastDroppedItem: any | null;
 
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
@@ -40,7 +38,6 @@ interface GameState {
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
-  claimDaily: () => Promise<boolean>;
   
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
@@ -49,6 +46,8 @@ interface GameState {
   sellItem: (itemId: string) => Promise<boolean>;
   upgradeClicker: () => Promise<void>;
   upgradeOffline: () => Promise<void>;
+  claimDaily: () => Promise<boolean>;
+  claimQuest: (questId: string) => Promise<any>; // <-- ДОБАВЛЕНО
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -280,7 +279,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (e) { console.error(e); }
   },
 
-    sellItem: async (itemId) => {
+  sellItem: async (itemId) => {
     const state = get();
     const user = state.user;
     if (!user) return false;
@@ -289,12 +288,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!item) return false;
     const price = SELL_PRICES[item.rarity] || 100;
 
-    // 1. СРАЗУ ОБНОВЛЯЕМ UI (без ожидания сервера)
     const newInventory = [...state.inventory];
     const index = newInventory.indexOf(itemId);
     if (index === -1) return false;
     
-    newInventory.splice(index, 1); // Удаляем один экземпляр
+    newInventory.splice(index, 1); 
     const newBalance = state.balance + price;
 
     set({
@@ -303,7 +301,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: { ...user, balance: newBalance }
     });
 
-    // 2. ОТПРАВЛЯЕМ НА СЕРВЕР В ФОНЕ
     const initData = window.Telegram?.WebApp?.initData || '';
     try {
       const res = await fetch('/api/game?action=sellItem', {
@@ -314,7 +311,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!res.ok) throw new Error('Server error');
       const data = await res.json();
       
-      // Обновляем баланс, если сервер насчитал иначе
       set((s) => ({
         balance: data.newBalance,
         user: s.user ? { ...s.user, balance: data.newBalance } : null
@@ -322,7 +318,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       return true;
     } catch (e) {
       console.error('Sell error:', e);
-      // 3. ОТКАТ ПРИ ОШИБКЕ (если сервер упал)
       set({
         balance: state.balance,
         inventory: state.inventory,
@@ -332,7 +327,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-    claimDaily: async () => {
+  claimDaily: async () => {
     const initData = window.Telegram?.WebApp?.initData || '';
     try {
       const res = await fetch('/api/game?action=claimDaily', {
@@ -359,4 +354,26 @@ export const useGameStore = create<GameState>((set, get) => ({
       return false;
     }
   },
+
+  claimQuest: async (questId) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=claimQuest', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, questId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((state) => ({
+          balance: data.newBalance,
+          user: state.user ? { ...state.user, balance: data.newBalance } : null
+        }));
+        return data.quests;
+      }
+      return null;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
 }));
