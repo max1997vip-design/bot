@@ -2,12 +2,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RacesScreen } from './RacesScreen';
+import { CarDealership } from './CarDealership'; // <-- Импортируем наш салон
 import '../styles/city.css';
 
 export const CityScreen = () => {
   const [activeLocation, setActiveLocation] = useState<'menu' | 'track'>('menu');
   const [showTopBalance, setShowTopBalance] = useState(false);
   const [topBalanceData, setTopBalanceData] = useState<any[]>([]);
+  
+  // Стейт для открытия автосалона
+  const [showDealership, setShowDealership] = useState(false);
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -38,7 +42,8 @@ export const CityScreen = () => {
                 <p>Самые богатые гонщики</p>
               </div>
 
-              <div className="city-card disabled">
+              {/* АВТОСАЛОН ТЕПЕРЬ АКТИВЕН */}
+              <div className="city-card" onClick={() => setShowDealership(true)}>
                 <span className="city-icon">🏢</span>
                 <h3>Автосалон</h3>
                 <p>Покупка новых машин</p>
@@ -83,6 +88,11 @@ export const CityScreen = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* МОДАЛКА АВТОСАЛОНА */}
+      {showDealership && (
+        <CarDealership onClose={() => setShowDealership(false)} />
+      )}
     </div>
   );
 };

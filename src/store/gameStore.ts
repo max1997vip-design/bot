@@ -28,6 +28,7 @@ interface GameState {
   equipped: Record<string, string | null>;
   lastDroppedItem: any | null;
 
+
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
   syncTaps: () => Promise<void>;
@@ -38,6 +39,7 @@ interface GameState {
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
   reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
+  buyCar: (carId: string, price: number) => Promise<boolean>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -62,6 +64,38 @@ export const useGameStore = create<GameState>((set, get) => ({
     }));
   },
 
+    buyCar: async (carId, price) => {
+    const { user } = get();
+    if (!user) return false;
+    if (user.balance < price) return false;
+
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=buyCar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, carId }),
+      });
+      
+      const data = await res.json();
+      if (res.ok && data.success) {
+        set((state) => ({
+          balance: data.newBalance,
+          user: state.user ? { 
+            ...state.user, 
+            balance: data.newBalance, 
+            ownedCars: data.ownedCars 
+          } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  },
+  
   syncTaps: async () => {
     const { unsyncedTaps, isSyncing } = get();
     if (unsyncedTaps === 0 || isSyncing) return;
