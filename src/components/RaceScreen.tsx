@@ -4,15 +4,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { PAINT_COLORS } from '../config/garage';
 import { CARS } from '../config/cars';
+import WebApp from '@twa-dev/sdk';
+import { playSound } from '../utils/sound'; // <-- Импорт звука
 
 const FLASH_DURATION_MS = 110;
+
+interface FloatingText {
+  id: number;
+  x: number;
+  y: number;
+  value: number;
+}
 
 export function RaceScreen() {
   const [isFlashing, setIsFlashing] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
-  const [showUpgrades, setShowUpgrades] = useState(false); // <-- Стейт для модалки
+  const [showUpgrades, setShowUpgrades] = useState(false);
+  const [floatingTexts, setFloatingTexts] = useState<FloatingText[]>([]);
+  
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rejectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const textIdCounter = useRef(0);
 
   const tap = useGameStore((s) => s.tap);
   const balance = useGameStore((s) => s.balance);
@@ -39,22 +51,40 @@ export function RaceScreen() {
   const clickCost = Math.floor(1000 * Math.pow(1.5, clickLevel - 1));
   const offlineCost = Math.floor(5000 * Math.pow(1.8, offlineLevel - 1));
 
-  const onCarClick = useCallback(() => {
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const before = useGameStore.getState().balance;
     tap();
     const after = useGameStore.getState().balance;
     const accepted = after > before;
 
     if (accepted) {
+      playSound('click');
+      try { WebApp.HapticFeedback?.impactOccurred('light'); } catch {}
+
       setIsFlashing(true);
       if (flashTimer.current) clearTimeout(flashTimer.current);
       flashTimer.current = setTimeout(() => setIsFlashing(false), FLASH_DURATION_MS);
+
+      // Добавляем всплывающий текст в точке клика
+      const newText: FloatingText = {
+        id: textIdCounter.current++,
+        x: e.clientX,
+        y: e.clientY - 50,
+        value: clickLevel
+      };
+      
+      setFloatingTexts(prev => [...prev, newText]);
+
+      setTimeout(() => {
+        setFloatingTexts(prev => prev.filter(t => t.id !== newText.id));
+      }, 800);
+
     } else {
       setIsRejected(true);
       if (rejectTimer.current) clearTimeout(rejectTimer.current);
       rejectTimer.current = setTimeout(() => setIsRejected(false), 160);
     }
-  }, [tap]);
+  }, [tap, clickLevel]);
 
   const carStyles = {
     '--left-hl-x': activeCar.leftHeadlight.x,
@@ -64,9 +94,35 @@ export function RaceScreen() {
   } as React.CSSProperties;
 
   return (
-    <div className="race-screen">
+    <div className="race-screen" style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="race-background" />
       <div className="race-background-overlay" />
+
+      {/* Всплывающие цифры */}
+      <AnimatePresence>
+        {floatingTexts.map(text => (
+          <motion.div
+            key={text.id}
+            initial={{ opacity: 1, y: text.y, x: text.x, scale: 0.8 }}
+            animate={{ opacity: 0, y: text.y - 120, scale: 1.2 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            style={{
+              position: 'fixed',
+              color: '#FFD700',
+              fontSize: '24px',
+              fontWeight: '900',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+              pointerEvents: 'none',
+              zIndex: 9999,
+              userSelect: 'none',
+              transform: 'translate(-50%, -50%)' // Центрируем по точке клика
+            }}
+          >
+            +{text.value} 🪙
+          </motion.div>
+        ))}
+      </AnimatePresence>
 
       <div className="race-top-ui">
         <div className="race-hud">
@@ -83,10 +139,12 @@ export function RaceScreen() {
         </div>
       </div>
 
-      <div
+      {/* МАШИНА (с анимацией сжатия) */}
+      <motion.div
         className={`race-car-container ${isRejected ? 'rejected' : ''}`}
-        onClick={onCarClick}
+        onPointerDown={handlePointerDown}
         style={carStyles}
+        whileTap={{ scale: 0.96 }} // <-- Сжатие при клике
       >
         <div className="race-car-wrapper">
           <img
@@ -108,9 +166,8 @@ export function RaceScreen() {
 
         <div className={`headlight-glow ${isFlashing ? 'flash' : ''}`} />
         <div className={`headlight-halo ${isFlashing ? 'flash' : ''}`} />
-      </div>
+      </motion.div>
 
-      {/* КНОПКА ОТКРЫТИЯ УЛУЧШЕНИЙ (справа снизу, над навигацией) */}
       <button
         onClick={() => setShowUpgrades(true)}
         style={{
@@ -134,7 +191,6 @@ export function RaceScreen() {
         ⚡
       </button>
 
-      {/* МОДАЛКА УЛУЧШЕНИЙ */}
       <AnimatePresence>
         {showUpgrades && (
           <motion.div
@@ -174,7 +230,6 @@ export function RaceScreen() {
                 </button>
               </div>
 
-              {/* Карточка 1: Кликер */}
               <div style={{
                 background: 'rgba(0,255,65,0.08)',
                 border: '1px solid rgba(0,255,65,0.3)',
@@ -198,7 +253,7 @@ export function RaceScreen() {
                   </div>
                 </div>
                 <button
-                  onClick={upgradeClicker}
+                  onClick={() => { upgradeClicker(); playSound('coin'); }}
                   disabled={balance < clickCost}
                   style={{
                     background: balance >= clickCost ? '#00FF41' : '#333',
@@ -216,7 +271,6 @@ export function RaceScreen() {
                 </button>
               </div>
 
-              {/* Карточка 2: Оффлайн */}
               <div style={{
                 background: 'rgba(0,191,255,0.08)',
                 border: '1px solid rgba(0,191,255,0.3)',
@@ -239,7 +293,7 @@ export function RaceScreen() {
                   </div>
                 </div>
                 <button
-                  onClick={upgradeOffline}
+                  onClick={() => { upgradeOffline(); playSound('coin'); }}
                   disabled={balance < offlineCost}
                   style={{
                     background: balance >= offlineCost ? '#00bfff' : '#333',

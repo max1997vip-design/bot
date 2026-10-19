@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { CARS } from '../config/cars';
 import WebApp from '@twa-dev/sdk';
+import { playSound } from '../utils/sound';
 
 interface CarDealershipProps {
   onClose: () => void;
@@ -51,6 +52,13 @@ export const CarDealership: React.FC<CarDealershipProps> = ({ onClose }) => {
       try { WebApp.HapticFeedback?.notificationOccurred('error'); } catch {}
     }
     setIsBuying(false);
+
+    if (success) {
+      playSound('coin'); // <-- звук покупки
+      try { WebApp.HapticFeedback?.notificationOccurred('success'); } catch {}
+    } else {
+      try { WebApp.HapticFeedback?.notificationOccurred('error'); } catch {}
+    }
   };
 
   // Анимации для смены машины
