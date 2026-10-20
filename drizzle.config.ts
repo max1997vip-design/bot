@@ -13,7 +13,7 @@ if (!connectionString) {
 }
 
 export default {
-  schema: './api/lib/schema.ts',
+  schema: './api/_lib/schema.ts',
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {

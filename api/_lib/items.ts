@@ -1,8 +1,13 @@
-// src/config/items.ts
-import { CARS } from './cars'; // <-- Обязательно добавь этот импорт
+// api/_lib/items.ts
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type ItemSlot = 'engine' | 'tires' | 'suspension' | 'ecu';
+
+// Копия конфига машин для бэкенда
+const CARS: Record<string, any> = {
+  'audi-tt': { baseStats: { power: 100, topSpeed: 150, grip: 20, handling: 20 } },
+  'bmw-m3': { baseStats: { power: 180, topSpeed: 220, grip: 40, handling: 35 } },
+};
 
 export interface ItemConfig {
   id: string;
@@ -42,7 +47,6 @@ export const ITEMS: Record<string, ItemConfig> = {
 export const ALL_ITEM_IDS = Object.keys(ITEMS);
 export const RARITY_DROP_CHANCE: Record<string, number> = { common: 60, uncommon: 25, rare: 10, epic: 4, legendary: 1 };
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ (принимает 3 аргумента)
 export function calculateStats(
   equipped: Record<string, string | null>, 
   partUpgrades: Record<string, any> = {},
