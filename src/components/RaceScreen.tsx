@@ -1,11 +1,11 @@
 // src/components/RaceScreen.tsx
-import { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { PAINT_COLORS } from '../config/garage';
 import { CARS } from '../config/cars';
 import WebApp from '@twa-dev/sdk';
-import { playSound } from '../utils/sound'; // <-- Импорт звука
+import { playSound } from '../utils/sound';
 
 const FLASH_DURATION_MS = 110;
 
@@ -15,6 +15,48 @@ interface FloatingText {
   y: number;
   value: number;
 }
+
+// 👇 ВЫНОСИМ МАШИНУ В ОТДЕЛЬНЫЙ КОМПОНЕНТ (чтобы она не ререндерилась от баланса)
+const CarClicker = memo(({ 
+  isFlashing, 
+  isRejected, 
+  carColor, 
+  activeCar, 
+  carStyles, 
+  onPointerDown 
+}: any) => {
+  const activeColorHex = PAINT_COLORS.find((c: any) => c.id === carColor)?.hex || 'transparent';
+  const isOriginal = carColor === 'original';
+
+  return (
+    <motion.div
+      className={`race-car-container ${isRejected ? 'rejected' : ''}`}
+      onPointerDown={onPointerDown}
+      style={carStyles}
+      whileTap={{ scale: 0.96 }}
+    >
+      <div className="race-car-wrapper">
+        <img
+          src={activeCar.image}
+          alt={activeCar.name}
+          className="race-car-image"
+          draggable={false}
+          style={{
+            filter: isOriginal 
+              ? 'drop-shadow(0 15px 15px rgba(0,0,0,0.6))' 
+              : 'grayscale(1) brightness(1.1) contrast(1.2) drop-shadow(0 15px 15px rgba(0,0,0,0.6))',
+            transition: 'filter 0.4s ease',
+          }}
+        />
+        {!isOriginal && (
+          <div className="race-color-overlay" style={{ backgroundColor: activeColorHex }} />
+        )}
+      </div>
+      <div className={`headlight-glow ${isFlashing ? 'flash' : ''}`} />
+      <div className={`headlight-halo ${isFlashing ? 'flash' : ''}`} />
+    </motion.div>
+  );
+});
 
 export function RaceScreen() {
   const [isFlashing, setIsFlashing] = useState(false);
@@ -27,15 +69,12 @@ export function RaceScreen() {
   const textIdCounter = useRef(0);
 
   const tap = useGameStore((s) => s.tap);
-  const balance = useGameStore((s) => s.balance);
+  const balance = useGameStore((s) => s.balance); // Баланс обновляется, но машина теперь в memo
   const carColor = useGameStore((s) => s.carColor);
   
   const user = useGameStore((s) => s.user);
   const upgradeClicker = useGameStore((s) => s.upgradeClicker);
   const upgradeOffline = useGameStore((s) => s.upgradeOffline);
-
-  const activeColorHex = PAINT_COLORS.find((c) => c.id === carColor)?.hex || 'transparent';
-  const isOriginal = carColor === 'original';
 
   const totalEarned = user?.totalEarned || 0;
   const level = Math.floor(Math.sqrt(totalEarned / 50)) + 1;
@@ -65,7 +104,6 @@ export function RaceScreen() {
       if (flashTimer.current) clearTimeout(flashTimer.current);
       flashTimer.current = setTimeout(() => setIsFlashing(false), FLASH_DURATION_MS);
 
-      // Добавляем всплывающий текст в точке клика
       const newText: FloatingText = {
         id: textIdCounter.current++,
         x: e.clientX,
@@ -98,17 +136,19 @@ export function RaceScreen() {
       <div className="race-background" />
       <div className="race-background-overlay" />
 
-      {/* Всплывающие цифры */}
+      {/* Всплывающие цифры (оптимизированные) */}
       <AnimatePresence>
         {floatingTexts.map(text => (
           <motion.div
             key={text.id}
-            initial={{ opacity: 1, y: text.y, x: text.x, scale: 0.8 }}
-            animate={{ opacity: 0, y: text.y - 120, scale: 1.2 }}
+            initial={{ opacity: 1, y: 0, scale: 0.8 }}
+            animate={{ opacity: 0, y: -120, scale: 1.2 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             style={{
               position: 'fixed',
+              left: text.x,        // 👈 Позиция через left/top
+              top: text.y,         // 👈 А анимация через y (transform)
               color: '#FFD700',
               fontSize: '24px',
               fontWeight: '900',
@@ -116,7 +156,7 @@ export function RaceScreen() {
               pointerEvents: 'none',
               zIndex: 9999,
               userSelect: 'none',
-              transform: 'translate(-50%, -50%)' // Центрируем по точке клика
+              transform: 'translate(-50%, -50%)' // 👈 Центрирование
             }}
           >
             +{text.value} 🪙
@@ -139,34 +179,15 @@ export function RaceScreen() {
         </div>
       </div>
 
-      {/* МАШИНА (с анимацией сжатия) */}
-      <motion.div
-        className={`race-car-container ${isRejected ? 'rejected' : ''}`}
+      {/* МАШИНА (изолирована) */}
+      <CarClicker 
+        isFlashing={isFlashing}
+        isRejected={isRejected}
+        carColor={carColor}
+        activeCar={activeCar}
+        carStyles={carStyles}
         onPointerDown={handlePointerDown}
-        style={carStyles}
-        whileTap={{ scale: 0.96 }} // <-- Сжатие при клике
-      >
-        <div className="race-car-wrapper">
-          <img
-            src={activeCar.image}
-            alt={activeCar.name}
-            className="race-car-image"
-            draggable={false}
-            style={{
-              filter: isOriginal 
-                ? 'drop-shadow(0 15px 15px rgba(0,0,0,0.6))' 
-                : 'grayscale(1) brightness(1.1) contrast(1.2) drop-shadow(0 15px 15px rgba(0,0,0,0.6))',
-              transition: 'filter 0.4s ease',
-            }}
-          />
-          {!isOriginal && (
-            <div className="race-color-overlay" style={{ backgroundColor: activeColorHex }} />
-          )}
-        </div>
-
-        <div className={`headlight-glow ${isFlashing ? 'flash' : ''}`} />
-        <div className={`headlight-halo ${isFlashing ? 'flash' : ''}`} />
-      </motion.div>
+      />
 
       <button
         onClick={() => setShowUpgrades(true)}
@@ -202,6 +223,7 @@ export function RaceScreen() {
               position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
               background: 'rgba(0,0,0,0.85)', zIndex: 1000,
               display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+              transform: 'translateZ(0)', isolation: 'isolate' // 👈 Защита слоя
             }}
           >
             <motion.div
@@ -220,6 +242,7 @@ export function RaceScreen() {
                 borderBottom: 'none',
               }}
             >
+              {/* Твой код улучшений без изменений... */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ color: 'white', margin: 0, fontSize: '22px' }}>⚡ Улучшения</h2>
                 <button
@@ -230,82 +253,33 @@ export function RaceScreen() {
                 </button>
               </div>
 
-              <div style={{
-                background: 'rgba(0,255,65,0.08)',
-                border: '1px solid rgba(0,255,65,0.3)',
-                borderRadius: '16px',
-                padding: '16px',
-                marginBottom: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px',
-              }}>
+              <div style={{ background: 'rgba(0,255,65,0.08)', border: '1px solid rgba(0,255,65,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ fontSize: '36px' }}>💪</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
-                    Сила клика
-                  </div>
-                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>
-                    +1 монета за клик
-                  </div>
-                  <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>
-                    Текущий уровень: {clickLevel}
-                  </div>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Сила клика</div>
+                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 монета за клик</div>
+                  <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
                 </div>
                 <button
                   onClick={() => { upgradeClicker(); playSound('coin'); }}
                   disabled={balance < clickCost}
-                  style={{
-                    background: balance >= clickCost ? '#00FF41' : '#333',
-                    color: balance >= clickCost ? 'black' : '#666',
-                    border: 'none',
-                    borderRadius: '10px',
-                    padding: '10px 16px',
-                    fontWeight: 'bold',
-                    fontSize: '13px',
-                    cursor: balance >= clickCost ? 'pointer' : 'not-allowed',
-                    whiteSpace: 'nowrap',
-                  }}
+                  style={{ background: balance >= clickCost ? '#00FF41' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
                 >
                   {clickCost.toLocaleString('ru-RU')} 🪙
                 </button>
               </div>
 
-              <div style={{
-                background: 'rgba(0,191,255,0.08)',
-                border: '1px solid rgba(0,191,255,0.3)',
-                borderRadius: '16px',
-                padding: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px',
-              }}>
+              <div style={{ background: 'rgba(0,191,255,0.08)', border: '1px solid rgba(0,191,255,0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ fontSize: '36px' }}>⏱️</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
-                    Оффлайн-доход
-                  </div>
-                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>
-                    +500 монет/час
-                  </div>
-                  <div style={{ color: '#00bfff', fontSize: '12px', marginTop: '4px' }}>
-                    Текущий уровень: {offlineLevel}
-                  </div>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Оффлайн-доход</div>
+                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+500 монет/час</div>
+                  <div style={{ color: '#00bfff', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {offlineLevel}</div>
                 </div>
                 <button
                   onClick={() => { upgradeOffline(); playSound('coin'); }}
                   disabled={balance < offlineCost}
-                  style={{
-                    background: balance >= offlineCost ? '#00bfff' : '#333',
-                    color: balance >= offlineCost ? 'black' : '#666',
-                    border: 'none',
-                    borderRadius: '10px',
-                    padding: '10px 16px',
-                    fontWeight: 'bold',
-                    fontSize: '13px',
-                    cursor: balance >= offlineCost ? 'pointer' : 'not-allowed',
-                    whiteSpace: 'nowrap',
-                  }}
+                  style={{ background: balance >= offlineCost ? '#00bfff' : '#333', color: balance >= offlineCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= offlineCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
                 >
                   {offlineCost.toLocaleString('ru-RU')} 🪙
                 </button>
