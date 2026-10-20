@@ -12,7 +12,7 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
   const [result, setResult] = useState<{ isWin: boolean; payout: number; result: string } | null>(null);
   const [flipping, setFlipping] = useState(false);
 
-  const handlePlay = async () => {
+    const handlePlay = async () => {
     if (!bet || bet < 100) return alert('Минимальная ставка 100 🪙');
     if (user && bet > user.balance) return alert('Недостаточно монет!');
     
@@ -22,12 +22,14 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
 
     const res = await playCoinFlip(bet, choice);
     
-    // Искусственная задержка для анимации
     setTimeout(() => {
       setFlipping(false);
       setLoading(false);
       if (res.success && res.isWin !== undefined && res.payout !== undefined && res.result) {
         setResult({ isWin: res.isWin, payout: res.payout, result: res.result });
+      } else {
+        // Показываем ошибку, если сервер отказал
+        alert(res.error || 'Что-то пошло не так');
       }
     }, 1500);
   };
