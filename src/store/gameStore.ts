@@ -48,6 +48,7 @@ interface GameState {
   buyBusiness: (businessId: string) => Promise<boolean>;
   upgradeBusiness: (businessId: string) => Promise<boolean>;
   collectIncome: () => Promise<{ success: boolean; collected?: number }>;
+  playCoinFlip: (betAmount: number, choice: 'heads' | 'tails') => Promise<{ success: boolean; isWin?: boolean; result?: string; payout?: number }>;
 
 
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
@@ -109,6 +110,25 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       return false;
     } catch { return false; }
+  },
+
+    playCoinFlip: async (betAmount, choice) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=flipCoin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, betAmount, choice }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance } : null
+        }));
+        return { success: true, isWin: data.isWin, result: data.result, payout: data.payout };
+      }
+      return { success: false };
+    } catch { return { success: false }; }
   },
 
   upgradeBusiness: async (businessId) => {

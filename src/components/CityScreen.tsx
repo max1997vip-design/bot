@@ -7,6 +7,7 @@ import { DailyRewardModal } from './DailyRewardModal';
 import { QuestModal } from './QuestModal';
 import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen'; // <-- ИМПОРТ
+import { CasinoScreen } from './CasinoScreen';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -18,6 +19,7 @@ export const CityScreen = () => {
   const [showQuests, setShowQuests] = useState(false);
   const [showWorkshop, setShowWorkshop] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false); // <-- СТЕЙТ
+  const [showCasino, setShowCasino] = useState(false);
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -65,6 +67,13 @@ export const CityScreen = () => {
                 <h3>Бонус</h3>
                 <p>Ежедневная награда</p>
               </div>
+
+              <div className="city-card" onClick={() => setShowCasino(true)}>
+                <span className="city-icon">🎰</span>
+                <h3>Казино</h3>
+                <p>Испытай удачу</p>
+              </div>
+
 
               <div className="city-card" onClick={() => setShowQuests(true)}>
                 <span className="city-icon">📋</span>
@@ -144,6 +153,11 @@ export const CityScreen = () => {
       {showBusiness && (
         <BusinessScreen onClose={() => setShowBusiness(false)} />
       )}
+
+      {showCasino && (
+  <CasinoScreen onClose={() => setShowCasino(false)} />
+      )}
+
     </div>
   );
 };
