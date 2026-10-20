@@ -27,8 +27,10 @@ export interface UserData {
   dailyStreak?: number;
   lastDailyClaim?: string | null;
   businesses?: Record<string, { level: number; lastCollected: number }>;
-  partUpgrades?: Record<string, PartUpgrade>; // <-- ДОБАВЛЕНО
+  partUpgrades?: Record<string, PartUpgrade>;
+  features?: Record<string, boolean>;
   weeklyPass?: { weekId: number; xp: number; claimed: number[] };
+  isAdmin?: boolean;
 }
 
 interface GameState {
@@ -50,6 +52,8 @@ interface GameState {
   buyBusiness: (businessId: string) => Promise<boolean>;
   upgradeBusiness: (businessId: string) => Promise<boolean>;
   collectIncome: () => Promise<{ success: boolean; collected?: number }>;
+  adminGetData: () => Promise<{ flags: any[], users: any[] } | null>;
+  adminAction: (action: string, payload: any) => Promise<boolean>;
   playCoinFlip: (betAmount: number, choice: 'heads' | 'tails') => Promise<{ success: boolean; isWin?: boolean; result?: string; payout?: number; error?: string }>;
 
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
@@ -116,6 +120,31 @@ export const useGameStore = create<GameState>((set, get) => ({
       const data = await res.json();
       if (data.success) set({ clanInfo: data.clan, clanMembers: data.members });
     } catch {}
+  },
+
+    adminGetData: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, action: 'getData' }),
+      });
+      const data = await res.json();
+      if (data.success) return { flags: data.flags, users: data.users };
+      return null;
+    } catch { return null; }
+  },
+
+  adminAction: async (action, payload) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, action, payload }),
+      });
+      const data = await res.json();
+      return data.success;
+    } catch { return false; }
   },
 
   createClan: async (name) => {

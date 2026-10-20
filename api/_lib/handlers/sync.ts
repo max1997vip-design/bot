@@ -1,5 +1,5 @@
 import { db } from '../db.js';
-import { users, userItems, equippedItems } from '../schema.js';
+import { users, userItems, equippedItems, featureFlags } from '../schema.js'; // <-- Добавлен featureFlags
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
 
@@ -53,7 +53,6 @@ export async function syncHandler(req: any, res: any) {
     } else {
       // СЧИТАЕМ ОФФЛАЙН ДОХОД
       const now = new Date();
-      // ВОТ ЗДЕСЬ БЫЛА ОШИБКА, ДОБАВИЛ ПРОВЕРКУ if (user)
       if (user) {
         const lastSeen = user.lastSeenAt ? new Date(user.lastSeenAt) : now;
         const diffSeconds = Math.max(0, Math.floor((now.getTime() - lastSeen.getTime()) / 1000));
@@ -73,7 +72,6 @@ export async function syncHandler(req: any, res: any) {
           totalEarned: sql`${users.totalEarned} + ${offlineEarnings}`
         }).where(eq(users.id, telegramUser.id));
         
-        // Начисляем локально, чтобы отдать на фронт
         user.balance += offlineEarnings;
       }
     }
@@ -83,6 +81,11 @@ export async function syncHandler(req: any, res: any) {
     
     const equippedMap: Record<string, string | null> = { engine: null, tires: null, ecu: null, suspension: null };
     equipped.forEach(e => { equippedMap[e.slot] = e.itemId; });
+
+    // НОВОЕ: Получаем глобальные флаги
+    const flags = await db.select().from(featureFlags);
+    const features: Record<string, boolean> = {};
+    flags.forEach(f => { features[f.name] = f.isEnabled; });
 
     return res.status(200).json({
       success: true,
@@ -99,6 +102,7 @@ export async function syncHandler(req: any, res: any) {
       offlineEarnings,
       inventory: inventory.map(i => i.itemId),
       equipped: equippedMap,
+      features, // <-- ПЕРЕДАЕМ ФЛАГИ НА ФРОНТ
       isNewUser,
     });
   } catch (error) {

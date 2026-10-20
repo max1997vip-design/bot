@@ -115,5 +115,9 @@ export const clanMembers = pgTable('clan_members', {
   joinedAt: timestamp('joined_at').notNull().defaultNow(),
 });
 
+export const featureFlags = pgTable('feature_flags', {
+  name: text('name').primaryKey(), // 'casino', 'clans', 'workshop' и т.д.
+  isEnabled: boolean('is_enabled').notNull().default(true),
+});
 
 export type User = typeof users.$inferSelect;

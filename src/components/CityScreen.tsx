@@ -6,10 +6,12 @@ import { CarDealership } from './CarDealership';
 import { DailyRewardModal } from './DailyRewardModal';
 import { QuestModal } from './QuestModal';
 import { WorkshopScreen } from './WorkshopScreen';
-import { BusinessScreen } from './BusinessScreen'; // <-- ИМПОРТ
+import { BusinessScreen } from './BusinessScreen';
 import { CasinoScreen } from './CasinoScreen';
 import { PassScreen } from './PassScreen';
 import { ClanScreen } from './ClanScreen';
+import { AdminScreen } from './AdminScreen';
+import { useGameStore } from '../store/gameStore'; // <-- Импорт стора
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -24,6 +26,11 @@ export const CityScreen = () => {
   const [showBusiness, setShowBusiness] = useState(false);
   const [showCasino, setShowCasino] = useState(false);
   const [showClan, setShowClan] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false); // <-- Стейт для админки
+
+  // Получаем юзера и флаги
+  const user = useGameStore((s) => s.user);
+  const features = user?.features || {};
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -54,11 +61,13 @@ export const CityScreen = () => {
                 <p>Гонки с ботами, PvP</p>
               </div>
 
-              <div className="city-card" onClick={() => setShowClan(true)}>
-                <span className="city-icon">🏰</span>
-                <h3>Кланы</h3>
-                <p>Сообщество и бонусы</p>
-              </div>
+              {features.clans !== false && (
+                <div className="city-card" onClick={() => setShowClan(true)}>
+                  <span className="city-icon">🏰</span>
+                  <h3>Кланы</h3>
+                  <p>Сообщество и бонусы</p>
+                </div>
+              )}
 
               <div className="city-card" onClick={fetchTopBalance}>
                 <span className="city-icon">💰</span>
@@ -78,18 +87,21 @@ export const CityScreen = () => {
                 <p>Ежедневная награда</p>
               </div>
 
-              <div className="city-card" onClick={() => setShowCasino(true)}>
-                <span className="city-icon">🎰</span>
-                <h3>Казино</h3>
-                <p>Испытай удачу</p>
-              </div>
+              {features.casino !== false && (
+                <div className="city-card" onClick={() => setShowCasino(true)}>
+                  <span className="city-icon">🎰</span>
+                  <h3>Казино</h3>
+                  <p>Испытай удачу</p>
+                </div>
+              )}
 
-              <div className="city-card" onClick={() => setShowPass(true)} style={{ border: '1px solid #00bfff' }}>
-                <span className="city-icon">🏁</span>
-                <h3>Пропуск</h3>
-                <p>Награды за неделю</p>
-              </div>
-
+              {features.pass !== false && (
+                <div className="city-card" onClick={() => setShowPass(true)} style={{ border: '1px solid #00bfff' }}>
+                  <span className="city-icon">🏁</span>
+                  <h3>Пропуск</h3>
+                  <p>Награды за неделю</p>
+                </div>
+              )}
 
               <div className="city-card" onClick={() => setShowQuests(true)}>
                 <span className="city-icon">📋</span>
@@ -97,18 +109,30 @@ export const CityScreen = () => {
                 <p>Квесты на сегодня</p>
               </div>
 
-              <div className="city-card" onClick={() => setShowWorkshop(true)}>
-                <span className="city-icon">🔧</span>
-                <h3>Мастерская</h3>
-                <p>Тюнинг и крафт деталей</p>
-              </div>
+              {features.workshop !== false && (
+                <div className="city-card" onClick={() => setShowWorkshop(true)}>
+                  <span className="city-icon">🔧</span>
+                  <h3>Мастерская</h3>
+                  <p>Тюнинг и крафт деталей</p>
+                </div>
+              )}
 
-              {/* НОВАЯ КАРТОЧКА БИЗНЕСА */}
-              <div className="city-card" onClick={() => setShowBusiness(true)}>
-                <span className="city-icon">💼</span>
-                <h3>Бизнесы</h3>
-                <p>Пассивный доход</p>
-              </div>
+              {features.business !== false && (
+                <div className="city-card" onClick={() => setShowBusiness(true)}>
+                  <span className="city-icon">💼</span>
+                  <h3>Бизнесы</h3>
+                  <p>Пассивный доход</p>
+                </div>
+              )}
+
+              {/* Кнопка Админки (видна только админу) */}
+              {user?.isAdmin && (
+                <div className="city-card" onClick={() => setShowAdmin(true)} style={{ border: '1px solid #ff4444', background: 'rgba(255,68,68,0.1)' }}>
+                  <span className="city-icon">🛠️</span>
+                  <h3>Админка</h3>
+                  <p>Управление игрой</p>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -150,36 +174,15 @@ export const CityScreen = () => {
         )}
       </AnimatePresence>
 
-      {showDealership && (
-        <CarDealership onClose={() => setShowDealership(false)} />
-      )}
-      
-      {showDaily && (
-        <DailyRewardModal onClose={() => setShowDaily(false)} />
-      )}
-
-      {showQuests && (
-        <QuestModal onClose={() => setShowQuests(false)} />
-      )}
-
-      {showWorkshop && (
-        <WorkshopScreen onClose={() => setShowWorkshop(false)} />
-      )}
-
-      {showBusiness && (
-        <BusinessScreen onClose={() => setShowBusiness(false)} />
-      )}
-
-      {showCasino && (
-  <CasinoScreen onClose={() => setShowCasino(false)} />
-      )}
-
-      {showPass && (
-  <PassScreen onClose={() => setShowPass(false)} />
-      )}
-
+      {showDealership && <CarDealership onClose={() => setShowDealership(false)} />}
+      {showDaily && <DailyRewardModal onClose={() => setShowDaily(false)} />}
+      {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
+      {showWorkshop && <WorkshopScreen onClose={() => setShowWorkshop(false)} />}
+      {showBusiness && <BusinessScreen onClose={() => setShowBusiness(false)} />}
+      {showCasino && <CasinoScreen onClose={() => setShowCasino(false)} />}
+      {showPass && <PassScreen onClose={() => setShowPass(false)} />}
       {showClan && <ClanScreen onClose={() => setShowClan(false)} />}
-
+      {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />} {/* <-- Рендер админки */}
     </div>
   );
 };

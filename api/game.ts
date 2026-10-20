@@ -25,6 +25,7 @@ import { getClanHandler } from './_lib/handlers/getClan.js';
 import { createClanHandler } from './_lib/handlers/createClan.js';
 import { joinClanHandler } from './_lib/handlers/joinClan.js';
 import { clanActionHandler } from './_lib/handlers/clanAction.js';
+import { adminHandler } from './_lib/handlers/admin.js';
 
 
 export default async function handler(req: any, res: any) {
@@ -59,6 +60,7 @@ export default async function handler(req: any, res: any) {
     case 'createClan': return createClanHandler(req, res);
     case 'joinClan': return joinClanHandler(req, res);
     case 'clanAction': return clanActionHandler(req, res);
+    case 'admin': return adminHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }
