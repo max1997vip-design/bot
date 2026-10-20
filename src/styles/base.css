@@ -52,14 +52,21 @@ body::before {
   width: 100%;
   height: calc(var(--nav-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  background: var(--bg-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  
+  /* 👇 ВРЕМЕННО ЗАМЕНИ ЭТО: */
+  background: #111111; /* Плотный темный цвет вместо var(--bg-glass) */
+  /* backdrop-filter: blur(16px); */
+  /* -webkit-backdrop-filter: blur(16px); */
+  
   display: flex;
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 100;
+  
+  /* 👇 Добавь это для создания GPU слоя: */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .nav-btn {

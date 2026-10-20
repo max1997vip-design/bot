@@ -101,6 +101,9 @@
   cursor: pointer;
   backdrop-filter: blur(4px);
   transition: background 0.2s;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transform: translateZ(0);
 }
 
 .back-to-city:active {

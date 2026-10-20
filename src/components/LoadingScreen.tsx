@@ -35,12 +35,14 @@ export const LoadingScreen = () => {
 
   return (
     <motion.div 
-      className="loading-screen"
-      initial={{ opacity: 1 }}
-      // ВОТ ГЛАВНЫЙ ФИКС: добавляем pointerEvents: 'none'
-      exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: 0.5 } }}
-      style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
-    > 
+     className="loading-screen"
+     initial={{ opacity: 1 }}
+     exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: 0.3 } }}
+     style={{ 
+     position: 'fixed', inset: 0, zIndex: 9999,
+     background: '#090A0C' // 👈 Добавь плотный фон
+  }}
+> 
       <div className="loading-bg" />
       <div className="loading-overlay" />
 
