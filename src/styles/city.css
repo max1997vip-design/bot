@@ -7,8 +7,8 @@
 }
 
 .city-hub {
-  padding: 24px;
-  padding-top: 40px;
+  padding: 15px;
+  padding-top: 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -16,35 +16,37 @@
 
 .city-title {
   font-size: 12px;
-  letter-spacing: 8px;
+  letter-spacing: 6px;
   color: var(--text-secondary);
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 15px;
   font-weight: 800;
 }
 
+/* Сетка в 3 колонки для компактности */
 .city-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Всегда 2 колонки */
-  gap: 15px;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 10px;
   width: 100%;
-  padding-bottom: 20px; /* Отступ снизу, чтобы ничего не обрезалось */
 }
 
 .city-card {
   background: var(--bg-surface);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 12px 4px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
   cursor: pointer;
   transition: transform 0.2s, border-color 0.2s;
 }
 
 .city-card:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
   border-color: var(--accent);
 }
 
@@ -54,20 +56,23 @@
 }
 
 .city-icon {
-  font-size: 32px;
-  margin-bottom: 4px;
+  font-size: 26px;
+  margin-bottom: 0;
 }
 
 .city-card h3 {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 800;
   color: #fff;
+  margin: 0;
+  line-height: 1.1;
 }
 
 .city-card p {
-  font-size: 12px;
+  font-size: 9px;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.2;
+  margin: 0;
 }
 
 /* Контейнер для вложенных экранов (например, Трек) */
@@ -105,4 +110,10 @@
 /* Сдвигаем контент гонок вниз, чтобы кнопка "Назад" не перекрывала заголовок */
 .city-location .races-screen {
   padding-top: 70px;
+}
+
+@media (max-height: 700px) {
+  .city-card p {
+    display: none;
+  }
 }

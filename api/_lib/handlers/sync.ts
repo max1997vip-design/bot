@@ -82,7 +82,6 @@ export async function syncHandler(req: any, res: any) {
     const equippedMap: Record<string, string | null> = { engine: null, tires: null, ecu: null, suspension: null };
     equipped.forEach(e => { equippedMap[e.slot] = e.itemId; });
 
-    // НОВОЕ: Получаем глобальные флаги
     const flags = await db.select().from(featureFlags);
     const features: Record<string, boolean> = {};
     flags.forEach(f => { features[f.name] = f.isEnabled; });
@@ -97,12 +96,13 @@ export async function syncHandler(req: any, res: any) {
         ownedCars: user!.ownedCars ?? ['audi-tt'],
         activeCarId: user!.activeCarId ?? 'audi-tt',
         clickLevel: user!.clickLevel ?? 1,
-        offlineLevel: user!.offlineLevel ?? 1
+        offlineLevel: user!.offlineLevel ?? 1,
+        isAdmin: user!.isAdmin ?? false, // <-- Явно передаем статус админа
+        features: features               // <-- Кладем флаги ВНУТРЬ user
       },
       offlineEarnings,
       inventory: inventory.map(i => i.itemId),
       equipped: equippedMap,
-      features, // <-- ПЕРЕДАЕМ ФЛАГИ НА ФРОНТ
       isNewUser,
     });
   } catch (error) {

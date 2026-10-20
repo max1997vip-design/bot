@@ -15,23 +15,23 @@ export const LoadingScreen = () => {
   const [progress, setProgress] = useState(0);
   const [textIndex, setTextIndex] = useState(0);
 
-  // Имитация загрузки (заполняется за 2.5 секунды)
+  // Заполняется ровно за ~2.5 секунды (31 тик по 80мс)
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 100;
-        return prev + Math.floor(Math.random() * 5) + 2; // Случайный шаг для реалистичности
+        return Math.min(100, prev + Math.floor(Math.random() * 2) + 3);
       });
     }, 80);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Смена текста каждые 800мс
+  // Смена текста каждые 500мс
   useEffect(() => {
     const textInterval = setInterval(() => {
       setTextIndex((prev) => (prev + 1) % loadingTexts.length);
-    }, 800);
+    }, 500);
     return () => clearInterval(textInterval);
   }, []);
 
@@ -39,14 +39,13 @@ export const LoadingScreen = () => {
     <motion.div 
       className="loading-screen"
       initial={{ opacity: 1 }}
-      // ДОБАВЛЯЕМ pointerEvents: 'none' СЮДА:
-      exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: 0.5 } }}
+      exit={{ opacity: 0, transition: { duration: 0.5 } }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
     > 
       <div className="loading-bg" />
       <div className="loading-overlay" />
 
       <div className="loading-content">
-        {/* Логотип или название игры */}
         <motion.h1 
           className="loading-logo"
           initial={{ y: -20, opacity: 0 }}
@@ -56,7 +55,6 @@ export const LoadingScreen = () => {
           RACING<span>IDLE</span>
         </motion.h1>
 
-        {/* Прогресс-бар */}
         <div className="loading-bar-container">
           <motion.div 
             className="loading-bar-fill"
@@ -64,7 +62,6 @@ export const LoadingScreen = () => {
           />
         </div>
 
-        {/* Проценты и текст */}
         <div className="loading-info">
           <motion.span 
             key={textIndex}
