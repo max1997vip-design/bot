@@ -9,6 +9,7 @@ import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen'; // <-- ИМПОРТ
 import { CasinoScreen } from './CasinoScreen';
 import { PassScreen } from './PassScreen';
+import { ClanScreen } from './ClanScreen';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -20,8 +21,9 @@ export const CityScreen = () => {
   const [showPass, setShowPass] = useState(false);
   const [showQuests, setShowQuests] = useState(false);
   const [showWorkshop, setShowWorkshop] = useState(false);
-  const [showBusiness, setShowBusiness] = useState(false); // <-- СТЕЙТ
+  const [showBusiness, setShowBusiness] = useState(false);
   const [showCasino, setShowCasino] = useState(false);
+  const [showClan, setShowClan] = useState(false);
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -50,6 +52,12 @@ export const CityScreen = () => {
                 <span className="city-icon">🏎️</span>
                 <h3>Трек</h3>
                 <p>Гонки с ботами, PvP</p>
+              </div>
+
+              <div className="city-card" onClick={() => setShowClan(true)}>
+                <span className="city-icon">🏰</span>
+                <h3>Кланы</h3>
+                <p>Сообщество и бонусы</p>
               </div>
 
               <div className="city-card" onClick={fetchTopBalance}>
@@ -169,6 +177,8 @@ export const CityScreen = () => {
       {showPass && (
   <PassScreen onClose={() => setShowPass(false)} />
       )}
+
+      {showClan && <ClanScreen onClose={() => setShowClan(false)} />}
 
     </div>
   );

@@ -58,6 +58,13 @@ interface GameState {
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
+  clanInfo: any | null;
+  clanMembers: any[];
+  fetchClan: () => Promise<void>;
+  createClan: (name: string) => Promise<boolean>;
+  joinClan: (clanName: string) => Promise<boolean>;
+  clanAction: (action: 'donate' | 'upgrade', amount?: number) => Promise<boolean>;
+
   
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
@@ -94,6 +101,73 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + tapPower } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
     }));
+  },
+
+    clanInfo: null,
+  clanMembers: [],
+
+  fetchClan: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=getClan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) set({ clanInfo: data.clan, clanMembers: data.members });
+    } catch {}
+  },
+
+  createClan: async (name) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=createClan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, name }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({ balance: data.newBalance, user: s.user ? { ...s.user, balance: data.newBalance } : null }));
+        await get().fetchClan();
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
+  joinClan: async (clanName) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=joinClan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, clanName }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await get().fetchClan();
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
+  clanAction: async (action, amount = 0) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=clanAction', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, action, amount }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.newBalance !== undefined) {
+          set((s) => ({ balance: data.newBalance, user: s.user ? { ...s.user, balance: data.newBalance } : null }));
+        }
+        await get().fetchClan(); // Обновляем инфу о клане
+        return true;
+      }
+      return false;
+    } catch { return false; }
   },
 
   buyBusiness: async (businessId) => {

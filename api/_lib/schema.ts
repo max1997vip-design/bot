@@ -99,4 +99,21 @@ export const achievements = pgTable('achievements', {
   unlockedAt: timestamp('unlocked_at').notNull().defaultNow(),
 }, (t) => ({ pk: primaryKey({ columns: [t.userId, t.achievementId] }) }));
 
+export const clans = pgTable('clans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(),
+  leaderId: bigint('leader_id', { mode: 'number' }).notNull(),
+  balance: bigint('balance', { mode: 'number' }).notNull().default(0),
+  level: integer('level').notNull().default(1),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const clanMembers = pgTable('clan_members', {
+  userId: bigint('user_id', { mode: 'number' }).primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
+  role: text('role').notNull().default('member'), // 'leader' | 'officer' | 'member'
+  joinedAt: timestamp('joined_at').notNull().defaultNow(),
+});
+
+
 export type User = typeof users.$inferSelect;

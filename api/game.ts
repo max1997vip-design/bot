@@ -21,6 +21,11 @@ import { collectIncomeHandler } from './_lib/handlers/collectIncome.js';
 import { flipCoinHandler } from './_lib/handlers/flipCoin.js';
 import { getPassHandler } from './_lib/handlers/getPass.js';
 import { claimPassRewardHandler } from './_lib/handlers/claimPassReward.js';
+import { getClanHandler } from './_lib/handlers/getClan.js';
+import { createClanHandler } from './_lib/handlers/createClan.js';
+import { joinClanHandler } from './_lib/handlers/joinClan.js';
+import { clanActionHandler } from './_lib/handlers/clanAction.js';
+
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -50,6 +55,10 @@ export default async function handler(req: any, res: any) {
     case 'flipCoin': return flipCoinHandler(req, res);
     case 'getPass': return getPassHandler(req, res);
     case 'claimPassReward': return claimPassRewardHandler(req, res);
+    case 'getClan': return getClanHandler(req, res);
+    case 'createClan': return createClanHandler(req, res);
+    case 'joinClan': return joinClanHandler(req, res);
+    case 'clanAction': return clanActionHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }
