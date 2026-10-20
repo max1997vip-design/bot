@@ -76,7 +76,7 @@ export default function App() {
     <>
       {/* Красивое исчезновение экрана загрузки */}
       <AnimatePresence>
-        {!isReady && <LoadingScreen key="loader" />}
+       {!isReady && <LoadingScreen />}
       </AnimatePresence>
 
       {/* Экран ошибки (если сеть упала) */}
