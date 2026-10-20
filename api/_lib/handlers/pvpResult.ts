@@ -2,7 +2,8 @@ import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
-import { getOrCreateQuests } from '../quests.js'; // <-- ДОБАВЛЕНО
+import { getOrCreateQuests } from '../quests.js';
+import { getOrCreatePass } from '../pass.js'; // <-- Импорт пропуска
 
 export async function pvpResultHandler(req: any, res: any) {
   const { initData, won, ratingDelta, coinsDelta } = req.body;
@@ -24,13 +25,20 @@ export async function pvpResultHandler(req: any, res: any) {
       quests.progress.win_3 = Math.min(3, (quests.progress.win_3 || 0) + 1);
     }
 
+    // ОБНОВЛЯЕМ ПРОПУСК (+50 XP за победу)
+    const pass = getOrCreatePass(user.weeklyPass);
+    if (won) {
+      pass.xp += 50;
+    }
+
     const [updated] = await db
       .update(users)
       .set({
         rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
         balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
         totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
-        dailyQuests: quests
+        dailyQuests: quests,
+        weeklyPass: pass // <-- Сохраняем обновленный пропуск
       })
       .where(eq(users.id, userId))
       .returning();
@@ -41,7 +49,8 @@ export async function pvpResultHandler(req: any, res: any) {
       rating: updated.rating,
       newBalance: updated.balance,
       newRating: updated.rating,
-      quests
+      quests,
+      pass: updated.weeklyPass // <-- Отдаем на фронт
     });
   } catch (error) {
     console.error('[pvpResult]', error);

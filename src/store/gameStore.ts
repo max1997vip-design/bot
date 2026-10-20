@@ -28,6 +28,7 @@ export interface UserData {
   lastDailyClaim?: string | null;
   businesses?: Record<string, { level: number; lastCollected: number }>;
   partUpgrades?: Record<string, PartUpgrade>; // <-- ДОБАВЛЕНО
+  weeklyPass?: { weekId: number; xp: number; claimed: number[] };
 }
 
 interface GameState {
@@ -41,6 +42,7 @@ interface GameState {
   inventory: string[];
   equipped: Record<string, string | null>;
   lastDroppedItem: any | null;
+  
 
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
@@ -66,6 +68,8 @@ interface GameState {
   upgradeOffline: () => Promise<void>;
   claimDaily: () => Promise<boolean>;
   claimQuest: (questId: string) => Promise<any>;
+  getPass: () => Promise<void>;
+  claimPassReward: (level: number) => Promise<boolean>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -188,6 +192,40 @@ export const useGameStore = create<GameState>((set, get) => ({
       return false;
     } catch { return false; }
   },
+
+  getPass: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=getPass', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({ user: s.user ? { ...s.user, weeklyPass: data.pass } : null }));
+      }
+    } catch {}
+  },
+
+      claimPassReward: async (level: number) => { // <-- Добавлен : number
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=claimPassReward', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, level }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, weeklyPass: data.pass } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
 
   claimUpgrade: async (itemId) => {
     const initData = window.Telegram?.WebApp?.initData || '';

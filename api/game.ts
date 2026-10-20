@@ -19,6 +19,8 @@ import { buyBusinessHandler } from './_lib/handlers/buyBusiness.js';
 import { upgradeBusinessHandler } from './_lib/handlers/upgradeBusiness.js';
 import { collectIncomeHandler } from './_lib/handlers/collectIncome.js';
 import { flipCoinHandler } from './_lib/handlers/flipCoin.js';
+import { getPassHandler } from './_lib/handlers/getPass.js';
+import { claimPassRewardHandler } from './_lib/handlers/claimPassReward.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -46,6 +48,8 @@ export default async function handler(req: any, res: any) {
     case 'upgradeBusiness': return upgradeBusinessHandler(req, res);
     case 'collectIncome': return collectIncomeHandler(req, res);
     case 'flipCoin': return flipCoinHandler(req, res);
+    case 'getPass': return getPassHandler(req, res);
+    case 'claimPassReward': return claimPassRewardHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

@@ -49,6 +49,15 @@ export const users = pgTable('users', {
     level: number;
     lastCollected: number; // timestamp
   }>>().notNull().default({}),
+
+  businesses: jsonb('businesses').$type<Record<string, { level: number; lastCollected: number }>>().notNull().default({}),
+
+  // НОВОЕ: Недельный пропуск
+  weeklyPass: jsonb('weekly_pass').$type<{
+    weekId: number;      // Номер недели
+    xp: number;          // Накопленный опыт
+    claimed: number[];   // Массив забранных уровней (например, [1, 2])
+  }>().notNull().default({ weekId: 0, xp: 0, claimed: [] }),
 });
 
 export const ownedCars = pgTable('owned_cars', {

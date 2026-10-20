@@ -3,7 +3,8 @@ import { users, userItems } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
 import { ALL_ITEM_IDS, ITEMS, RARITY_DROP_CHANCE } from '../items.js';
-import { getOrCreateQuests } from '../quests.js'; // <-- ДОБАВЛЕНО
+import { getOrCreateQuests } from '../quests.js';
+import { getOrCreatePass } from '../pass.js'; // <-- Импорт пропуска
 
 export async function tapHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -15,7 +16,7 @@ export async function tapHandler(req: any, res: any) {
   if (typeof amount !== 'number' || amount <= 0 || amount > 10000) return res.status(400).json({ error: 'Invalid amount' });
 
   try {
-    // 1. Сначала достаем юзера, чтобы получить его текущие квесты
+    // 1. Достаем юзера
     const [user] = await db.select().from(users).where(eq(users.id, telegramId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -23,12 +24,17 @@ export async function tapHandler(req: any, res: any) {
     const quests = getOrCreateQuests(user.dailyQuests);
     quests.progress.click_1000 = Math.min(1000, (quests.progress.click_1000 || 0) + amount);
 
-    // 3. Обновляем баланс и сохраняем квесты
+    // 3. Обновляем прогресс Гоночного пропуска (1 клик = 1 XP)
+    const pass = getOrCreatePass(user.weeklyPass);
+    pass.xp += amount;
+
+    // 4. Обновляем баланс, квесты и пропуск
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
       totalEarned: sql`${users.totalEarned} + ${amount}`,
       lastOnlineAt: new Date(),
-      dailyQuests: quests // <-- Сохраняем обновленные квесты
+      dailyQuests: quests,
+      weeklyPass: pass // <-- Сохраняем обновленный пропуск
     }).where(eq(users.id, telegramId)).returning();
 
     let droppedItem = null;
@@ -56,9 +62,11 @@ export async function tapHandler(req: any, res: any) {
       newBalance: updatedUser.balance,
       newTotalEarned: updatedUser.totalEarned,
       droppedItem,
-      quests // <-- Отдаем на фронт
+      quests,
+      pass: updatedUser.weeklyPass // <-- Отдаем на фронт (на всякий случай)
     });
   } catch (error) {
+    console.error('Tap error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
