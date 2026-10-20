@@ -15,7 +15,6 @@ export const LoadingScreen = () => {
   const [progress, setProgress] = useState(0);
   const [textIndex, setTextIndex] = useState(0);
 
-  // Заполняется ровно за ~2.5 секунды (31 тик по 80мс)
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -27,7 +26,6 @@ export const LoadingScreen = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Смена текста каждые 500мс
   useEffect(() => {
     const textInterval = setInterval(() => {
       setTextIndex((prev) => (prev + 1) % loadingTexts.length);
@@ -39,7 +37,8 @@ export const LoadingScreen = () => {
     <motion.div 
       className="loading-screen"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.5 } }}
+      // ВОТ ГЛАВНЫЙ ФИКС: добавляем pointerEvents: 'none'
+      exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: 0.5 } }}
       style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
     > 
       <div className="loading-bg" />
