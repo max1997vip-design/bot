@@ -5,6 +5,13 @@ import { db } from './_lib/db.js';
 import { purchases } from './_lib/schema.js';
 import { SHOP_ITEMS } from './_lib/shop.js';
 
+interface TelegramApiResponse<T = unknown> {
+  ok: boolean;
+  result?: T;
+  description?: string;
+  error_code?: number;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -44,18 +51,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }).returning();
 
     // Вызов Telegram Bot API для создания инвойса
-    const result = await tgApi('createInvoiceLink', {
-      title: itemTitle,
-      description: itemDescription,
-      payload: JSON.stringify({ purchaseId: newPurchase[0].id }),
-      provider_token: '', // Для Telegram Stars всегда пустая строка
-      currency: 'XTR', // Код валюты для Stars
-      prices: [{ label: itemTitle, amount: itemPrice }],
-    }, process.env.BOT_TOKEN!);
+    const result = (await tgApi(
+      'createInvoiceLink',
+      {
+        title: itemTitle,
+        description: itemDescription,
+        payload: JSON.stringify({ purchaseId: newPurchase[0].id }),
+        provider_token: '', // Для Telegram Stars всегда пустая строка
+        currency: 'XTR',    // Код валюты для Stars
+        prices: [{ label: itemTitle, amount: itemPrice }],
+      },
+      process.env.BOT_TOKEN!
+    )) as TelegramApiResponse<string>;
 
-    if (!result.ok) {
+    if (!result.ok || typeof result.result !== 'string') {
       console.error('Telegram API Error:', result);
-      return res.status(500).json({ error: result.description });
+      return res.status(500).json({ error: result.description ?? 'Telegram API error' });
     }
 
     return res.status(200).json({ invoiceLink: result.result });
