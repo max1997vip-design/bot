@@ -8,6 +8,7 @@ import { QuestModal } from './QuestModal';
 import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen'; // <-- ИМПОРТ
 import { CasinoScreen } from './CasinoScreen';
+import { PassScreen } from './PassScreen';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -16,6 +17,7 @@ export const CityScreen = () => {
   const [topBalanceData, setTopBalanceData] = useState<any[]>([]);
   const [showDealership, setShowDealership] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [showQuests, setShowQuests] = useState(false);
   const [showWorkshop, setShowWorkshop] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false); // <-- СТЕЙТ
@@ -72,6 +74,12 @@ export const CityScreen = () => {
                 <span className="city-icon">🎰</span>
                 <h3>Казино</h3>
                 <p>Испытай удачу</p>
+              </div>
+
+              <div className="city-card" onClick={() => setShowPass(true)} style={{ border: '1px solid #00bfff' }}>
+                <span className="city-icon">🏁</span>
+                <h3>Пропуск</h3>
+                <p>Награды за неделю</p>
               </div>
 
 
@@ -156,6 +164,10 @@ export const CityScreen = () => {
 
       {showCasino && (
   <CasinoScreen onClose={() => setShowCasino(false)} />
+      )}
+
+      {showPass && (
+  <PassScreen onClose={() => setShowPass(false)} />
       )}
 
     </div>
