@@ -6,6 +6,7 @@ import { CarDealership } from './CarDealership';
 import { DailyRewardModal } from './DailyRewardModal';
 import { QuestModal } from './QuestModal';
 import { WorkshopScreen } from './WorkshopScreen';
+import { BusinessScreen } from './BusinessScreen'; // <-- ИМПОРТ
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -16,6 +17,7 @@ export const CityScreen = () => {
   const [showDaily, setShowDaily] = useState(false);
   const [showQuests, setShowQuests] = useState(false);
   const [showWorkshop, setShowWorkshop] = useState(false);
+  const [showBusiness, setShowBusiness] = useState(false); // <-- СТЕЙТ
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -75,6 +77,13 @@ export const CityScreen = () => {
                 <h3>Мастерская</h3>
                 <p>Тюнинг и крафт деталей</p>
               </div>
+
+              {/* НОВАЯ КАРТОЧКА БИЗНЕСА */}
+              <div className="city-card" onClick={() => setShowBusiness(true)}>
+                <span className="city-icon">💼</span>
+                <h3>Бизнесы</h3>
+                <p>Пассивный доход</p>
+              </div>
             </div>
           </motion.div>
         )}
@@ -130,6 +139,10 @@ export const CityScreen = () => {
 
       {showWorkshop && (
         <WorkshopScreen onClose={() => setShowWorkshop(false)} />
+      )}
+
+      {showBusiness && (
+        <BusinessScreen onClose={() => setShowBusiness(false)} />
       )}
     </div>
   );

@@ -35,14 +35,19 @@ export const users = pgTable('users', {
   
   dailyQuests: jsonb('daily_quests').$type<any>(),
   
-  // НОВОЕ: Хранилище прокачки деталей.
-  // Формат: { "engine_1": { level: 10, goldStars: 0, redStars: 0, upgradingUntil: 167..., upgradeType: 'level' } }
   partUpgrades: jsonb('part_upgrades').$type<Record<string, {
     level: number;
     goldStars: number;
     redStars: number;
     upgradingUntil: number | null;
     upgradeType: 'level' | 'gold' | 'red' | null;
+  }>>().notNull().default({}),
+
+  // НОВОЕ: Хранилище бизнесов
+  // Формат: { "coffee": { level: 1, lastCollected: 1690000000000 } }
+  businesses: jsonb('businesses').$type<Record<string, {
+    level: number;
+    lastCollected: number; // timestamp
   }>>().notNull().default({}),
 });
 

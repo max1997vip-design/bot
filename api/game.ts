@@ -15,6 +15,10 @@ import { claimQuestHandler } from './_lib/handlers/claimQuest.js';
 import { upgradePartHandler } from './_lib/handlers/upgradePart.js';
 import { claimUpgradeHandler } from './_lib/handlers/claimUpgrade.js';
 import { craftItemHandler } from './_lib/handlers/craftItem.js';
+import { buyBusinessHandler } from './_lib/handlers/buyBusiness.js';
+import { upgradeBusinessHandler } from './_lib/handlers/upgradeBusiness.js';
+import { collectIncomeHandler } from './_lib/handlers/collectIncome.js';
+
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -38,6 +42,9 @@ export default async function handler(req: any, res: any) {
     case 'upgradePart': return upgradePartHandler(req, res);
     case 'claimUpgrade': return claimUpgradeHandler(req, res);
     case 'craftItem': return craftItemHandler(req, res);
+    case 'buyBusiness': return buyBusinessHandler(req, res);
+    case 'upgradeBusiness': return upgradeBusinessHandler(req, res);
+    case 'collectIncome': return collectIncomeHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

@@ -26,6 +26,7 @@ export interface UserData {
   offlineLevel?: number;
   dailyStreak?: number;
   lastDailyClaim?: string | null;
+  businesses?: Record<string, { level: number; lastCollected: number }>;
   partUpgrades?: Record<string, PartUpgrade>; // <-- ДОБАВЛЕНО
 }
 
@@ -44,6 +45,10 @@ interface GameState {
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
   craftItem: (itemId: string) => Promise<boolean>;
+  buyBusiness: (businessId: string) => Promise<boolean>;
+  upgradeBusiness: (businessId: string) => Promise<boolean>;
+  collectIncome: () => Promise<{ success: boolean; collected?: number }>;
+
 
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
@@ -85,6 +90,63 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + tapPower } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
     }));
+  },
+
+  buyBusiness: async (businessId) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=buyBusiness', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, businessId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, businesses: data.businesses } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
+  upgradeBusiness: async (businessId) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=upgradeBusiness', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, businessId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, businesses: data.businesses } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
+  collectIncome: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=collectIncome', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, businesses: data.businesses } : null
+        }));
+        return { success: true, collected: data.collected };
+      }
+      return { success: false };
+    } catch { return { success: false }; }
   },
 
   upgradePart: async (itemId, type) => {
