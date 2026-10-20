@@ -10,8 +10,11 @@ import { upgradeClickerHandler } from './_lib/handlers/upgradeClicker.js';
 import { upgradeOfflineHandler } from './_lib/handlers/upgradeOffline.js';
 import { sellItemHandler } from './_lib/handlers/sellItem.js';
 import { claimDailyHandler } from './_lib/handlers/claimDaily.js';
-import { getQuestsHandler } from './_lib/handlers/getQuests.js'; // <-- ДОБАВЛЕНО
-import { claimQuestHandler } from './_lib/handlers/claimQuest.js'; // <-- ДОБАВЛЕНО
+import { getQuestsHandler } from './_lib/handlers/getQuests.js';
+import { claimQuestHandler } from './_lib/handlers/claimQuest.js';
+import { upgradePartHandler } from './_lib/handlers/upgradePart.js';
+import { claimUpgradeHandler } from './_lib/handlers/claimUpgrade.js';
+import { craftItemHandler } from './_lib/handlers/craftItem.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -30,8 +33,11 @@ export default async function handler(req: any, res: any) {
     case 'upgradeOffline': return upgradeOfflineHandler(req, res);
     case 'sellItem': return sellItemHandler(req, res);
     case 'claimDaily': return claimDailyHandler(req, res);
-    case 'getQuests': return getQuestsHandler(req, res); // <-- ДОБАВЛЕНО
-    case 'claimQuest': return claimQuestHandler(req, res); // <-- ДОБАВЛЕНО
+    case 'getQuests': return getQuestsHandler(req, res); 
+    case 'claimQuest': return claimQuestHandler(req, res); 
+    case 'upgradePart': return upgradePartHandler(req, res);
+    case 'claimUpgrade': return claimUpgradeHandler(req, res);
+    case 'craftItem': return craftItemHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

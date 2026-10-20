@@ -8,6 +8,14 @@ declare global {
   }
 }
 
+export interface PartUpgrade {
+  level: number;
+  goldStars: number;
+  redStars: number;
+  upgradingUntil: number | null;
+  upgradeType: 'level' | 'gold' | 'red' | null;
+}
+
 export interface UserData {
   id: number; username: string | null; firstName: string | null; lastName: string | null;
   photoUrl: string | null; balance: number; totalEarned: number; starsBalance: number;
@@ -18,6 +26,7 @@ export interface UserData {
   offlineLevel?: number;
   dailyStreak?: number;
   lastDailyClaim?: string | null;
+  partUpgrades?: Record<string, PartUpgrade>; // <-- ДОБАВЛЕНО
 }
 
 interface GameState {
@@ -31,6 +40,10 @@ interface GameState {
   inventory: string[];
   equipped: Record<string, string | null>;
   lastDroppedItem: any | null;
+
+  upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
+  claimUpgrade: (itemId: string) => Promise<boolean>;
+  craftItem: (itemId: string) => Promise<boolean>;
 
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
@@ -47,7 +60,7 @@ interface GameState {
   upgradeClicker: () => Promise<void>;
   upgradeOffline: () => Promise<void>;
   claimDaily: () => Promise<boolean>;
-  claimQuest: (questId: string) => Promise<any>; // <-- ДОБАВЛЕНО
+  claimQuest: (questId: string) => Promise<any>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -72,6 +85,67 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + tapPower } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
     }));
+  },
+
+  upgradePart: async (itemId, type) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=upgradePart', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, itemId, type }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, partUpgrades: data.partUpgrades } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
+  claimUpgrade: async (itemId) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=claimUpgrade', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, itemId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({ user: s.user ? { ...s.user, partUpgrades: data.partUpgrades } : null }));
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
+
+  craftItem: async (itemId) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=craftItem', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, itemId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Локально обновляем инвентарь: удаляем 5 старых, добавляем 1 новый
+        set((s) => {
+          const inv = [...s.inventory];
+          let removed = 0;
+          const newInv = inv.filter(id => {
+            if (id === itemId && removed < 5) { removed++; return false; }
+            return true;
+          });
+          newInv.push(data.newItemId);
+          return { inventory: newInv };
+        });
+        return true;
+      }
+      return false;
+    } catch { return false; }
   },
 
   syncTaps: async () => {
@@ -123,7 +197,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { user, equipped } = get();
     if (!user) return { success: false };
 
-    const playerStats = calculateStats(equipped);
+    // Передаем partUpgrades и activeCarId в расчет статов!
+    const playerStats = calculateStats(equipped, user.partUpgrades, user.activeCarId);
     const deviation = () => 0.80 + Math.random() * 0.10;
     
     const botStats = {

@@ -33,7 +33,17 @@ export const users = pgTable('users', {
   dailyStreak: integer('daily_streak').notNull().default(0),
   lastDailyClaim: timestamp('last_daily_claim', { withTimezone: true }),
   
-    dailyQuests: jsonb('daily_quests').$type<any>(),
+  dailyQuests: jsonb('daily_quests').$type<any>(),
+  
+  // НОВОЕ: Хранилище прокачки деталей.
+  // Формат: { "engine_1": { level: 10, goldStars: 0, redStars: 0, upgradingUntil: 167..., upgradeType: 'level' } }
+  partUpgrades: jsonb('part_upgrades').$type<Record<string, {
+    level: number;
+    goldStars: number;
+    redStars: number;
+    upgradingUntil: number | null;
+    upgradeType: 'level' | 'gold' | 'red' | null;
+  }>>().notNull().default({}),
 });
 
 export const ownedCars = pgTable('owned_cars', {

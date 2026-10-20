@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RacesScreen } from './RacesScreen';
 import { CarDealership } from './CarDealership'; 
-import { DailyRewardModal } from './DailyRewardModal'; // <-- ДОБАВЛЕНО
-import { QuestModal } from './QuestModal'; // <-- ДОБАВЛЕНО
+import { DailyRewardModal } from './DailyRewardModal';
+import { QuestModal } from './QuestModal';
+import { WorkshopScreen } from './WorkshopScreen';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -12,8 +13,9 @@ export const CityScreen = () => {
   const [showTopBalance, setShowTopBalance] = useState(false);
   const [topBalanceData, setTopBalanceData] = useState<any[]>([]);
   const [showDealership, setShowDealership] = useState(false);
-  const [showDaily, setShowDaily] = useState(false); // <-- ДОБАВЛЕНО
-  const [showQuests, setShowQuests] = useState(false); // <-- ДОБАВЛЕНО
+  const [showDaily, setShowDaily] = useState(false);
+  const [showQuests, setShowQuests] = useState(false);
+  const [showWorkshop, setShowWorkshop] = useState(false);
 
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
@@ -28,7 +30,13 @@ export const CityScreen = () => {
     <div className="city-screen">
       <AnimatePresence mode="wait">
         {activeLocation === 'menu' && (
-          <motion.div key="city-menu" className="city-hub" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+          <motion.div 
+            key="city-menu" 
+            className="city-hub" 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -10 }}
+          >
             <h2 className="city-title">ГОРОД</h2>
             
             <div className="city-grid">
@@ -56,24 +64,30 @@ export const CityScreen = () => {
                 <p>Ежедневная награда</p>
               </div>
 
-              {/* НОВАЯ КАРТОЧКА ЗАДАНИЙ */}
               <div className="city-card" onClick={() => setShowQuests(true)}>
                 <span className="city-icon">📋</span>
                 <h3>Задания</h3>
                 <p>Квесты на сегодня</p>
               </div>
 
-              <div className="city-card disabled">
+              <div className="city-card" onClick={() => setShowWorkshop(true)}>
                 <span className="city-icon">🔧</span>
                 <h3>Мастерская</h3>
-                <p>Глобальный тюнинг</p>
+                <p>Тюнинг и крафт деталей</p>
               </div>
             </div>
           </motion.div>
         )}
 
         {activeLocation === 'track' && (
-          <motion.div key="city-track" className="city-location" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}>
+          <motion.div 
+            key="city-track" 
+            className="city-location" 
+            initial={{ x: '100%' }} 
+            animate={{ x: 0 }} 
+            exit={{ x: '100%' }} 
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          >
             <button className="back-to-city" onClick={() => setActiveLocation('menu')}>← Назад</button>
             <RacesScreen />
           </motion.div>
@@ -112,6 +126,10 @@ export const CityScreen = () => {
 
       {showQuests && (
         <QuestModal onClose={() => setShowQuests(false)} />
+      )}
+
+      {showWorkshop && (
+        <WorkshopScreen onClose={() => setShowWorkshop(false)} />
       )}
     </div>
   );
