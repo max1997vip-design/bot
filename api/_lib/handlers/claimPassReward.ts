@@ -2,7 +2,7 @@ import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq } from 'drizzle-orm';
-import { getOrCreatePass, PASS_LEVELS } from '../pass.js';
+import { getOrCreatePass, PASS_LEVELS, PassLevel } from '../pass.js';
 
 export async function claimPassRewardHandler(req: any, res: any) {
   try {
@@ -14,7 +14,7 @@ export async function claimPassRewardHandler(req: any, res: any) {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const pass = getOrCreatePass(user.weeklyPass);
-    const levelConfig = PASS_LEVELS.find(l => l.level === level);
+    const levelConfig = PASS_LEVELS.find((l: PassLevel) => l.level === level);
 
     if (!levelConfig) return res.status(400).json({ error: 'Уровень не найден' });
     if (pass.xp < levelConfig.xpReq) return res.status(400).json({ error: 'Недостаточно опыта' });
@@ -33,6 +33,7 @@ export async function claimPassRewardHandler(req: any, res: any) {
 
     return res.json({ success: true, newBalance, pass });
   } catch (e) {
+    console.error('Claim pass error:', e);
     return res.status(500).json({ error: 'Internal error' });
   }
 }

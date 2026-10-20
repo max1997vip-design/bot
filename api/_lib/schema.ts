@@ -43,20 +43,15 @@ export const users = pgTable('users', {
     upgradeType: 'level' | 'gold' | 'red' | null;
   }>>().notNull().default({}),
 
-  // НОВОЕ: Хранилище бизнесов
-  // Формат: { "coffee": { level: 1, lastCollected: 1690000000000 } }
   businesses: jsonb('businesses').$type<Record<string, {
     level: number;
-    lastCollected: number; // timestamp
+    lastCollected: number;
   }>>().notNull().default({}),
 
-  businesses: jsonb('businesses').$type<Record<string, { level: number; lastCollected: number }>>().notNull().default({}),
-
-  // НОВОЕ: Недельный пропуск
   weeklyPass: jsonb('weekly_pass').$type<{
-    weekId: number;      // Номер недели
-    xp: number;          // Накопленный опыт
-    claimed: number[];   // Массив забранных уровней (например, [1, 2])
+    weekId: number;
+    xp: number;
+    claimed: number[];
   }>().notNull().default({ weekId: 0, xp: 0, claimed: [] }),
 });
 
