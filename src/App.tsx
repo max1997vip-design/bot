@@ -81,7 +81,7 @@ export default function App() {
 
       {/* Экран ошибки (если сеть упала) */}
       {isReady && (error || !user) && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
           <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
           <p style={{ color: '#aaa', marginBottom: 20 }}>{error || 'Пользователь не найден'}</p>
           <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#00FF41', color: 'black', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer' }}>
@@ -119,7 +119,7 @@ export default function App() {
             {offlineEarnings > 0 && (
               <motion.div 
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' , transform: 'translateZ(0)', isolation: 'isolate' }}
               >
                 <motion.div 
                   initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }}

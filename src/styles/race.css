@@ -217,13 +217,15 @@
       rgba(255, 230, 140, 0) 70%
     );
   mix-blend-mode: screen;
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 .headlight-halo.flash { opacity: 1; }
 
 /* Всплывающие цифры (если используешь) */
 .floating-text {
-  position: fixed;
+  position: absolute;
   color: var(--accent);
   font-size: 32px;
   font-weight: 900;
@@ -265,6 +267,9 @@
   align-items: center;
   justify-content: center;
   isolation: isolate;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .car-color-overlay,
