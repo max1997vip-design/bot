@@ -44,10 +44,18 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
     };
   };
 
+  const handleClose = () => {
+    if (isOpening) return; // Запрещаем закрывать во время кручения
+    setWonItem(null);
+    setReelItems([]);
+    onClose();
+  };
+
   const handleOpenCase = async () => {
     if (!canAfford || isOpening) return;
     setIsOpening(true);
     setWonItem(null);
+    setReelItems([]);
     playSound('click');
 
     try {
@@ -69,20 +77,17 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
 
       } else {
         setIsOpening(false);
-        // 👇 ВОТ ЗДЕСЬ должен быть лог ответа сервера (в блоке else, а не в catch)
         console.error("Сервер вернул отказ:", res);
         alert("Сервер не разрешил открыть кейс. Проверь консоль.");
       }
     } catch (e) {
-      // 👇 А здесь мы ловим только ошибки сети (интернет пропал, сервер упал)
       console.error("Ошибка сети:", e);
       setIsOpening(false);
       alert("Ошибка соединения с сервером.");
     }
   };
 
-  const ITEM_WIDTH = 100; // Ширина 90px + отступ gap 10px
-  // Сдвиг, чтобы 45-й элемент встал ровно по центру экрана
+  const ITEM_WIDTH = 100;
   const targetX = -(45 * ITEM_WIDTH) + (window.innerWidth / 2) - (ITEM_WIDTH / 2);
 
   if (!isOpen) return null;
@@ -96,7 +101,7 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
         
         <div className="case-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ margin: 0, color: 'white' }}>{caseType.toUpperCase()} КЕЙС</h2>
-          <button onClick={onClose} disabled={isOpening} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: isOpening ? 'not-allowed' : 'pointer' }}>✕</button>
+          <button onClick={handleClose} disabled={isOpening} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: isOpening ? 'not-allowed' : 'pointer' }}>✕</button>
         </div>
 
         {/* Окно рулетки */}
