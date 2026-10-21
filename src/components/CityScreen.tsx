@@ -11,7 +11,8 @@ import { CasinoScreen } from './CasinoScreen';
 import { PassScreen } from './PassScreen';
 import { ClanScreen } from './ClanScreen';
 import { AdminScreen } from './AdminScreen';
-import { useGameStore } from '../store/gameStore'; // <-- Импорт стора
+import { useGameStore } from '../store/gameStore';
+import { CaseModal } from './CaseModal';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -26,7 +27,8 @@ export const CityScreen = () => {
   const [showBusiness, setShowBusiness] = useState(false);
   const [showCasino, setShowCasino] = useState(false);
   const [showClan, setShowClan] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false); // <-- Стейт для админки
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [activeCase, setActiveCase] = useState<'bronze' | 'silver' | 'gold' | null>(null);
 
   // Получаем юзера и флаги
   const user = useGameStore((s) => s.user);
@@ -95,6 +97,12 @@ export const CityScreen = () => {
                 </div>
               )}
 
+              <div className="city-card" onClick={() => setActiveCase('bronze')}>
+                <div className="city-icon">📦</div>
+                  <h3>Кейсы</h3>
+                  <p>От 5.000 🪙</p>
+                </div>
+              
               {features.pass !== false && (
                 <div className="city-card" onClick={() => setShowPass(true)} style={{ border: '1px solid #00bfff' }}>
                   <span className="city-icon">🏁</span>
@@ -181,8 +189,14 @@ export const CityScreen = () => {
       {showBusiness && <BusinessScreen onClose={() => setShowBusiness(false)} />}
       {showCasino && <CasinoScreen onClose={() => setShowCasino(false)} />}
       {showPass && <PassScreen onClose={() => setShowPass(false)} />}
-      {showClan && <ClanScreen onClose={() => setShowClan(false)} />}
+      {showClan && <ClanScreen onClose={() => setShowClan(false)} />} 
       {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />} {/* <-- Рендер админки */}
+        <CaseModal 
+        isOpen={activeCase !== null} 
+        onClose={() => setActiveCase(null)} 
+        caseType={activeCase || 'bronze'} 
+      />
+
     </div>
   );
 };

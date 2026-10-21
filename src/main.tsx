@@ -3,7 +3,8 @@ import './styles/loading.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './styles/races.css';   
+import './syltes/races.css';   
+import './syltes/case.css';   
 
 // Подключаем стили по порядку
 import './styles/variables.css'; // Сначала переменные!

@@ -62,6 +62,7 @@ interface GameState {
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
+  openCase: (caseType: string) => Promise<{ success: boolean; wonItem?: any }>;
   clanInfo: any | null;
   clanMembers: any[];
   fetchClan: () => Promise<void>;
@@ -105,6 +106,31 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + tapPower } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
     }));
+  },
+
+  openCase: async (caseType) => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+    const res = await fetch('/api/game?action=openCase', {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, caseType }),
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { ...s.user, balance: data.newBalance } : null,
+        // Если выпал предмет, добавляем в инвентарь
+        inventory: data.wonItem.id.startsWith('coins_') ? s.inventory : [...s.inventory, data.wonItem.id] 
+      }));
+      return { success: true, wonItem: data.wonItem };
+    }
+    return { success: false };
+    } catch (e) {
+    return { success: false };
+    }
   },
 
     clanInfo: null,
