@@ -64,21 +64,18 @@ export async function openCaseHandler(req: any, res: any) {
       newBalance += amount;
     }
 
-    // 7. ОБНОВЛЯЕМ БД В ТРАНЗАКЦИИ (чтобы не было рассинхрона)
-    await db.transaction(async (tx) => {
-      // Списываем/начисляем деньги
-      await tx.update(users)
-        .set({ balance: newBalance })
-        .where(eq(users.id, user.id));
+        // 7. Обновляем БД (без транзакции, чтобы избежать ошибок на Vercel)
+    await db.update(users)
+      .set({ balance: newBalance })
+      .where(eq(users.id, user.id));
 
-      // Если выпал предмет, сохраняем его в userItems
-      if (!isCoins) {
-        await tx.insert(userItems).values({
-          userId: user.id,
-          itemId: wonItemId
-        });
-      }
-    });
+    // Если выпал предмет, сохраняем его в userItems
+    if (!isCoins) {
+      await db.insert(userItems).values({
+        userId: user.id,
+        itemId: wonItemId
+      });
+    }
 
     // 8. Отдаем ответ на фронтенд
     return res.json({
