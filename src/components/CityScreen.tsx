@@ -13,6 +13,7 @@ import { ClanScreen } from './ClanScreen';
 import { AdminScreen } from './AdminScreen';
 import { useGameStore } from '../store/gameStore';
 import { CaseModal } from './CaseModal';
+import { ShopModal } from './ShopModal';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -28,6 +29,7 @@ export const CityScreen = () => {
   const [showCasino, setShowCasino] = useState(false);
   const [showClan, setShowClan] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showShop, setShowShop] = useState(false);
   const [activeCase, setActiveCase] = useState<'bronze' | 'silver' | 'gold' | null>(null);
 
   // Получаем юзера и флаги
@@ -111,6 +113,12 @@ export const CityScreen = () => {
                 </div>
               )}
 
+              <div className="city-card" onClick={() => setShowShop(true)} style={{ border: '1px solid #ffd700' }}>
+                  <span className="city-icon">🛒</span>
+                  <h3>Магазин</h3>
+                  <p>Покупка монет</p>
+              </div>
+
               <div className="city-card" onClick={() => setShowQuests(true)}>
                 <span className="city-icon">📋</span>
                 <h3>Задания</h3>
@@ -191,6 +199,7 @@ export const CityScreen = () => {
       {showPass && <PassScreen onClose={() => setShowPass(false)} />}
       {showClan && <ClanScreen onClose={() => setShowClan(false)} />} 
       {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />} {/* <-- Рендер админки */}
+      {showShop && <ShopModal onClose={() => setShowShop(false)} />}
         <CaseModal 
         isOpen={activeCase !== null} 
         onClose={() => setActiveCase(null)} 
