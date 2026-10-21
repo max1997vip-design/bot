@@ -26,6 +26,7 @@ import { createClanHandler } from './_lib/handlers/createClan.js';
 import { joinClanHandler } from './_lib/handlers/joinClan.js';
 import { clanActionHandler } from './_lib/handlers/clanAction.js';
 import { adminHandler } from './_lib/handlers/admin.js';
+import { openCaseHandler } from './_lib/handlers/openCase.js';
 
 
 export default async function handler(req: any, res: any) {
@@ -34,6 +35,7 @@ export default async function handler(req: any, res: any) {
 
   switch (action) {
     case 'sync': return syncHandler(req, res);
+    case 'openCase': return openCaseHandler(req, res);
     case 'tap': return tapHandler(req, res);
     case 'pvp': return pvpHandler(req, res);
     case 'leaderboard': return leaderboardHandler(req, res);

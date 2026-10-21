@@ -69,10 +69,15 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
 
       } else {
         setIsOpening(false);
+        // 👇 ВОТ ЗДЕСЬ должен быть лог ответа сервера (в блоке else, а не в catch)
+        console.error("Сервер вернул отказ:", res);
+        alert("Сервер не разрешил открыть кейс. Проверь консоль.");
       }
     } catch (e) {
-      console.error(e);
+      // 👇 А здесь мы ловим только ошибки сети (интернет пропал, сервер упал)
+      console.error("Ошибка сети:", e);
       setIsOpening(false);
+      alert("Ошибка соединения с сервером.");
     }
   };
 
