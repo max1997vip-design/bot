@@ -5,6 +5,7 @@ import { useGameStore } from '../store/gameStore';
 import { ITEMS } from '../config/items'; 
 import WebApp from '@twa-dev/sdk';
 import { playSound } from '../utils/sound';
+import { useAdsgram } from '../hooks/useAdsgram';
 import '../styles/case.css';
 
 interface CaseModalProps {
@@ -23,12 +24,35 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
   const [isOpening, setIsOpening] = useState(false);
   const [reelItems, setReelItems] = useState<string[]>([]);
   const [wonItem, setWonItem] = useState<string | null>(null);
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
   
   const balance = useGameStore((s) => s.balance);
   const openCase = useGameStore((s) => s.openCase); 
+  const syncTaps = useGameStore((s) => s.syncTaps);
 
   const caseConfig = CASE_ITEMS[caseType];
   const canAfford = balance >= caseConfig.price;
+
+  // 👇 НАСТРОЙКА РЕКЛАМЫ
+  const showAd = useAdsgram({
+    blockId: '55296', 
+    onReward: async () => {
+      setIsWatchingAd(false);
+      WebApp.showAlert("Реклама просмотрена! 5000 монет зачислено.");
+      // Ждем полсекунды, чтобы сервер успел начислить монеты, и синхронизируем баланс
+      setTimeout(() => syncTaps(), 500);
+    },
+    onError: (err) => {
+      setIsWatchingAd(false);
+      console.error("Ad error:", err);
+      WebApp.showAlert("Реклама не была просмотрена до конца. Попробуйте позже.");
+    },
+  });
+
+  const handleWatchAd = () => {
+    setIsWatchingAd(true);
+    showAd();
+  };
 
   const getItemData = (id: string) => {
     if (id.startsWith('coins_')) {
@@ -45,18 +69,15 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
   const handleOpenCase = async () => {
     if (!canAfford || isOpening) return;
     
-    // 👇 СБРАСЫВАЕМ ПРОШЛОЕ СОСТОЯНИЕ
     setIsOpening(true);
     setWonItem(null);
     setReelItems([]); 
-    
     playSound('click');
 
     try {
       const res = await openCase(caseType);
       
       if (res.success && res.wonItem) {
-        // Генерируем новую ленту
         const newReel = Array.from({ length: 50 }, () => 
           caseConfig.items[Math.floor(Math.random() * caseConfig.items.length)]
         );
@@ -65,7 +86,6 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
         setReelItems(newReel);
         setWonItem(res.wonItem.id);
 
-        // Ждем окончания анимации
         setTimeout(() => {
           setIsOpening(false);
           playSound(res.wonItem.rarity === 'legendary' ? 'win' : 'coin');
@@ -75,12 +95,12 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
       } else {
         setIsOpening(false);
         console.error("Сервер вернул отказ:", res);
-        alert("Сервер не разрешил открыть кейс (возможно, не хватает денег).");
+        WebApp.showAlert("Не удалось открыть кейс. Проверьте баланс.");
       }
     } catch (e) {
       console.error("Ошибка сети:", e);
       setIsOpening(false);
-      alert("Ошибка соединения с сервером.");
+      WebApp.showAlert("Ошибка соединения с сервером.");
     }
   };
 
@@ -101,7 +121,6 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
           <button onClick={onClose} disabled={isOpening} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: isOpening ? 'not-allowed' : 'pointer' }}>✕</button>
         </div>
 
-        {/* Окно рулетки */}
         <div className="case-reel-container">
           <div className="case-reel-pointer" />
           
@@ -127,10 +146,8 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
           )}
         </div>
 
-        {/* 👇 БЛОК РЕЗУЛЬТАТА И КНОПКИ */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', minHeight: '100px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', minHeight: '150px' }}>
           
-          {/* Анимация появления награды (показывается только после прокрутки) */}
           <AnimatePresence>
             {wonItem && !isOpening && (
               <motion.div 
@@ -148,14 +165,30 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
             )}
           </AnimatePresence>
 
-          {/* Кнопка всегда на экране */}
+          {/* Кнопка открытия за монеты */}
           <button 
             onClick={handleOpenCase} 
-            disabled={!canAfford || isOpening}
+            disabled={!canAfford || isOpening || isWatchingAd}
             className={`open-case-btn ${canAfford && !isOpening ? 'active' : 'disabled'}`}
-            style={{ width: '100%', maxWidth: '300px', padding: '15px', fontSize: '16px', borderRadius: '12px' }}
+            style={{ width: '100%', maxWidth: '300px', padding: '15px', fontSize: '16px', borderRadius: '12px', marginBottom: '10px' }}
           >
             {isOpening ? 'Крутим...' : `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} 🪙`}
+          </button>
+
+          {/* 👇 Кнопка рекламы */}
+          <button 
+            onClick={handleWatchAd}
+            disabled={isOpening || isWatchingAd}
+            style={{ 
+              width: '100%', maxWidth: '300px', padding: '12px', 
+              background: '#2b2b2b', color: '#fff', 
+              borderRadius: '12px', border: '1px solid #555', 
+              cursor: isOpening || isWatchingAd ? 'not-allowed' : 'pointer', 
+              fontWeight: 'bold', fontSize: '14px',
+              display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px'
+            }}
+          >
+            {isWatchingAd ? 'Загрузка рекламы...' : '🎬 Смотреть рекламу (+5000 🪙)'}
           </button>
 
         </div>

@@ -26,6 +26,7 @@ import { createClanHandler } from './_lib/handlers/createClan.js';
 import { joinClanHandler } from './_lib/handlers/joinClan.js';
 import { clanActionHandler } from './_lib/handlers/clanAction.js';
 import { adminHandler } from './_lib/handlers/admin.js';
+import { claimAdRewardHandler } from './_lib/handlers/claimAdReward.js';
 import { openCaseHandler } from './_lib/handlers/openCase.js';
 
 
@@ -40,6 +41,7 @@ export default async function handler(req: any, res: any) {
     case 'pvp': return pvpHandler(req, res);
     case 'leaderboard': return leaderboardHandler(req, res);
     case 'equip': return equipHandler(req, res);
+    case 'claimAdReward': return claimAdRewardHandler(req, res);
     case 'switchCar': return switchCarHandler(req, res);
     case 'pvpResult': return pvpResultHandler(req, res);
     case 'buyCar': return buyCarHandler(req, res);
