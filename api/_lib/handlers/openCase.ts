@@ -1,10 +1,8 @@
 // api/_lib/handlers/openCase.ts
 import { db } from '../db.js';
-import { users } from '../schema.js';
+import { users, userItems } from '../schema.js'; // 👈 ДОБАВИЛИ userItems
 import { validateInitData } from '../telegram.js';
 import { eq } from 'drizzle-orm';
-// Если у тебя инвентарь в отдельной таблице, раскомментируй импорт ниже:
-// import { inventory } from '../schema.js'; 
 
 const CASES = {
   bronze: { 
@@ -25,7 +23,7 @@ export async function openCaseHandler(req: any, res: any) {
   try {
     const { initData, caseType } = req.body;
     
-    // 1. Авторизация (как в flipCoin)
+    // 1. Авторизация
     const valid = validateInitData(initData, process.env.BOT_TOKEN!);
     if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -44,7 +42,7 @@ export async function openCaseHandler(req: any, res: any) {
       return res.status(400).json({ error: 'Недостаточно монет' });
     }
 
-    // 5. Рандомайзер (выбор по весам)
+    // 5. Рандомайзер
     const totalWeight = selectedCase.items.reduce((acc, item) => acc + item.weight, 0);
     let random = Math.random() * totalWeight;
     let wonItemId = selectedCase.items[0].id;
@@ -61,30 +59,26 @@ export async function openCaseHandler(req: any, res: any) {
     let newBalance = user.balance - selectedCase.price;
     const isCoins = wonItemId.startsWith('coins_');
 
-    // Если выпали монеты — начисляем их
     if (isCoins) {
       const amount = parseInt(wonItemId.split('_')[1]);
       newBalance += amount;
     }
 
-    // 7. Обновляем БД
-    await db.update(users)
-      .set({ balance: newBalance })
-      .where(eq(users.id, user.id));
+    // 7. ОБНОВЛЯЕМ БД В ТРАНЗАКЦИИ (чтобы не было рассинхрона)
+    await db.transaction(async (tx) => {
+      // Списываем/начисляем деньги
+      await tx.update(users)
+        .set({ balance: newBalance })
+        .where(eq(users.id, user.id));
 
-    // Если выпал предмет, добавляем в инвентарь
-    if (!isCoins) {
-      // ⚠️ ВАЖНО: Тут зависит от твоей схемы БД.
-      // Если инвентарь хранится в отдельной таблице `inventory`, используй:
-      // await db.insert(inventory).values({ userId: user.id, itemId: wonItemId });
-      
-      // Если инвентарь хранится как массив JSON прямо в таблице users, используй:
-      // await db.update(users).set({ inventory: [...(user.inventory || []), wonItemId] }).where(eq(users.id, user.id));
-      
-      // Пока оставим заглушку, чтобы сборка не упала. 
-      // Убери комментарии с нужного варианта выше!
-      console.log(`Выпал предмет: ${wonItemId}, нужно добавить в инвентарь юзера ${user.id}`);
-    }
+      // Если выпал предмет, сохраняем его в userItems
+      if (!isCoins) {
+        await tx.insert(userItems).values({
+          userId: user.id,
+          itemId: wonItemId
+        });
+      }
+    });
 
     // 8. Отдаем ответ на фронтенд
     return res.json({

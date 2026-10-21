@@ -1,6 +1,6 @@
 // src/components/CaseModal.tsx
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { ITEMS } from '../config/items'; 
 import WebApp from '@twa-dev/sdk';
@@ -30,13 +30,11 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
   const caseConfig = CASE_ITEMS[caseType];
   const canAfford = balance >= caseConfig.price;
 
-  // 👇 Безопасное получение данных о предмете (решает ошибку TS и монеты)
   const getItemData = (id: string) => {
     if (id.startsWith('coins_')) {
       const amount = id.split('_')[1];
       return { name: `${Number(amount).toLocaleString('ru-RU')} монет`, icon: '🪙' };
     }
-    // Приводим ITEMS к any, чтобы TS не ругался на отсутствующие ключи
     const item = (ITEMS as any)[id];
     return { 
       name: item?.name || 'Неизвестный предмет', 
@@ -44,31 +42,30 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
     };
   };
 
-  const handleClose = () => {
-    if (isOpening) return; // Запрещаем закрывать во время кручения
-    setWonItem(null);
-    setReelItems([]);
-    onClose();
-  };
-
   const handleOpenCase = async () => {
     if (!canAfford || isOpening) return;
+    
+    // 👇 СБРАСЫВАЕМ ПРОШЛОЕ СОСТОЯНИЕ
     setIsOpening(true);
     setWonItem(null);
-    setReelItems([]);
+    setReelItems([]); 
+    
     playSound('click');
 
     try {
       const res = await openCase(caseType);
       
       if (res.success && res.wonItem) {
+        // Генерируем новую ленту
         const newReel = Array.from({ length: 50 }, () => 
           caseConfig.items[Math.floor(Math.random() * caseConfig.items.length)]
         );
         newReel[45] = res.wonItem.id;
+        
         setReelItems(newReel);
         setWonItem(res.wonItem.id);
 
+        // Ждем окончания анимации
         setTimeout(() => {
           setIsOpening(false);
           playSound(res.wonItem.rarity === 'legendary' ? 'win' : 'coin');
@@ -78,7 +75,7 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
       } else {
         setIsOpening(false);
         console.error("Сервер вернул отказ:", res);
-        alert("Сервер не разрешил открыть кейс. Проверь консоль.");
+        alert("Сервер не разрешил открыть кейс (возможно, не хватает денег).");
       }
     } catch (e) {
       console.error("Ошибка сети:", e);
@@ -87,7 +84,7 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
     }
   };
 
-  const ITEM_WIDTH = 100;
+  const ITEM_WIDTH = 100; 
   const targetX = -(45 * ITEM_WIDTH) + (window.innerWidth / 2) - (ITEM_WIDTH / 2);
 
   if (!isOpen) return null;
@@ -101,7 +98,7 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
         
         <div className="case-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ margin: 0, color: 'white' }}>{caseType.toUpperCase()} КЕЙС</h2>
-          <button onClick={handleClose} disabled={isOpening} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: isOpening ? 'not-allowed' : 'pointer' }}>✕</button>
+          <button onClick={onClose} disabled={isOpening} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: isOpening ? 'not-allowed' : 'pointer' }}>✕</button>
         </div>
 
         {/* Окно рулетки */}
@@ -113,10 +110,10 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
               className="case-reel"
               initial={{ x: 0 }}
               animate={{ x: targetX }}
-              transition={{ duration: 4, ease: [0.1, 0.8, 0.2, 1] }} // Плавное замедление
+              transition={{ duration: 4, ease: [0.1, 0.8, 0.2, 1] }}
             >
               {reelItems.map((itemId, index) => {
-                const itemData = getItemData(itemId); // 👈 Используем безопасную функцию
+                const itemData = getItemData(itemId);
                 return (
                   <div key={index} className="case-reel-item">
                     <div className="item-icon">{itemData.icon}</div>
@@ -130,27 +127,37 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
           )}
         </div>
 
-        {/* Кнопка открытия / Результат */}
-        <div className="case-actions">
-          {!wonItem ? (
-            <button 
-              onClick={handleOpenCase} 
-              disabled={!canAfford || isOpening}
-              className={`open-case-btn ${canAfford ? 'active' : 'disabled'}`}
-            >
-              {isOpening ? 'Открываем...' : `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} 🪙`}
-            </button>
-          ) : (
-            !isOpening && (
+        {/* 👇 БЛОК РЕЗУЛЬТАТА И КНОПКИ */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', minHeight: '100px' }}>
+          
+          {/* Анимация появления награды (показывается только после прокрутки) */}
+          <AnimatePresence>
+            {wonItem && !isOpening && (
               <motion.div 
-                initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                initial={{ scale: 0.5, opacity: 0, y: 20 }} 
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0 }}
                 className="case-result"
+                style={{ textAlign: 'center', marginBottom: '15px' }}
               >
-                <h3>Вы получили:</h3>
-                <div className="result-item">{getItemData(wonItem).name}</div> {/* 👈 Используем безопасную функцию */}
+                <h3 style={{ margin: '0 0 5px 0', color: '#aaa', fontSize: '14px' }}>Вы получили:</h3>
+                <div className="result-item" style={{ fontSize: '22px', fontWeight: '900', color: '#00FF41', textShadow: '0 0 10px rgba(0,255,65,0.5)' }}>
+                  {getItemData(wonItem).name}
+                </div>
               </motion.div>
-            )
-          )}
+            )}
+          </AnimatePresence>
+
+          {/* Кнопка всегда на экране */}
+          <button 
+            onClick={handleOpenCase} 
+            disabled={!canAfford || isOpening}
+            className={`open-case-btn ${canAfford && !isOpening ? 'active' : 'disabled'}`}
+            style={{ width: '100%', maxWidth: '300px', padding: '15px', fontSize: '16px', borderRadius: '12px' }}
+          >
+            {isOpening ? 'Крутим...' : `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} 🪙`}
+          </button>
+
         </div>
 
       </div>
