@@ -44,8 +44,10 @@ interface GameState {
   inventory: string[];
   equipped: Record<string, string | null>;
   lastDroppedItem: any | null;
-  
+  history: any[];
 
+  
+  
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
   craftItem: (itemId: string) => Promise<boolean>;
@@ -67,6 +69,7 @@ interface GameState {
   clanMembers: any[];
   fetchClan: () => Promise<void>;
   createClan: (name: string) => Promise<boolean>;
+  fetchHistory: () => Promise<void>;
   joinClan: (clanName: string) => Promise<boolean>;
   clanAction: (action: 'donate' | 'upgrade', amount?: number) => Promise<boolean>;
 
@@ -132,6 +135,20 @@ export const useGameStore = create<GameState>((set, get) => ({
     return { success: false };
     }
   },
+
+  history: [],
+fetchHistory: async () => {
+  const initData = window.Telegram?.WebApp?.initData || '';
+  try {
+    const res = await fetch('/api/game?action=getHistory', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) set({ history: data.history });
+  } catch (e) { console.error(e); }
+},
+
 
     clanInfo: null,
   clanMembers: [],

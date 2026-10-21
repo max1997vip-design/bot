@@ -5,7 +5,7 @@ import { db } from './_lib/db.js'; // ИЗМЕНЕНО
 import { purchases, users } from './_lib/schema.js'; // ИЗМЕНЕНО
 import { SHOP_ITEMS } from './_lib/shop.js'; // ИЗМЕНЕНО
 import { eq, sql } from 'drizzle-orm';
-// ... остальной код ...
+import { logTransaction } from './_lib/logger.js';
 
 const BOT_TOKEN = process.env.BOT_TOKEN!;
 
@@ -170,6 +170,7 @@ async function grantItem(userId: number, item: ShopItem) {
           totalEarned: sql`${users.totalEarned} + ${item.amount}`,
         })
         .where(eq(users.id, userId));
+        await logTransaction(userId, item.amount, 'shop', `Покупка в магазине: ${item.title}`);
       break;
 
     case 'battle_pass':

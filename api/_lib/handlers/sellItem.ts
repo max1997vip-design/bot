@@ -3,7 +3,8 @@ import { users, userItems, equippedItems } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, and, sql } from 'drizzle-orm';
 import { ITEMS } from '../items.js';
-import { getOrCreateQuests } from '../quests.js'; // <-- ДОБАВЛЕНО
+import { getOrCreateQuests } from '../quests.js';
+import { logTransaction } from '../logger.js';
 
 const SELL_PRICES: Record<string, number> = {
   common: 100, uncommon: 500, rare: 2500, epic: 15000, legendary: 75000,
@@ -48,6 +49,8 @@ export async function sellItemHandler(req: any, res: any) {
       })
       .where(eq(users.id, userId))
       .returning();
+    
+      await logTransaction(userId, price, 'sell_item', `Продажа предмета: ${itemId}`);
 
     return res.json({ success: true, newBalance: updatedUser.balance, price, quests });
   } catch (error) {

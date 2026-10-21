@@ -2,6 +2,7 @@
 import { db } from '../db.js';
 import { users, userItems } from '../schema.js'; // 👈 ДОБАВИЛИ userItems
 import { validateInitData } from '../telegram.js';
+import { logTransaction } from '../logger.js';
 import { eq } from 'drizzle-orm';
 
 const CASES = {
@@ -76,6 +77,13 @@ export async function openCaseHandler(req: any, res: any) {
         itemId: wonItemId
       });
     }
+
+    if (isCoins) {
+      await logTransaction(user.id, newBalance - user.balance, 'case_reward', `Награда из ${caseType} кейса: ${wonItemId}`);
+    }else {
+      await logTransaction(user.id, -selectedCase.price, 'case_open', `Открытие ${caseType} кейса (выпал предмет)`);
+    }
+
 
     // 8. Отдаем ответ на фронтенд
     return res.json({

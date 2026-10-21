@@ -14,6 +14,7 @@ import { AdminScreen } from './AdminScreen';
 import { useGameStore } from '../store/gameStore';
 import { CaseModal } from './CaseModal';
 import { ShopModal } from './ShopModal';
+import { HistoryModal } from './HistoryModal';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -25,6 +26,7 @@ export const CityScreen = () => {
   const [showPass, setShowPass] = useState(false);
   const [showQuests, setShowQuests] = useState(false);
   const [showWorkshop, setShowWorkshop] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false);
   const [showCasino, setShowCasino] = useState(false);
   const [showClan, setShowClan] = useState(false);
@@ -113,6 +115,12 @@ export const CityScreen = () => {
                 </div>
               )}
 
+              <div className="city-card" onClick={() => setShowHistory(true)}>
+                  <span className="city-icon">📜</span>
+                  <h3>История</h3>
+                  <p>Движение средств</p>
+              </div>
+
               <div className="city-card" onClick={() => setShowShop(true)} style={{ border: '1px solid #ffd700' }}>
                   <span className="city-icon">🛒</span>
                   <h3>Магазин</h3>
@@ -200,6 +208,7 @@ export const CityScreen = () => {
       {showClan && <ClanScreen onClose={() => setShowClan(false)} />} 
       {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />} {/* <-- Рендер админки */}
       {showShop && <ShopModal onClose={() => setShowShop(false)} />}
+      {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
         <CaseModal 
         isOpen={activeCase !== null} 
         onClose={() => setActiveCase(null)} 

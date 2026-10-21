@@ -120,4 +120,13 @@ export const featureFlags = pgTable('feature_flags', {
   isEnabled: boolean('is_enabled').notNull().default(true),
 });
 
+export const transactions = pgTable('transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  amount: bigint('amount', { mode: 'number' }).notNull(),
+  type: text('type').notNull(),
+  description: text('description').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
