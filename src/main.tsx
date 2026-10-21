@@ -1,13 +1,11 @@
-// src/main.tsx (или src/App.tsx)
+// src/main.tsx
 import './styles/loading.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './syltes/races.css';   
-import './syltes/case.css';   
-
-// Подключаем стили по порядку
-import './styles/variables.css'; // Сначала переменные!
+import './styles/races.css';   
+import './styles/case.css';   
+import './styles/variables.css';
 import './styles/base.css';
 import './styles/animations.css';
 import './styles/race.css';
