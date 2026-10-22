@@ -2,12 +2,6 @@
 
 export type UpgradeType = 'engine' | 'tires' | 'suspension' | 'ecu' | 'paint';
 
-export const CAR_POSITION = {
-  x: '50%',      // Центр по горизонтали
-  y: '40%',      // Чуть ниже середины (уменьшай, чтобы поднять машину)
-  width: '68%',  // Размер машины
-};
-
 export const PAINT_COLORS = [
   { id: 'original', label: 'Заводской',  hex: 'transparent' },
   { id: 'red',      label: 'Красный',    hex: '#ff0000' },

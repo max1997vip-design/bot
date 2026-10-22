@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
-import { UpgradeType, PAINT_COLORS, CAR_POSITION } from '../config/garage';
+import { UpgradeType, PAINT_COLORS } from '../config/garage'; // CAR_POSITION убран
 import { ITEMS, RARITY_COLORS, SELL_PRICES } from '../config/items';
 import { CARS } from '../config/cars';
 import '../styles/garage.css';
@@ -176,7 +176,8 @@ export const GarageScreen: React.FC = () => {
       {/* Сама машина (клик открывает двигатель) */}
       <div
         className="garage-car-container"
-        style={{ top: CAR_POSITION.y, left: CAR_POSITION.x, width: CAR_POSITION.width, position: 'absolute', zIndex: 10 }}
+        // Задаем координаты напрямую, как у шин
+        style={{ top: '25%', left: '10%', width: '80%', position: 'absolute', zIndex: 10 }}
         onClick={() => handleUpgradeClick('engine')}
       >
         <div className="car-tooltip">Двигатель</div>
@@ -204,56 +205,27 @@ export const GarageScreen: React.FC = () => {
       
       {/* 1. Шины (вырезанная картинка) */}
       <motion.img
-        src="/images/tires.png" // Положи картинку в public/images/tires.png
+        src="/images/tires.png" 
         alt="Шины"
         className="interactive-object"
-        style={{ top: '35%', left: '0%', width: '20%' }} // ПОДГОНИ КООРДИНАТЫ ПОД СВОЙ ФОН
+        style={{ top: '35%', left: '0%', width: '20%' }} 
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.88, rotate: -3 }}
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('tires')}
       />
 
-      {/* 2. Стойка с краской (когда вырежешь, раскомментируй и подгони стили) */}
-      {/* 
+      {/* 3. Стойка с подвеской */}
       <motion.img
-        src="/images/paint.png"
-        alt="Покраска"
-        className="interactive-object"
-        style={{ top: '20%', left: '65%', width: '15%' }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.9, rotate: 2 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-        onClick={() => handleUpgradeClick('paint')}
-      />
-      */}
-
-            {/* 3. Стойка с подвеской */}
-      <motion.img
-        src="/images/suspension.png" // Убедись, что файл лежит в public/images/
+        src="/images/suspension.png" 
         alt="Подвеска"
         className="interactive-object"
-        // Координаты (top, left, width) — ОБЯЗАТЕЛЬНО ПОДГОНИ ПОД СВОЙ ФОН!
         style={{ top: '55%', left: '75%', width: '15%' }} 
         whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.9, rotate: -2 }} // При нажатии сжимается и чуть поворачивается
+        whileTap={{ scale: 0.9, rotate: -2 }} 
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('suspension')}
       />
-
-      {/* 4. Компьютер (когда вырежешь, раскомментируй и подгони стили) */}
-      {/* 
-      <motion.img
-        src="/images/computer.png"
-        alt="ECU"
-        className="interactive-object"
-        style={{ top: '60%', left: '5%', width: '10%' }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-        onClick={() => handleUpgradeClick('ecu')}
-      />
-      */}
 
       {/* ========================================= */}
 
