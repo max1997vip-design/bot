@@ -21,7 +21,7 @@
 /* --- Машина --- */
 .garage-car-container {
   position: absolute;
-  transform: translate(-50%, -50%); 
+  /* Убрана центровка translate(-50%, -50%) */
   cursor: pointer;
   z-index: 5;
   transition: transform 0.3s ease;
@@ -31,7 +31,8 @@
 }
 
 .garage-car-container:hover {
-  transform: translate(-50%, -50%) scale(1.02);
+  /* Убрана центровка, оставлен только эффект увеличения */
+  transform: scale(1.02);
 }
 
 .car-shadow {
@@ -55,9 +56,8 @@
   z-index: 2;
 }
 
-/* --- Тултипы --- */
-.car-tooltip,
-.hotspot-tooltip {
+/* --- Тултип для машины --- */
+.car-tooltip {
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -80,10 +80,12 @@
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0,229,255,0.1);
   z-index: 20;
+  bottom: auto;
+  top: -15%;
+  transform: translateX(-50%) translateY(-10px);
 }
 
-.car-tooltip::after,
-.hotspot-tooltip::after {
+.car-tooltip::after {
   content: '';
   position: absolute;
   top: 100%; left: 50%;
@@ -91,14 +93,6 @@
   border-width: 5px;
   border-style: solid;
   border-color: rgba(15, 20, 25, 0.9) transparent transparent transparent;
-}
-
-.car-tooltip {
-  bottom: auto;
-  top: -15%;
-  transform: translateX(-50%) translateY(-10px);
-}
-.car-tooltip::after {
   top: auto; bottom: 100%;
   border-color: transparent transparent rgba(15, 20, 25, 0.9) transparent;
 }
@@ -106,53 +100,6 @@
 .garage-car-container:hover .car-tooltip {
   opacity: 1; visibility: visible;
   transform: translateX(-50%) translateY(0);
-}
-
-.garage-hotspot:hover .hotspot-tooltip,
-.garage-hotspot:active .hotspot-tooltip {
-  opacity: 1; visibility: visible;
-  transform: translateX(-50%) translateY(-5px);
-}
-
-/* --- Точки на фоне --- */
-.garage-hotspot {
-  position: absolute;
-  width: 44px; height: 44px;
-  transform: translate(-50%, -50%);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-}
-
-.hotspot-dot {
-  width: 12px; height: 12px;
-  background-color: #00e5ff;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.hotspot-dot::after {
-  content: '';
-  position: absolute;
-  top: -4px; left: -4px; right: -4px; bottom: -4px;
-  border: 2px solid #00e5ff;
-  border-radius: 50%;
-  animation: pulse-ring 1.5s infinite ease-out;
-  opacity: 0;
-}
-
-@keyframes pulse-ring {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-
-.garage-hotspot:hover .hotspot-dot,
-.garage-hotspot:active .hotspot-dot {
-  background-color: #ffffff;
-  box-shadow: 0 0 15px #ffffff, 0 0 25px #00e5ff;
-  transform: scale(1.4);
 }
 
 /* --- Модальное окно --- */
@@ -311,29 +258,6 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-/* src/styles/garage.css */
-
-.clickable-zone {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: 12px;
-  -webkit-tap-highlight-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-
-/* При наведении (на ПК) или нажатии (на телефоне) */
-.clickable-zone:hover,
-.clickable-zone:active {
-  background: rgba(255, 255, 255, 0.1); /* Легкая подсветка */
-  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 /* --- Интерактивные вырезанные объекты --- */
