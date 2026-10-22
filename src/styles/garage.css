@@ -312,3 +312,44 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+
+/* src/styles/garage.css */
+
+.clickable-zone {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 12px;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+
+/* При наведении (на ПК) или нажатии (на телефоне) */
+.clickable-zone:hover,
+.clickable-zone:active {
+  background: rgba(255, 255, 255, 0.1); /* Легкая подсветка */
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* --- Интерактивные вырезанные объекты --- */
+.interactive-object {
+  position: absolute;
+  z-index: 15; /* Выше фона, ниже модальных окон */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Легкая тень, чтобы предмет выделялся на фоне */
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6));
+  /* Плавный переход для эффектов наведения */
+  transition: filter 0.3s ease, transform 0.1s ease;
+}
+
+/* Эффект при наведении (на ПК) */
+.interactive-object:hover {
+  /* Неоновое свечение и повышение яркости */
+  filter: drop-shadow(0px 0px 15px rgba(0, 229, 255, 0.7)) brightness(1.15);
+}
