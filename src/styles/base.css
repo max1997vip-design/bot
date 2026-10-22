@@ -3,8 +3,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
 }
 
 html, body, #root {
@@ -16,18 +14,18 @@ html, body, #root {
   background-color: #000;
 }
 
-/* --- ГЛОБАЛЬНАЯ ОБЕРТКА --- */
+/* --- ОБЕРТКА (ЦЕНТРИРУЕТ ИГРУ НА ПК) --- */
 .game-wrapper {
-  position: fixed;
+  position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
-  justify-content: center; /* Центрирует контейнер по горизонтали на ПК */
-  align-items: center;     /* Центрирует контейнер по вертикали */
-  background-color: #000;  /* Черный фон для ПК */
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
   z-index: 10;
 }
 
-/* --- ОСНОВНОЙ КОНТЕЙНЕР ИГРЫ --- */
+/* --- КОНТЕЙНЕР ИГРЫ --- */
 .app-container {
   position: relative;
   width: 100vw;
@@ -38,32 +36,34 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* --- ФИКС ДЛЯ ПК (Telegram Desktop / Браузер) --- */
+/* На ПК делаем как телефон по центру */
 @media (min-width: 500px) {
   .app-container {
-    width: 420px; /* Ширина как у телефона */
+    width: 420px;
     max-width: 100vw;
     height: 100vh;
-    border-left: 1px solid rgba(255,255,255,0.05);
-    border-right: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
   }
 }
 
-/* --- КОНТЕНТ --- */
+/* --- КОНТЕНТ (ЖЕСТКАЯ МАТЕМАТИКА) --- */
 .main-content {
-  flex: 1;
-  position: relative; /* Якорь для absolute-экранов */
-  overflow: hidden; 
+  position: absolute;
+  top: 0; left: 0; width: 100%;
+  /* Высота экрана МИНУС высота нижнего меню */
+  height: calc(100% - var(--nav-height, 60px) - var(--safe-bottom, 0px));
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* --- НИЖНЯЯ НАВИГАЦИЯ --- */
 .bottom-nav {
-  width: 100%;
-  height: calc(var(--nav-height) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
+  position: absolute;
+  bottom: 0; left: 0; width: 100%;
+  height: calc(var(--nav-height, 60px) + var(--safe-bottom, 0px));
+  padding-bottom: var(--safe-bottom, 0px);
   background: #111111;
-  flex-shrink: 0;
   display: flex;
   justify-content: space-around;
   align-items: center;
