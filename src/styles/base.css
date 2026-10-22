@@ -18,25 +18,28 @@ html, body, #root {
 
 /* --- ОБЕРТКА --- */
 .game-wrapper {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: flex;
-  justify-content: center; /* Центрируем на ПК */
+  position: absolute; /* Absolute лучше Fixed для WebView2 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-color: #000;
+  display: flex;
+  justify-content: center; /* Центрируем игру в окне */
+  align-items: center;
   z-index: 10;
 }
 
-/* --- КОНТЕЙНЕР ИГРЫ (ИСПРАВЛЕНО) --- */
+/* --- КОНТЕЙНЕР ИГРЫ --- */
 .app-container {
   position: relative;
-  width: 100%; /* ИСПОЛЬЗУЕМ 100%, А НЕ 100VW */
+  width: 100%;
   height: 100%;
-  max-width: 480px; /* Ограничиваем ширину на ПК */
+  max-width: 450px; /* Ограничиваем ширину, чтобы на ПК было как на телефоне */
   background-color: #111;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin: 0 auto; /* Центрируем блок на ПК */
 }
 
 /* --- КОНТЕНТ --- */
@@ -46,14 +49,14 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* Умный отступ сверху (для мобилки) */
+/* --- ОТСТУП СВЕРХУ ТОЛЬКО ДЛЯ ТЕЛЕФОНОВ --- */
 @media (max-width: 500px) {
   .main-content {
-    padding-top: max(var(--tg-safe-area-inset-top, 0px), 45px);
+    padding-top: 50px; /* Сдвигаем контент вниз, чтобы не лез под кнопку Закрыть */
   }
 }
 
-/* Принудительно растягиваем экраны (Гараж, Гонки и т.д.) */
+/* Принудительно растягиваем все экраны внутри */
 .main-content > div {
   position: absolute !important;
   top: 0; left: 0; right: 0; bottom: 0;

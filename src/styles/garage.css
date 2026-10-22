@@ -1,8 +1,11 @@
 /* src/styles/garage.css */
 
 .garage-screen {
-  position: absolute; /* СТРОГО ABSOLUTE */
-  top: 0; left: 0; right: 0; bottom: 0; /* Растягиваем по всем краям */
+  position: absolute; /* Должно быть absolute! */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
   background-color: #000;
 }
