@@ -78,10 +78,13 @@ export async function openCaseHandler(req: any, res: any) {
       });
     }
 
+        // 1. Логируем списание за открытие кейса
+    await logTransaction(user.id, -selectedCase.price, 'case_open', `Открытие ${caseType} кейса`);
+
+    // 2. Если выпали монеты, логируем их начисление отдельно
     if (isCoins) {
-      await logTransaction(user.id, newBalance - user.balance, 'case_reward', `Награда из ${caseType} кейса: ${wonItemId}`);
-    }else {
-      await logTransaction(user.id, -selectedCase.price, 'case_open', `Открытие ${caseType} кейса (выпал предмет)`);
+      const amount = parseInt(wonItemId.split('_')[1]);
+      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе: ${amount.toLocaleString('ru-RU')} монет`);
     }
 
 

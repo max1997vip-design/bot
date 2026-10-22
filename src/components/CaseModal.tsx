@@ -35,7 +35,7 @@ export function CaseModal({ isOpen, onClose, caseType }: CaseModalProps) {
 
   // 👇 НАСТРОЙКА РЕКЛАМЫ
   const showAd = useAdsgram({
-    blockId: '55296', 
+    blockId: '55414', 
     onReward: async () => {
       setIsWatchingAd(false);
       WebApp.showAlert("Реклама просмотрена! 5000 монет зачислено.");
