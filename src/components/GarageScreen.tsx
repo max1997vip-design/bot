@@ -203,28 +203,37 @@ export const GarageScreen: React.FC = () => {
       {/* ИНТЕРАКТИВНЫЕ ОБЪЕКТЫ С АНИМАЦИЕЙ */}
       {/* ========================================= */}
       
-            {/* 1. Шины */}
+                  {/* 1. Шины (вырезанная картинка) */}
       <motion.img
         src="/images/tires.png" 
         alt="Шины"
         className="interactive-object"
-        style={{ top: '35%', left: '0%', width: '20%' }} 
-        whileHover={{ scale: 1.02 }}
+        style={{ top: '39%', left: '0%', width: '18%' }} 
+        // ДОБАВЛЯЕМ АНИМАЦИЮ ДЫХАНИЯ:
+        animate={{ scale: [1, 1.03, 1] }}
+        transition={{ 
+          repeat: Infinity, 
+          duration: 2, 
+          ease: "easeInOut" 
+        }}
         whileTap={{ scale: 1.15 }} 
-        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('tires')}
       />
 
-            {/* 3. Стойка с подвеской */}
+      {/* 3. Стойка с подвеской */}
       <motion.img
         src="/images/suspension.png" 
         alt="Подвеска"
         className="interactive-object"
-        style={{ top: '55%', left: '75%', width: '15%' }} 
-        whileHover={{ scale: 1.02 }}
-        // УВЕЛИЧЕНИЕ ПРИ НАЖАТИИ
+        style={{ top: '31%', left: '76%', width: '24%' }} 
+        // ДОБАВЛЯЕМ АНИМАЦИЮ ДЫХАНИЯ:
+        animate={{ scale: [1, 1.03, 1] }}
+        transition={{ 
+          repeat: Infinity, 
+          duration: 2, 
+          ease: "easeInOut" 
+        }}
         whileTap={{ scale: 1.15 }} 
-        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('suspension')}
       />
 
