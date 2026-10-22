@@ -1,7 +1,7 @@
 /* src/styles/garage.css */
 
 .garage-screen {
-  position: absolute; /* Растягиваем на весь main-content */
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -10,12 +10,11 @@
   background-color: #000;
 }
 
-/* ВОЗВРАЩАЕМ ФОН ГАРАЖА! */
 .garage-bg {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   background-image: url('/images/bg-garage.jpg');
-  background-size: cover;
+  background-size: cover; /* Возвращаем cover, чтобы не было искажений */
   background-position: center;
   background-repeat: no-repeat;
   z-index: 1;
@@ -105,7 +104,7 @@
 
 /* --- Модальное окно --- */
 .garage-modal-overlay {
-  position: absolute; /* Меняем fixed на absolute, чтобы окно не вылезало на весь ПК экран */
+  position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
@@ -119,7 +118,7 @@
   border-top-right-radius: 24px;
   padding: 20px;
   padding-bottom: 90px;
-  min-height: 45%; /* Меняем vh на % для надежности */
+  min-height: 45%;
   max-height: 90%;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex; flex-direction: column;
@@ -223,7 +222,7 @@
   display: flex; 
   flex-direction: column; 
   gap: 10px; 
-  max-height: 50%; /* Заменили vh на % */
+  max-height: 50%; 
   overflow-y: auto; 
   padding-bottom: 20px;
 }
@@ -268,17 +267,11 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   
-  /* Базовая черная тень + неоновое свечение */
   filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 8px rgba(0, 229, 255, 0.6));
-  
-  /* Запускаем анимацию пульсации свечения */
   animation: neon-pulse 2s infinite alternate ease-in-out;
-  
-  /* Плавный переход для эффектов наведения */
   transition: transform 0.2s ease;
 }
 
-/* Анимация пульсации */
 @keyframes neon-pulse {
   0% { 
     filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 5px rgba(0, 229, 255, 0.4)); 
@@ -288,8 +281,7 @@
   }
 }
 
-/* Эффект при наведении (на ПК) - свечение становится ярче */
 .interactive-object:hover {
   filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 25px rgba(0, 229, 255, 1)) brightness(1.15);
-  animation: none; /* Отключаем пульсацию при наведении, чтобы зафиксировать яркость */
+  animation: none;
 }
