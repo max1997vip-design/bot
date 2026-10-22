@@ -23,7 +23,20 @@ export default function App() {
 
   useEffect(() => {
     WebApp.ready();
-    WebApp.expand();
+    WebApp.expand(); // Разворачивает на максимум доступной высоты
+
+    // ПРОСИМ TELEGRAM ОТКРЫТЬСЯ НА ВЕСЬ ЭКРАН
+    try {
+      if (WebApp.requestFullscreen) {
+        WebApp.requestFullscreen();
+      }
+      // Отключаем свайп вниз, чтобы случайно не закрыть игру на телефоне
+      if (WebApp.disableVerticalSwipes) {
+        WebApp.disableVerticalSwipes();
+      }
+    } catch (e) {
+      console.warn("Fullscreen not supported", e);
+    }
 
     const loadUser = async () => {
       const startTime = Date.now();
@@ -81,7 +94,6 @@ export default function App() {
 
       {/* Экран ошибки (если сеть упала) */}
       {isReady && (error || !user) && (
-        // Используем 100vh вместо 100dvh для совместимости с ПК
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
           <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
           <p style={{ color: '#aaa', marginBottom: 20 }}>{error || 'Пользователь не найден'}</p>
