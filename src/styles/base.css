@@ -41,19 +41,23 @@ body::before {
 /* --- ОСНОВНОЙ КОНТЕЙНЕР ИГРЫ --- */
 .app-container {
   position: relative;
-  
-  /* МАГИЯ ЗДЕСЬ: Мы жестко задаем пропорции 9:16 (как у телефона) */
-  /* Берем либо всю ширину экрана, либо высоту, умноженную на пропорции */
-  width: min(100vw, calc(100dvh * 9 / 16));
-  height: min(100dvh, calc(100vw * 16 / 9));
-  
-  /* Убираем старые width: 100% и height: 100%, которые ломали пропорции */
-  
+  /* На мобилках растягиваем на весь экран */
+  width: 100vw;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background-color: #000;
-  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  margin: 0 auto;
+}
+
+/* А на ПК (где экран шире) фиксируем пропорции 9:16 */
+@media (min-width: 500px) {
+  .app-container {
+    width: min(100vw, calc(100dvh * 9 / 16));
+    height: min(100dvh, calc(100vw * 16 / 9));
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  }
 }
 
 .main-content {
