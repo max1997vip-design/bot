@@ -1,8 +1,284 @@
+/* src/styles/garage.css */
+
 .garage-screen {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.garage-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url('/images/bg-garage.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+/* --- Машина --- */
+.garage-car-container {
+  position: absolute;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.garage-car-container:hover {
+  transform: scale(1.02);
+}
+
+.car-shadow {
+  position: absolute;
+  bottom: -2%;
+  width: 90%;
+  height: 25px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 70%);
+  border-radius: 50%;
+  z-index: 1;
+  filter: blur(4px);
+}
+
+.garage-car-img {
   width: 100%;
-  height: 100%;
-  background-color: #00FF00; /* ВРЕМЕННЫЙ ЗЕЛЕНЫЙ ФОН */
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.6));
+  transition: filter 0.4s ease;
+  position: relative;
+  z-index: 2;
+}
+
+/* --- Тултип для машины --- */
+.car-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(15, 20, 25, 0.9);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  border-radius: 12px;
+  padding: 6px 14px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0,229,255,0.1);
+  z-index: 20;
+  bottom: auto;
+  top: -15%;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.car-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(15, 20, 25, 0.9) transparent transparent transparent;
+  top: auto; bottom: 100%;
+  border-color: transparent transparent rgba(15, 20, 25, 0.9) transparent;
+}
+
+.garage-car-container:hover .car-tooltip {
+  opacity: 1; visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- Модальное окно --- */
+.garage-modal-overlay {
+  position: absolute; /* Держим absolute, чтобы окно не вылезало на весь ПК */
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+
+.garage-modal-content {
+  background: #15171a;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px;
+  padding-bottom: 90px;
+  min-height: 45%;
+  max-height: 90%;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex; flex-direction: column;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+}
+
+.garage-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+
+.garage-modal-header h2 {
+  margin: 0; color: #fff; font-size: 22px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: none; color: #aaa;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: 0.2s;
+}
+.close-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+.garage-modal-body { 
+  color: #aaa; 
+  font-size: 14px; 
+  flex: 1; 
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Кастомный скроллбар для модалки */
+.garage-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.garage-modal-body::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+  border-radius: 3px;
+}
+.garage-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
+
+/* --- Покраска машины в гараже --- */
+.car-image-wrapper {
+  position: relative;
+  width: 100%;
+  isolation: isolate;
+}
+
+.car-color-overlay,
+.race-color-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  mix-blend-mode: color;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.85;
+  -webkit-mask-image: url('/cars/audi-tt-front.png');
+  mask-image: url('/cars/audi-tt-front.png');
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* --- Покраска (Палитра) --- */
+.paint-desc { margin: 0 0 15px 0; font-size: 14px; }
+.color-grid { 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 12px; 
+}
+.color-btn {
+  background: rgba(255, 255, 255, 0.03); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px; padding: 12px 5px; color: #ccc;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s ease;
+}
+.color-btn.active {
+  border-color: #00e5ff; background: rgba(0, 229, 255, 0.1);
+  color: #fff; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); transform: translateY(-2px);
+}
+.color-swatch {
+  width: 32px; height: 32px; border-radius: 50%;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- ИНВЕНТАРЬ (Предметы) --- */
+.inventory-list { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+  max-height: 50%; 
+  overflow-y: auto; 
+  padding-bottom: 20px;
+}
+
+.inventory-item {
+  background: rgba(255, 255, 255, 0.05); 
+  border: 1px solid; 
+  border-radius: 12px; 
+  padding: 14px; 
+  cursor: pointer; 
+  transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
+}
+
+.inventory-item:active { 
+  transform: scale(0.97); 
+}
+
+.inventory-item.equipped { 
+  background: rgba(0, 255, 65, 0.08); 
+  border-width: 2px; 
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.15);
+}
+
+.item-name { 
+  font-size: 15px; 
+  font-weight: 800; 
+  margin-bottom: 6px; 
+}
+
+.item-stats { 
+  font-size: 12px; 
+  color: #ccc; 
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* --- Интерактивные вырезанные объекты --- */
+.interactive-object {
+  position: absolute;
+  z-index: 15; 
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 8px rgba(0, 229, 255, 0.6));
+  animation: neon-pulse 2s infinite alternate ease-in-out;
+  transition: transform 0.2s ease;
+}
+
+@keyframes neon-pulse {
+  0% { 
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 5px rgba(0, 229, 255, 0.4)); 
+  }
+  100% { 
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 15px rgba(0, 229, 255, 0.9)); 
+  }
+}
+
+.interactive-object:hover {
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 25px rgba(0, 229, 255, 1)) brightness(1.15);
+  animation: none;
 }
