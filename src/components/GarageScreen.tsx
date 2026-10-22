@@ -207,7 +207,7 @@ export const GarageScreen: React.FC = () => {
         src="/images/tires.png" // Положи картинку в public/images/tires.png
         alt="Шины"
         className="interactive-object"
-        style={{ top: '48%', left: '12%', width: '15%' }} // ПОДГОНИ КООРДИНАТЫ ПОД СВОЙ ФОН
+        style={{ top: '35%', left: '0%', width: '20%' }} // ПОДГОНИ КООРДИНАТЫ ПОД СВОЙ ФОН
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.88, rotate: -3 }}
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
