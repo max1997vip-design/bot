@@ -8,8 +8,8 @@
 }
 
 html, body, #root {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden; 
@@ -18,15 +18,11 @@ html, body, #root {
 
 /* --- ОБЕРТКА (ЦЕНТРИРУЕТ НА ПК) --- */
 .game-wrapper {
-  position: fixed; /* Прибиваем к экрану */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: #000; /* Черные поля по бокам на ПК */
+  background-color: #000;
   z-index: 10;
 }
 
@@ -34,9 +30,7 @@ html, body, #root {
 .app-container {
   position: relative;
   width: 100%;
-  height: 100%; /* 100% от fixed-родителя, это работает всегда */
-  display: flex;
-  flex-direction: column;
+  height: 100%;
   background-color: #111;
   overflow: hidden;
 }
@@ -46,23 +40,35 @@ html, body, #root {
   .app-container {
     width: 420px;
     max-width: 100vw;
-    height: 100%;
     border-left: 1px solid #333;
     border-right: 1px solid #333;
     box-shadow: 0 0 50px rgba(0,0,0,0.8);
   }
 }
 
-/* --- КОНТЕНТ (ГЛАВНАЯ ЗОНА) --- */
+/* --- КОНТЕНТ (ЖЕСТКОЕ ПОЗИЦИОНИРОВАНИЕ) --- */
 .main-content {
-  flex: 1; /* Занимает всё место над меню */
-  position: relative; /* Якорь для absolute экранов */
-  overflow: hidden; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* Высота экрана МИНУС высота меню */
+  height: calc(100% - var(--nav-height, 60px) - var(--safe-bottom, 0px));
+  overflow: hidden;
+}
+
+/* МАГИЯ: Все экраны внутри main-content растягиваются принудительно */
+.main-content > div {
+  position: absolute !important;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
 }
 
 /* --- НИЖНЯЯ НАВИГАЦИЯ --- */
 .bottom-nav {
-  flex-shrink: 0; /* ЗАПРЕЩАЕМ меню сжиматься */
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: calc(var(--nav-height, 60px) + var(--safe-bottom, 0px));
   padding-bottom: var(--safe-bottom, 0px);
@@ -70,6 +76,37 @@ html, body, #root {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 100;
+}
+
+/* --- КНОПКИ МЕНЮ (ФИКС БЕЛЫХ ОБЛАЧКОВ) --- */
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #888);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 70px;
+  height: 100%;
+  position: relative;
+}
+
+.nav-btn.active {
+  color: var(--accent, #00e5ff);
+}
+
+.nav-icon {
+  font-size: 24px;
+  /* Принудительно включаем шрифт эмодзи, чтобы убрать белые квадраты */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
