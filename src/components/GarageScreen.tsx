@@ -177,7 +177,7 @@ export const GarageScreen: React.FC = () => {
       <div
         className="garage-car-container"
         // Задаем координаты напрямую, как у шин
-        style={{ top: '25%', left: '10%', width: '80%', position: 'absolute', zIndex: 10 }}
+        style={{ top: '38%', left: '25%', width: '52%', position: 'absolute', zIndex: 10 }}
         onClick={() => handleUpgradeClick('engine')}
       >
         <div className="car-tooltip">Двигатель</div>
@@ -203,26 +203,27 @@ export const GarageScreen: React.FC = () => {
       {/* ИНТЕРАКТИВНЫЕ ОБЪЕКТЫ С АНИМАЦИЕЙ */}
       {/* ========================================= */}
       
-      {/* 1. Шины (вырезанная картинка) */}
+            {/* 1. Шины */}
       <motion.img
         src="/images/tires.png" 
         alt="Шины"
         className="interactive-object"
         style={{ top: '35%', left: '0%', width: '20%' }} 
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.88, rotate: -3 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 1.15 }} 
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('tires')}
       />
 
-      {/* 3. Стойка с подвеской */}
+            {/* 3. Стойка с подвеской */}
       <motion.img
         src="/images/suspension.png" 
         alt="Подвеска"
         className="interactive-object"
         style={{ top: '55%', left: '75%', width: '15%' }} 
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.9, rotate: -2 }} 
+        whileHover={{ scale: 1.02 }}
+        // УВЕЛИЧЕНИЕ ПРИ НАЖАТИИ
+        whileTap={{ scale: 1.15 }} 
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('suspension')}
       />
