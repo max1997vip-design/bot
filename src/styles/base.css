@@ -22,27 +22,31 @@ html, body, #root {
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   justify-content: center;
-  align-items: center; /* Центрируем по вертикали */
+  align-items: center; /* Центрируем игру по вертикали */
   background-color: #000;
   z-index: 10;
 }
 
-/* --- КОНТЕЙНЕР ИГРЫ --- */
+/* --- КОНТЕЙНЕР ИГРЫ (ДЛЯ ТЕЛЕФОНОВ) --- */
 .app-container {
   position: relative;
   width: 100%;
   height: 100%;
-  max-width: 480px; /* Ограничиваем ширину на ПК */
-  max-height: 850px; /* ОГРАНИЧИВАЕМ ВЫСОТУ, чтобы на ПК не растягивалось */
   background-color: #111;
   overflow: hidden;
-  box-shadow: 0 0 50px rgba(0,0,0,0.8); /* Тень для красоты на ПК */
 }
 
-/* На телефонах убираем ограничение высоты */
-@media (max-width: 500px) {
+/* --- СТРОГИЙ ФИКС ДЛЯ ПК (ДЕЛАЕМ РАМКУ ТЕЛЕФОНА) --- */
+@media (min-width: 500px) {
   .app-container {
-    max-height: 100%;
+    /* Размеры виртуального телефона */
+    width: 420px;
+    height: 800px;
+    max-height: 95vh; /* Чтобы не вылезало за пределы окна Telegram */
+    aspect-ratio: 9 / 16; /* Пропорции как у телефона */
+    border-radius: 20px; /* Закругляем углы для красоты */
+    border: 4px solid #222;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
   }
 }
 
@@ -52,7 +56,7 @@ html, body, #root {
   top: 0; left: 0; right: 0;
   bottom: 60px; /* Ровно 60px под меню */
   overflow: hidden;
-  /* Отступ сверху для мобилок */
+  /* Отступ сверху для мобилок (чтобы не лезло под шапку ТГ) */
   padding-top: 50px; 
 }
 
