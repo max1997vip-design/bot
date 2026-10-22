@@ -264,17 +264,32 @@
 /* --- Интерактивные вырезанные объекты --- */
 .interactive-object {
   position: absolute;
-  z-index: 15; /* Выше фона, ниже модальных окон */
+  z-index: 15; 
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* Легкая тень, чтобы предмет выделялся на фоне */
-  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6));
+  
+  /* Базовая черная тень + неоновое свечение */
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 8px rgba(0, 229, 255, 0.6));
+  
+  /* Запускаем анимацию пульсации свечения */
+  animation: neon-pulse 2s infinite alternate ease-in-out;
+  
   /* Плавный переход для эффектов наведения */
-  transition: filter 0.3s ease, transform 0.1s ease;
+  transition: transform 0.2s ease;
 }
 
-/* Эффект при наведении (на ПК) */
+/* Анимация пульсации */
+@keyframes neon-pulse {
+  0% { 
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 5px rgba(0, 229, 255, 0.4)); 
+  }
+  100% { 
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 15px rgba(0, 229, 255, 0.9)); 
+  }
+}
+
+/* Эффект при наведении (на ПК) - свечение становится ярче */
 .interactive-object:hover {
-  /* Неоновое свечение и повышение яркости */
-  filter: drop-shadow(0px 0px 15px rgba(0, 229, 255, 0.7)) brightness(1.15);
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.6)) drop-shadow(0px 0px 25px rgba(0, 229, 255, 1)) brightness(1.15);
+  animation: none; /* Отключаем пульсацию при наведении, чтобы зафиксировать яркость */
 }
