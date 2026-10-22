@@ -237,7 +237,21 @@ export const GarageScreen: React.FC = () => {
         onClick={() => handleUpgradeClick('suspension')}
       />
 
-      {/* ========================================= */}
+                  {/* 4. Компьютер (ECU) */}
+      <motion.img
+        src="/images/computer.png" 
+        alt="Прошивка (ECU)"
+        className="interactive-object"
+        // ВРЕМЕННО: Красный фон и подняли выше
+        style={{ top: '45%', left: '10%', width: '15%', backgroundColor: 'rgba(255, 0, 0, 0.5)', zIndex: 999 }} 
+        animate={{ scale: [1, 1.03, 1] }}
+        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        whileTap={{ scale: 1.15 }} 
+        onClick={() => {
+            console.log("НОУТБУК КЛИКНУТ!");
+            handleUpgradeClick('ecu');
+        }}
+      />
 
       {/* Модальное окно улучшений */}
       <AnimatePresence>
