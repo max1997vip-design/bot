@@ -21,25 +21,6 @@ export default function App() {
   const syncTaps = useGameStore((state) => state.syncTaps);
   const user = useGameStore((state) => state.user);
 
-  // === ФИКС ВЫСОТЫ ДЛЯ TELEGRAM DESKTOP (WEBVIEW2) ===
-  useEffect(() => {
-    const setAppHeight = () => {
-      // Получаем надежную высоту от Telegram
-      const height = WebApp.viewportStableHeight || window.innerHeight;
-      document.documentElement.style.setProperty('--app-height', `${height}px`);
-    };
-
-    setAppHeight();
-    window.addEventListener('resize', setAppHeight);
-    WebApp.onEvent('viewportChanged', setAppHeight);
-
-    return () => {
-      window.removeEventListener('resize', setAppHeight);
-      WebApp.offEvent('viewportChanged', setAppHeight);
-    };
-  }, []);
-  // ===================================================
-
   useEffect(() => {
     WebApp.ready();
     WebApp.expand();
@@ -74,6 +55,7 @@ export default function App() {
         console.error('Ошибка sync:', e);
         setError('Ошибка сети. Проверьте интернет.');
       } finally {
+        // Гарантируем, что экран загрузки провисит минимум 2.5 секунды
         const elapsed = Date.now() - startTime;
         const minTime = 2500; 
         if (elapsed < minTime) {
@@ -99,8 +81,8 @@ export default function App() {
 
       {/* Экран ошибки (если сеть упала) */}
       {isReady && (error || !user) && (
-        // ЗАМЕНИЛИ 100dvh НА ПЕРЕМЕННУЮ
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'var(--app-height, 100vh)', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
+        // Используем 100vh вместо 100dvh для совместимости с ПК
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
           <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
           <p style={{ color: '#aaa', marginBottom: 20 }}>{error || 'Пользователь не найден'}</p>
           <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#00FF41', color: 'black', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer' }}>
