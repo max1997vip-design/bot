@@ -16,17 +16,14 @@ html, body, #root {
   background-color: #000;
 }
 
-/* --- ГЛОБАЛЬНАЯ ОБЕРТКА (ПУЛЕНЕПРОБИВАЕМАЯ) --- */
+/* --- ГЛОБАЛЬНАЯ ОБЕРТКА --- */
 .game-wrapper {
-  position: fixed; /* Игнорирует баги WebView2 с высотой */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #111111; /* Цвет полос по бокам на ПК */
+  background-color: #111111; /* Цвет полос на ПК */
   z-index: 10;
 }
 
@@ -34,7 +31,7 @@ html, body, #root {
 .app-container {
   position: relative;
   width: 100%;
-  height: 100%; /* Теперь 100% работает идеально, так как родитель fixed */
+  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: #000;
@@ -53,19 +50,17 @@ html, body, #root {
   }
 }
 
-/* --- КОНТЕНТ --- */
+/* --- КОНТЕНТ (ЭКРАНЫ) --- */
 .main-content {
   flex: 1;
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* padding-bottom убираем, меню теперь занимает свое место */
+  position: relative; /* ВАЖНО: якорь для экранов */
+  overflow: hidden;   /* Скрываем всё, что вылезает за пределы экрана */
 }
 
 /* --- НИЖНЯЯ НАВИГАЦИЯ --- */
 .bottom-nav {
   position: relative; 
-  flex-shrink: 0; /* Запрещаем меню сжиматься */
+  flex-shrink: 0; /* Меню никогда не сжимается */
   width: 100%;
   height: calc(var(--nav-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
