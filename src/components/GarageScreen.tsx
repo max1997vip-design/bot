@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
-import { GARAGE_HOTSPOTS, UpgradeType, PAINT_COLORS, CAR_POSITION } from '../config/garage';
-import { ITEMS, RARITY_COLORS, calculateStats, SELL_PRICES } from '../config/items';
+import { UpgradeType, PAINT_COLORS, CAR_POSITION } from '../config/garage';
+import { ITEMS, RARITY_COLORS, SELL_PRICES } from '../config/items';
 import { CARS } from '../config/cars';
 import '../styles/garage.css';
 
 export const GarageScreen: React.FC = () => {
   const [activeUpgrade, setActiveUpgrade] = useState<UpgradeType | null>(null);
-  const [sellingId, setSellingId] = useState<string | null>(null); // Стейт для индикации продажи
+  const [sellingId, setSellingId] = useState<string | null>(null); 
   
   const user = useGameStore((s) => s.user);
   const carColor = useGameStore((s) => s.carColor);
@@ -41,7 +41,8 @@ export const GarageScreen: React.FC = () => {
     if (activeUpgrade === 'tires') return 'Шины';
     if (activeUpgrade === 'ecu') return 'Прошивка (ECU)';
     if (activeUpgrade === 'suspension') return 'Подвеска';
-    return GARAGE_HOTSPOTS.find((s) => s.id === activeUpgrade)?.label;
+    if (activeUpgrade === 'paint') return 'Покраска';
+    return 'Улучшение';
   };
 
   const activeColorHex = PAINT_COLORS.find((c) => c.id === carColor)?.hex || 'transparent';
@@ -72,7 +73,7 @@ export const GarageScreen: React.FC = () => {
           const item = ITEMS[itemId];
           const isEquipped = equipped[item.slot] === itemId;
           const sellPrice = SELL_PRICES[item.rarity];
-          const isSelling = sellingId === itemId; // Проверяем, продается ли этот предмет сейчас
+          const isSelling = sellingId === itemId; 
           
           return (
             <div 
@@ -90,7 +91,7 @@ export const GarageScreen: React.FC = () => {
                 marginBottom: '8px',
                 borderWidth: '1px',
                 borderStyle: 'solid',
-                opacity: isSelling ? 0.5 : 1 // Визуально тускнеет при продаже
+                opacity: isSelling ? 0.5 : 1 
               }}
               onClick={() => !isEquipped && !isSelling && equipItem(item.slot, itemId)}
             >
@@ -111,7 +112,6 @@ export const GarageScreen: React.FC = () => {
                   onClick={(e) => {
                     e.stopPropagation(); 
                     if (isSelling) return;
-                    // Включаем индикатор загрузки и моментально продаем
                     setSellingId(itemId);
                     sellItem(itemId).finally(() => setSellingId(null));
                   }}
@@ -144,9 +144,10 @@ export const GarageScreen: React.FC = () => {
   };
 
   return (
-    <div className="garage-screen">
+    <div className="garage-screen" style={{ position: 'relative', overflow: 'hidden' }}>
       <div className="garage-bg" />
 
+      {/* Переключатель машин */}
       {ownedCars.length > 1 && (
         <div style={{ position: 'absolute', top: 20, left: 0, width: '100%', display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 50 }}>
           {ownedCars.map(id => (
@@ -172,9 +173,10 @@ export const GarageScreen: React.FC = () => {
         </div>
       )}
 
+      {/* Сама машина (клик открывает двигатель) */}
       <div
         className="garage-car-container"
-        style={{ top: CAR_POSITION.y, left: CAR_POSITION.x, width: CAR_POSITION.width }}
+        style={{ top: CAR_POSITION.y, left: CAR_POSITION.x, width: CAR_POSITION.width, position: 'absolute', zIndex: 10 }}
         onClick={() => handleUpgradeClick('engine')}
       >
         <div className="car-tooltip">Двигатель</div>
@@ -196,22 +198,67 @@ export const GarageScreen: React.FC = () => {
         </div>
       </div>
 
-      {GARAGE_HOTSPOTS.map((spot) => (
-        <motion.div
-          key={spot.id}
-          className="garage-hotspot"
-          style={{ top: spot.y, left: spot.x }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring' }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => handleUpgradeClick(spot.id)}
-        >
-          <div className="hotspot-dot" />
-          <div className="hotspot-tooltip">{spot.label}</div>
-        </motion.div>
-      ))}
+      {/* ========================================= */}
+      {/* ИНТЕРАКТИВНЫЕ ОБЪЕКТЫ С АНИМАЦИЕЙ */}
+      {/* ========================================= */}
+      
+      {/* 1. Шины (вырезанная картинка) */}
+      <motion.img
+        src="/images/tires.png" // Положи картинку в public/images/tires.png
+        alt="Шины"
+        className="interactive-object"
+        style={{ top: '48%', left: '12%', width: '15%' }} // ПОДГОНИ КООРДИНАТЫ ПОД СВОЙ ФОН
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.88, rotate: -3 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        onClick={() => handleUpgradeClick('tires')}
+      />
 
+      {/* 2. Стойка с краской (когда вырежешь, раскомментируй и подгони стили) */}
+      {/* 
+      <motion.img
+        src="/images/paint.png"
+        alt="Покраска"
+        className="interactive-object"
+        style={{ top: '20%', left: '65%', width: '15%' }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.9, rotate: 2 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        onClick={() => handleUpgradeClick('paint')}
+      />
+      */}
+
+      {/* 3. Стойка с подвеской (когда вырежешь, раскомментируй и подгони стили) */}
+      {/* 
+      <motion.img
+        src="/images/suspension.png"
+        alt="Подвеска"
+        className="interactive-object"
+        style={{ top: '55%', left: '75%', width: '15%' }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.9, rotate: -2 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        onClick={() => handleUpgradeClick('suspension')}
+      />
+      */}
+
+      {/* 4. Компьютер (когда вырежешь, раскомментируй и подгони стили) */}
+      {/* 
+      <motion.img
+        src="/images/computer.png"
+        alt="ECU"
+        className="interactive-object"
+        style={{ top: '60%', left: '5%', width: '10%' }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        onClick={() => handleUpgradeClick('ecu')}
+      />
+      */}
+
+      {/* ========================================= */}
+
+      {/* Модальное окно улучшений */}
       <AnimatePresence>
         {activeUpgrade && (
           <motion.div
