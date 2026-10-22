@@ -23,27 +23,24 @@ export default function App() {
 
   useEffect(() => {
     WebApp.ready();
-    WebApp.expand();
 
     const platform = WebApp.platform;
     const isMobile = platform === 'ios' || platform === 'android';
-    const isDesktop = platform === 'tdesktop' || platform === 'macos' || platform === 'web';
 
-    try {
-      // На мобилках — разворачиваем на весь экран
-      if (isMobile && (WebApp as any).requestFullscreen) {
-        (WebApp as any).requestFullscreen();
+    // ВАЖНО: На ПК мы НЕ вызываем expand() и requestFullscreen()
+    // чтобы окно оставалось компактным.
+    if (isMobile) {
+      WebApp.expand();
+      try {
+        if ((WebApp as any).requestFullscreen) {
+          (WebApp as any).requestFullscreen();
+        }
+        if ((WebApp as any).disableVerticalSwipes) {
+          (WebApp as any).disableVerticalSwipes();
+        }
+      } catch (e) {
+        console.warn("Fullscreen not supported", e);
       }
-      if (isMobile && (WebApp as any).disableVerticalSwipes) {
-        (WebApp as any).disableVerticalSwipes();
-      }
-      
-      // На ПК — принудительно просим выйти из полноэкранного режима
-      if (isDesktop && (WebApp as any).exitFullscreen) {
-        (WebApp as any).exitFullscreen();
-      }
-    } catch (e) {
-      console.warn("Fullscreen API error", e);
     }
 
     const loadUser = async () => {
@@ -94,12 +91,10 @@ export default function App() {
 
   return (
     <>
-      {/* Красивое исчезновение экрана загрузки */}
       <AnimatePresence>
        {!isReady && <LoadingScreen />}
       </AnimatePresence>
 
-      {/* Экран ошибки (если сеть упала) */}
       {isReady && (error || !user) && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
           <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
@@ -110,7 +105,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Главный экран */}
       {isReady && !error && user && (
         <div className="game-wrapper">
           <div className="app-container">
