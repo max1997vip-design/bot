@@ -21,36 +21,50 @@ html, body, #root {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
-  justify-content: center; /* Центровка для ПК */
+  justify-content: center; /* Центрируем на ПК */
   background-color: #000;
   z-index: 10;
 }
 
-/* --- КОНТЕЙНЕР ИГРЫ (ЖЕСТКИЕ ГРАНИЦЫ) --- */
+/* --- КОНТЕЙНЕР ИГРЫ (ИСПРАВЛЕНО) --- */
 .app-container {
   position: relative;
-  width: 100%;
-  max-width: 430px; /* Ограничение ширины для ПК */
-  height: 100%;     /* 100% от родителя (fixed), это работает всегда */
+  width: 100%; /* ИСПОЛЬЗУЕМ 100%, А НЕ 100VW */
+  height: 100%;
+  max-width: 480px; /* Ограничиваем ширину на ПК */
   background-color: #111;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  margin: 0 auto; /* Центрируем блок на ПК */
 }
 
 /* --- КОНТЕНТ --- */
 .main-content {
-  position: absolute;
-  top: 0; left: 0; width: 100%;
-  /* Математика: 100% высоты минус высота меню */
-  height: calc(100% - var(--nav-height, 60px) - var(--safe-bottom, 0px));
-  /* Отступ сверху для мобилок, чтобы не залезало под панель Telegram */
-  padding-top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Умный отступ сверху (для мобилки) */
+@media (max-width: 500px) {
+  .main-content {
+    padding-top: max(var(--tg-safe-area-inset-top, 0px), 45px);
+  }
+}
+
+/* Принудительно растягиваем экраны (Гараж, Гонки и т.д.) */
+.main-content > div {
+  position: absolute !important;
+  top: 0; left: 0; right: 0; bottom: 0;
   overflow: hidden;
 }
 
 /* --- НИЖНЯЯ НАВИГАЦИЯ --- */
 .bottom-nav {
-  position: absolute;
-  bottom: 0; left: 0; width: 100%;
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
   height: calc(var(--nav-height, 60px) + var(--safe-bottom, 0px));
   padding-bottom: var(--safe-bottom, 0px);
   background: #111111;
