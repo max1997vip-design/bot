@@ -1,77 +1,56 @@
-/* --- БАЗОВЫЕ НАСТРОЙКИ --- */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
 }
 
 html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden; 
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   background-color: #000;
 }
 
-/* --- ГЛОБАЛЬНАЯ ОБЕРТКА --- */
 .game-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center; /* Центрируем по горизонтали */
-  align-items: center;     /* Центрируем по вертикали */
-  background-color: #000;  /* Черный фон для ПК */
-  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  /* Центрируем контейнер через простые отступы */
+  display: block; 
 }
 
-/* --- ОСНОВНОЙ КОНТЕЙНЕР ИГРЫ --- */
 .app-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #111; /* Темный фон самой игры */
-  overflow: hidden;
+  background-color: #111;
 }
 
-/* --- ФИКС ДЛЯ ПК (Telegram Desktop / Браузер) --- */
+/* На ПК жестко фиксируем ширину и центрируем через margin */
 @media (min-width: 500px) {
   .app-container {
-    width: 100%;
-    max-width: 420px; /* Ограничиваем ширину, чтобы было как на телефоне */
-    height: 100%;
-    border-left: 1px solid rgba(255,255,255,0.05);
-    border-right: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    width: 420px;
+    height: 100vh;
+    margin: 0 auto; /* Это идеально центрирует блок по горизонтали */
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
   }
 }
 
-/* --- КОНТЕНТ --- */
 .main-content {
   flex: 1;
-  position: relative; /* Якорь для абсолютных экранов */
-  overflow-y: auto;
-  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* Убираем скролл внутри */
 }
 
-/* --- НИЖНЯЯ НАВИГАЦИЯ --- */
 .bottom-nav {
-  position: relative; 
-  flex-shrink: 0;
   width: 100%;
-  height: calc(var(--nav-height) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: #111111;
+  height: 60px; /* Жесткая высота */
+  background: #111;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  z-index: 100;
 }
