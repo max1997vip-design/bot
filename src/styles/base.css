@@ -12,9 +12,10 @@ html, body, #root {
   margin: 0;
   padding: 0;
   overflow: hidden; 
+  background-color: #000; /* Черный фон для ПК */
 }
 
-/* Фоновая сетка */
+/* --- ФОН ДЛЯ ПК (Черные полосы) --- */
 body::before {
   content: '';
   position: absolute;
@@ -27,48 +28,62 @@ body::before {
   z-index: 0;
 }
 
-/* --- ОБЩАЯ СТРУКТУРА --- */
-.app-container {
-  height: 100%;
+/* --- ОБЕРТКА ДЛЯ ФИКСАЦИИ ПРОПОРЦИЙ --- */
+.game-wrapper {
+  width: 100vw;
+  height: 100dvh;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
 }
 
+/* --- ОСНОВНОЙ КОНТЕЙНЕР ИГРЫ --- */
+.app-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  /* Вот магия: жестко фиксируем пропорции телефона (9:16) */
+  aspect-ratio: 9 / 16; 
+  /* Ограничиваем максимальную ширину, чтобы на ПК не было гигантским */
+  max-width: 100vw; 
+  /* Чтобы на ПК контейнер не растягивался выше экрана */
+  max-height: 100dvh;
+  
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #000;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8); /* Тень для красоты на ПК */
+}
 
 .main-content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
-  /* Добавь вот эту строчку, чтобы контент не вылезал за пределы экрана на iOS */
   height: 100%; 
 }
 
 /* --- НИЖНЯЯ НАВИГАЦИЯ --- */
 .bottom-nav {
-  position: fixed;
+  position: absolute; /* Меняем на absolute, чтобы не вылезала за пределы app-container */
   bottom: 0;
   left: 0;
   width: 100%;
   height: calc(var(--nav-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  
-  /* 👇 ВРЕМЕННО ЗАМЕНИ ЭТО: */
-  background: #111111; /* Плотный темный цвет вместо var(--bg-glass) */
-  /* backdrop-filter: blur(16px); */
-  /* -webkit-backdrop-filter: blur(16px); */
-  
+  background: #111111;
   display: flex;
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 100;
-  
-  /* 👇 Добавь это для создания GPU слоя: */
   transform: translateZ(0);
   will-change: transform;
 }
 
+/* ... Остальной код для .nav-btn, .nav-icon и т.д. оставляем без изменений ... */
 .nav-btn {
   background: transparent;
   border: none;
@@ -120,7 +135,6 @@ body::before {
   box-shadow: 0 0 10px var(--accent);
 }
 
-/* --- ЗАГЛУШКИ --- */
 .placeholder-screen {
   display: flex;
   align-items: center;

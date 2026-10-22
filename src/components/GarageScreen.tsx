@@ -228,19 +228,18 @@ export const GarageScreen: React.FC = () => {
       />
       */}
 
-      {/* 3. Стойка с подвеской (когда вырежешь, раскомментируй и подгони стили) */}
-      {/* 
+            {/* 3. Стойка с подвеской */}
       <motion.img
-        src="/images/suspension.png"
+        src="/images/suspension.png" // Убедись, что файл лежит в public/images/
         alt="Подвеска"
         className="interactive-object"
-        style={{ top: '55%', left: '75%', width: '15%' }}
+        // Координаты (top, left, width) — ОБЯЗАТЕЛЬНО ПОДГОНИ ПОД СВОЙ ФОН!
+        style={{ top: '55%', left: '75%', width: '15%' }} 
         whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.9, rotate: -2 }}
+        whileTap={{ scale: 0.9, rotate: -2 }} // При нажатии сжимается и чуть поворачивается
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
         onClick={() => handleUpgradeClick('suspension')}
       />
-      */}
 
       {/* 4. Компьютер (когда вырежешь, раскомментируй и подгони стили) */}
       {/* 

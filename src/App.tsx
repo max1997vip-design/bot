@@ -55,7 +55,6 @@ export default function App() {
         console.error('Ошибка sync:', e);
         setError('Ошибка сети. Проверьте интернет.');
       } finally {
-        // Гарантируем, что экран загрузки провисит минимум 2.5 секунды
         const elapsed = Date.now() - startTime;
         const minTime = 2500; 
         if (elapsed < minTime) {
@@ -92,54 +91,57 @@ export default function App() {
 
       {/* Главный экран */}
       {isReady && !error && user && (
-        <div className="app-container">
-          <main className="main-content">
-            {activeTab === 'race' && <RaceScreen />}
-            {activeTab === 'city' && <CityScreen />}
-            {activeTab === 'garage' && <GarageScreen />}
-            {activeTab === 'profile' && <ProfileScreen />}
-          </main>
+        // ОБЕРТКА ДЛЯ ЖЕСТКИХ ПРОПОРЦИЙ
+        <div className="game-wrapper">
+          <div className="app-container">
+            <main className="main-content">
+              {activeTab === 'race' && <RaceScreen />}
+              {activeTab === 'city' && <CityScreen />}
+              {activeTab === 'garage' && <GarageScreen />}
+              {activeTab === 'profile' && <ProfileScreen />}
+            </main>
 
-          <nav className="bottom-nav">
-            <button className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`} onClick={() => setActiveTab('race')}>
-              <span className="nav-icon">🏁</span><span className="nav-label">Гонка</span>
-            </button>
-            <button className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`} onClick={() => setActiveTab('city')}>
-              <span className="nav-icon">🏙️</span><span className="nav-label">Город</span>
-            </button>
-            <button className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`} onClick={() => setActiveTab('garage')}>
-              <span className="nav-icon">🔧</span><span className="nav-label">Гараж</span>
-            </button>
-            <button className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
-              <span className="nav-icon">👤</span><span className="nav-label">Профиль</span>
-            </button>
-          </nav>
+            <nav className="bottom-nav">
+              <button className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`} onClick={() => setActiveTab('race')}>
+                <span className="nav-icon">🏁</span><span className="nav-label">Гонка</span>
+              </button>
+              <button className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`} onClick={() => setActiveTab('city')}>
+                <span className="nav-icon">🏙️</span><span className="nav-label">Город</span>
+              </button>
+              <button className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`} onClick={() => setActiveTab('garage')}>
+                <span className="nav-icon">🔧</span><span className="nav-label">Гараж</span>
+              </button>
+              <button className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
+                <span className="nav-icon">👤</span><span className="nav-label">Профиль</span>
+              </button>
+            </nav>
 
-          <AnimatePresence>
-            {offlineEarnings > 0 && (
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' , transform: 'translateZ(0)', isolation: 'isolate' }}
-              >
+            <AnimatePresence>
+              {offlineEarnings > 0 && (
                 <motion.div 
-                  initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }}
-                  style={{ background: '#1a1a1a', padding: '30px', borderRadius: '20px', textAlign: 'center', border: '1px solid #ffd700', boxShadow: '0 0 30px rgba(255,215,0,0.2)' }}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' , transform: 'translateZ(0)', isolation: 'isolate' }}
                 >
-                  <h2 style={{ color: '#ffd700', margin: '0 0 10px 0' }}>С возвращением!</h2>
-                  <p style={{ color: '#ccc', marginBottom: '20px' }}>Пока вас не было, механики заработали:</p>
-                  <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#00FF41', marginBottom: '25px', textShadow: '0 0 10px rgba(0,255,65,0.5)' }}>
-                    +{offlineEarnings.toLocaleString('ru-RU')} 🪙
-                  </div>
-                  <button 
-                    onClick={() => setOfflineEarnings(0)}
-                    style={{ background: '#00FF41', color: 'black', border: 'none', padding: '14px 40px', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', width: '100%' }}
+                  <motion.div 
+                    initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }}
+                    style={{ background: '#1a1a1a', padding: '30px', borderRadius: '20px', textAlign: 'center', border: '1px solid #ffd700', boxShadow: '0 0 30px rgba(255,215,0,0.2)', width: '90%', maxWidth: '340px' }}
                   >
-                    Забрать
-                  </button>
+                    <h2 style={{ color: '#ffd700', margin: '0 0 10px 0' }}>С возвращением!</h2>
+                    <p style={{ color: '#ccc', marginBottom: '20px' }}>Пока вас не было, механики заработали:</p>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#00FF41', marginBottom: '25px', textShadow: '0 0 10px rgba(0,255,65,0.5)' }}>
+                      +{offlineEarnings.toLocaleString('ru-RU')} 🪙
+                    </div>
+                    <button 
+                      onClick={() => setOfflineEarnings(0)}
+                      style={{ background: '#00FF41', color: 'black', border: 'none', padding: '14px 40px', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', width: '100%' }}
+                    >
+                      Забрать
+                    </button>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       )}
     </>
