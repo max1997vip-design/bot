@@ -23,16 +23,19 @@ export default function App() {
 
   useEffect(() => {
     WebApp.ready();
-    WebApp.expand(); // Разворачивает на максимум доступной высоты
+    WebApp.expand();
 
-    // ПРОСИМ TELEGRAM ОТКРЫТЬСЯ НА ВЕСЬ ЭКРАН
+    // Проверка платформы без ошибок TS
+    const platform = WebApp.platform;
+    const isMobile = platform === 'ios' || platform === 'android';
+
     try {
-      if (WebApp.requestFullscreen) {
-        WebApp.requestFullscreen();
+      // Приводим к any, чтобы TS не ругался на новые методы
+      if (isMobile && (WebApp as any).requestFullscreen) {
+        (WebApp as any).requestFullscreen();
       }
-      // Отключаем свайп вниз, чтобы случайно не закрыть игру на телефоне
-      if (WebApp.disableVerticalSwipes) {
-        WebApp.disableVerticalSwipes();
+      if (isMobile && (WebApp as any).disableVerticalSwipes) {
+        (WebApp as any).disableVerticalSwipes();
       }
     } catch (e) {
       console.warn("Fullscreen not supported", e);
@@ -68,7 +71,6 @@ export default function App() {
         console.error('Ошибка sync:', e);
         setError('Ошибка сети. Проверьте интернет.');
       } finally {
-        // Гарантируем, что экран загрузки провисит минимум 2.5 секунды
         const elapsed = Date.now() - startTime;
         const minTime = 2500; 
         if (elapsed < minTime) {
@@ -87,12 +89,10 @@ export default function App() {
 
   return (
     <>
-      {/* Красивое исчезновение экрана загрузки */}
       <AnimatePresence>
        {!isReady && <LoadingScreen />}
       </AnimatePresence>
 
-      {/* Экран ошибки (если сеть упала) */}
       {isReady && (error || !user) && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
           <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
@@ -103,7 +103,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Главный экран */}
       {isReady && !error && user && (
         <div className="game-wrapper">
           <div className="app-container">
