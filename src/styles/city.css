@@ -23,6 +23,7 @@
   font-weight: 800;
 }
 
+/* Сетка в 3 колонки для компактности */
 .city-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr); 
@@ -74,6 +75,7 @@
   margin: 0;
 }
 
+/* Контейнер для вложенных экранов (например, Трек) */
 .city-location {
   position: absolute;
   inset: 0;
@@ -83,29 +85,28 @@
   flex-direction: column;
 }
 
+/* Кнопка "Назад" внутри локации */
 .back-to-city {
   position: absolute;
   top: calc(20px + var(--tg-safe-top));
   left: 20px;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
+  background: rgba(0, 0, 0, 0.65); /* Заменили blur на плотный фон для WebView2 */
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(4px);
   transition: background 0.2s;
-  -webkit-backdrop-filter: blur(4px);
-  transform: translateZ(0);
 }
 
 .back-to-city:active {
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Сдвигаем контент гонок вниз, чтобы кнопка "Назад" не перекрывала заголовок */
 .city-location .races-screen {
   padding-top: calc(70px + var(--tg-safe-top));
 }
