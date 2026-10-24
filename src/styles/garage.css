@@ -15,8 +15,8 @@
 .garage-scene {
   position: relative;
   flex: 0 1 auto;
-  width: min(100%, calc(100% * 941 / 1672));
-  height: 100%;
+  width: min(100%, 52.5dvh);
+  height: auto;
   aspect-ratio: 941 / 1672;
   max-width: 100%;
   max-height: 100%;
