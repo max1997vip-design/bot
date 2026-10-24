@@ -13,29 +13,11 @@ type Tab = 'race' | 'city' | 'garage' | 'profile';
 
 type FullscreenWebApp = typeof WebApp & {
   version?: string;
-  isExpanded?: boolean;
   isFullscreen?: boolean;
   requestFullscreen?: () => void;
   disableVerticalSwipes?: () => void;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
-  onEvent?: (
-    event: string,
-    callback: (...args: any[]) => void
-  ) => void;
-  offEvent?: (
-    event: string,
-    callback: (...args: any[]) => void
-  ) => void;
-};
-
-type FullscreenDebug = {
-  platform: string;
-  version: string;
-  expanded: boolean;
-  fullscreen: boolean;
-  requestAvailable: boolean;
-  result: string;
 };
 
 export default function App() {
@@ -43,16 +25,6 @@ export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offlineEarnings, setOfflineEarnings] = useState(0);
-
-  const [fullscreenDebug, setFullscreenDebug] =
-    useState<FullscreenDebug>({
-      platform: 'определяется...',
-      version: '—',
-      expanded: false,
-      fullscreen: false,
-      requestAvailable: false,
-      result: 'Ожидание проверки',
-    });
 
   const setUser = useGameStore((state) => state.setUser);
   const syncTaps = useGameStore((state) => state.syncTaps);
@@ -64,61 +36,10 @@ export default function App() {
     let cancelled = false;
     let readyTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const updateFullscreenDebug = (result: string) => {
-      if (cancelled) return;
-
-      setFullscreenDebug({
-        platform: webApp.platform || 'неизвестно',
-        version: webApp.version || 'неизвестно',
-        expanded: Boolean(webApp.isExpanded),
-        fullscreen: Boolean(webApp.isFullscreen),
-        requestAvailable:
-          typeof webApp.requestFullscreen === 'function',
-        result,
-      });
-    };
-
-    const handleFullscreenChanged = () => {
-      updateFullscreenDebug(
-        `Событие fullscreenChanged; полный экран: ${
-          webApp.isFullscreen ? 'да' : 'нет'
-        }`
-      );
-    };
-
-    const handleFullscreenFailed = (event: any) => {
-      updateFullscreenDebug(
-        `Ошибка fullscreenFailed: ${
-          event?.error || 'причина не указана'
-        }`
-      );
-    };
-
     webApp.ready();
 
     const platform = webApp.platform;
     const isMobile = platform === 'ios' || platform === 'android';
-
-    updateFullscreenDebug('Проверка запущена');
-
-    console.info('[Telegram fullscreen diagnostic]', {
-      platform: webApp.platform,
-      version: webApp.version,
-      isExpanded: webApp.isExpanded,
-      isFullscreen: webApp.isFullscreen,
-      requestFullscreenAvailable:
-        typeof webApp.requestFullscreen === 'function',
-    });
-
-    webApp.onEvent?.(
-      'fullscreenChanged',
-      handleFullscreenChanged
-    );
-
-    webApp.onEvent?.(
-      'fullscreenFailed',
-      handleFullscreenFailed
-    );
 
     if (isMobile) {
       try {
@@ -132,30 +53,14 @@ export default function App() {
 
         if (
           version >= 8 &&
-          typeof webApp.requestFullscreen === 'function'
+          typeof webApp.requestFullscreen === 'function' &&
+          !webApp.isFullscreen
         ) {
-          updateFullscreenDebug('Автоматический запрос полного экрана');
-
-          if (!webApp.isFullscreen) {
-            webApp.requestFullscreen();
-          } else {
-            updateFullscreenDebug('Полный экран уже включён');
-          }
-        } else {
-          updateFullscreenDebug(
-            `API полного экрана недоступен или версия API ниже 8. Версия: ${
-              webApp.version || 'неизвестно'
-            }`
-          );
+          webApp.requestFullscreen();
         }
       } catch (e) {
-        updateFullscreenDebug(`Ошибка настройки: ${String(e)}`);
         console.error('[Telegram] Ошибка настройки экрана:', e);
       }
-    } else {
-      updateFullscreenDebug(
-        `Не мобильная платформа: ${platform || 'неизвестно'}`
-      );
     }
 
     const loadUser = async () => {
@@ -239,60 +144,11 @@ export default function App() {
       if (readyTimeout) {
         clearTimeout(readyTimeout);
       }
-
-      webApp.offEvent?.(
-        'fullscreenChanged',
-        handleFullscreenChanged
-      );
-
-      webApp.offEvent?.(
-        'fullscreenFailed',
-        handleFullscreenFailed
-      );
     };
   }, [setUser, syncTaps]);
 
   const reloadApp = () => {
     window.location.reload();
-  };
-
-  const checkFullscreenManually = () => {
-    const webApp = WebApp as FullscreenWebApp;
-
-    try {
-      if (typeof webApp.requestFullscreen !== 'function') {
-        setFullscreenDebug((prev) => ({
-          ...prev,
-          result: 'requestFullscreen недоступен',
-        }));
-        return;
-      }
-
-      setFullscreenDebug((prev) => ({
-        ...prev,
-        result: 'Ручной запрос отправлен',
-      }));
-
-      webApp.requestFullscreen();
-
-      window.setTimeout(() => {
-        setFullscreenDebug((prev) => ({
-          ...prev,
-          expanded: Boolean(webApp.isExpanded),
-          fullscreen: Boolean(webApp.isFullscreen),
-          result: webApp.isFullscreen
-            ? 'Полный экран включён'
-            : prev.result === 'Ручной запрос отправлен'
-              ? 'Ответ не получен: проверьте событие или повторите попытку'
-              : prev.result,
-        }));
-      }, 1000);
-    } catch (e) {
-      setFullscreenDebug((prev) => ({
-        ...prev,
-        result: `Ошибка запроса: ${String(e)}`,
-      }));
-    }
   };
 
   return (
@@ -398,49 +254,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      <div
-        style={{
-          position: 'fixed',
-          top: 70,
-          left: 8,
-          right: 8,
-          zIndex: 30000,
-          padding: 12,
-          background: '#202020',
-          color: '#fff',
-          border: '1px solid #00e5ff',
-          borderRadius: 10,
-          fontSize: 12,
-          lineHeight: 1.6,
-          overflowWrap: 'anywhere',
-        }}
-      >
-        <strong>Диагностика Telegram</strong>
-        <div>Платформа: {fullscreenDebug.platform}</div>
-        <div>API: {fullscreenDebug.version}</div>
-        <div>Окно расширено: {String(fullscreenDebug.expanded)}</div>
-        <div>Полный экран: {String(fullscreenDebug.fullscreen)}</div>
-        <div>
-          Запрос доступен: {String(fullscreenDebug.requestAvailable)}
-        </div>
-        <div>Результат: {fullscreenDebug.result}</div>
-
-        <button
-          onClick={checkFullscreenManually}
-          style={{
-            marginTop: 8,
-            padding: '8px 12px',
-            background: '#00e5ff',
-            color: '#000',
-            border: 0,
-            borderRadius: 6,
-            fontWeight: 700,
-          }}
-        >
-          Проверить полный экран
-        </button>
-      </div>
     </>
   );
 }
