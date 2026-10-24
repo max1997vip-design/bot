@@ -306,7 +306,7 @@ export const GarageScreen: React.FC = () => {
           alt="Шины"
           className="interactive-object"
           style={{
-            top: '39%',
+            top: '41%',
             left: '0%',
             width: '18%',
           }}
@@ -346,9 +346,9 @@ export const GarageScreen: React.FC = () => {
           alt="Прошивка (ECU)"
           className="interactive-object"
           style={{
-            top: '60%',
-            left: '10%',
-            width: '15%',
+            top: '74%',
+            left: '6%',
+            width: '32%',
           }}
           animate={{ scale: [1, 1.03, 1] }}
           transition={{
