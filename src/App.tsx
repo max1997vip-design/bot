@@ -1,10 +1,10 @@
-// src/App.tsx
+
 import { useEffect, useState } from 'react';
 import { useGameStore } from './store/gameStore';
 import { RaceScreen } from './components/RaceScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { GarageScreen } from './components/GarageScreen';
-import { CityScreen } from './components/CityScreen'; 
+import { CityScreen } from './components/CityScreen';
 import { LoadingScreen } from './components/LoadingScreen';
 import WebApp from '@twa-dev/sdk';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,90 +16,163 @@ export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offlineEarnings, setOfflineEarnings] = useState(0);
-  
+
   const setUser = useGameStore((state) => state.setUser);
   const syncTaps = useGameStore((state) => state.syncTaps);
   const user = useGameStore((state) => state.user);
 
   useEffect(() => {
-    WebApp.ready();
+    let mounted = true;
+    let loadTimeout: ReturnType<typeof setTimeout> | undefined;
+    let readyTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const platform = WebApp.platform;
-    const isMobile = platform === 'ios' || platform === 'android';
-
-    // ВАЖНО: На ПК мы НЕ вызываем expand() и requestFullscreen()
-    // чтобы окно оставалось компактным.
-    if (isMobile) {
-      WebApp.expand();
+    const initTelegram = () => {
       try {
-        if ((WebApp as any).requestFullscreen) {
-          (WebApp as any).requestFullscreen();
+        WebApp.ready();
+
+        const platform = WebApp.platform;
+        const isMobile =
+          platform === 'ios' || platform === 'android';
+
+        // Desktop intentionally keeps its compact layout.
+        if (!isMobile) return;
+
+        try {
+          WebApp.expand();
+        } catch (e) {
+          console.warn('Telegram expand unavailable:', e);
         }
-        if ((WebApp as any).disableVerticalSwipes) {
-          (WebApp as any).disableVerticalSwipes();
+
+        // Fullscreen is optional and depends on Telegram version.
+        try {
+          const telegram = WebApp as any;
+
+          if (
+            typeof telegram.requestFullscreen === 'function' &&
+            (
+              typeof telegram.isVersionAtLeast !== 'function' ||
+              telegram.isVersionAtLeast('8.0')
+            )
+          ) {
+            telegram.requestFullscreen();
+          }
+        } catch (e) {
+          // The game must remain usable without fullscreen.
+          console.warn('Telegram fullscreen unavailable:', e);
+        }
+
+        // Disable Telegram's vertical swipe-to-close gesture
+        // only when the method exists on this client.
+        try {
+          const telegram = WebApp as any;
+
+          if (
+            typeof telegram.disableVerticalSwipes === 'function'
+          ) {
+            telegram.disableVerticalSwipes();
+          }
+        } catch (e) {
+          console.warn('Vertical swipe control unavailable:', e);
         }
       } catch (e) {
-        console.warn("Fullscreen not supported", e);
+        // The app should still attempt to load if Telegram
+        // WebApp initialization is unavailable.
+        console.warn('Telegram WebApp initialization failed:', e);
       }
-    }
+    };
+
+    initTelegram();
 
     const loadUser = async () => {
       const startTime = Date.now();
+
       try {
         const initData = WebApp.initData || '';
-        const startParam = WebApp.initDataUnsafe?.start_param || '';
+        const startParam =
+          WebApp.initDataUnsafe?.start_param || '';
 
         const res = await fetch('/api/game?action=sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ initData, startParam }),
         });
-        
+
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`);
+        }
+
         const data = await res.json();
-        
+
+        if (!mounted) return;
+
         if (data.user && data.user.id) {
           setUser(
-            data.user, 
-            data.inventory || [], 
-            data.equipped || { engine: null, tires: null, ecu: null, suspension: null }
+            data.user,
+            data.inventory || [],
+            data.equipped || {
+              engine: null,
+              tires: null,
+              ecu: null,
+              suspension: null,
+            }
           );
-          if (data.offlineEarnings && data.offlineEarnings > 0) {
+
+          if (
+            typeof data.offlineEarnings === 'number' &&
+            data.offlineEarnings > 0
+          ) {
             setOfflineEarnings(data.offlineEarnings);
           }
         } else {
           setError(data.error || 'Не удалось загрузить профиль');
         }
       } catch (e) {
+        if (!mounted) return;
+
         console.error('Ошибка sync:', e);
         setError('Ошибка сети. Проверьте интернет.');
       } finally {
+        if (!mounted) return;
+
         const elapsed = Date.now() - startTime;
-        const minTime = 2500; 
-        if (elapsed < minTime) {
-          setTimeout(() => setIsReady(true), minTime - elapsed);
-        } else {
-          setIsReady(true);
-        }
+        const minTime = 2500;
+        const remaining = Math.max(0, minTime - elapsed);
+
+        readyTimeout = setTimeout(() => {
+          if (mounted) setIsReady(true);
+        }, remaining);
       }
     };
-    
-    setTimeout(loadUser, 100); 
 
-    const syncInterval = setInterval(() => syncTaps(), 1000);
-    return () => clearInterval(syncInterval);
+    loadTimeout = setTimeout(() => {
+      void loadUser();
+    }, 100);
+
+    const syncInterval = setInterval(() => {
+      syncTaps();
+    }, 1000);
+
+    return () => {
+      mounted = false;
+
+      if (loadTimeout) clearTimeout(loadTimeout);
+      if (readyTimeout) clearTimeout(readyTimeout);
+
+      clearInterval(syncInterval);
+    };
   }, [setUser, syncTaps]);
 
   return (
     <>
       <AnimatePresence>
-       {!isReady && <LoadingScreen />}
+        {!isReady && <LoadingScreen />}
       </AnimatePresence>
 
       {isReady && (error || !user) && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#111', color: 'white', padding: 20, textAlign: 'center' }}>
-          <h2 style={{ color: '#ff4444', marginBottom: 10 }}>Ошибка загрузки</h2>
-          <p style={{ color: '#aaa', marginBottom: 20 }}>{error || 'Пользователь не найден'}</p>
-          <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#00FF41', color: 'black', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer' }}>
+        <div className="app-error-screen">
+          <h2>Ошибка загрузки</h2>
+          <p>{error || 'Пользователь не найден'}</p>
+          <button onClick={() => window.location.reload()}>
             Перезагрузить
           </button>
         </div>
@@ -116,38 +189,70 @@ export default function App() {
             </main>
 
             <nav className="bottom-nav">
-              <button className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`} onClick={() => setActiveTab('race')}>
-                <span className="nav-icon">🏁</span><span className="nav-label">Гонка</span>
+              <button
+                className={`nav-btn ${
+                  activeTab === 'race' ? 'active' : ''
+                }`}
+                onClick={() => setActiveTab('race')}
+              >
+                <span className="nav-icon">🏁</span>
+                <span className="nav-label">Гонка</span>
               </button>
-              <button className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`} onClick={() => setActiveTab('city')}>
-                <span className="nav-icon">🏙️</span><span className="nav-label">Город</span>
+
+              <button
+                className={`nav-btn ${
+                  activeTab === 'city' ? 'active' : ''
+                }`}
+                onClick={() => setActiveTab('city')}
+              >
+                <span className="nav-icon">🏙️</span>
+                <span className="nav-label">Город</span>
               </button>
-              <button className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`} onClick={() => setActiveTab('garage')}>
-                <span className="nav-icon">🔧</span><span className="nav-label">Гараж</span>
+
+              <button
+                className={`nav-btn ${
+                  activeTab === 'garage' ? 'active' : ''
+                }`}
+                onClick={() => setActiveTab('garage')}
+              >
+                <span className="nav-icon">🔧</span>
+                <span className="nav-label">Гараж</span>
               </button>
-              <button className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
-                <span className="nav-icon">👤</span><span className="nav-label">Профиль</span>
+
+              <button
+                className={`nav-btn ${
+                  activeTab === 'profile' ? 'active' : ''
+                }`}
+                onClick={() => setActiveTab('profile')}
+              >
+                <span className="nav-icon">👤</span>
+                <span className="nav-label">Профиль</span>
               </button>
             </nav>
 
             <AnimatePresence>
               {offlineEarnings > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' , transform: 'translateZ(0)', isolation: 'isolate' }}
+                <motion.div
+                  className="offline-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
-                  <motion.div 
-                    initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }}
-                    style={{ background: '#1a1a1a', padding: '30px', borderRadius: '20px', textAlign: 'center', border: '1px solid #ffd700', boxShadow: '0 0 30px rgba(255,215,0,0.2)', width: '90%', maxWidth: '340px' }}
+                  <motion.div
+                    className="offline-modal"
+                    initial={{ scale: 0.8, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
                   >
-                    <h2 style={{ color: '#ffd700', margin: '0 0 10px 0' }}>С возвращением!</h2>
-                    <p style={{ color: '#ccc', marginBottom: '20px' }}>Пока вас не было, механики заработали:</p>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#00FF41', marginBottom: '25px', textShadow: '0 0 10px rgba(0,255,65,0.5)' }}>
+                    <h2>С возвращением!</h2>
+                    <p>Пока вас не было, механики заработали:</p>
+
+                    <div className="offline-amount">
                       +{offlineEarnings.toLocaleString('ru-RU')} 🪙
                     </div>
-                    <button 
+
+                    <button
+                      className="offline-claim"
                       onClick={() => setOfflineEarnings(0)}
-                      style={{ background: '#00FF41', color: 'black', border: 'none', padding: '14px 40px', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', width: '100%' }}
                     >
                       Забрать
                     </button>
