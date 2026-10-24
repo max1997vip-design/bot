@@ -34,7 +34,7 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Основной экран игры на телефоне */
+/* Основной экран игры */
 .game-wrapper {
   position: fixed;
   inset: 0;
@@ -62,16 +62,17 @@ button {
   isolation: isolate;
 }
 
+/* Игровая область над нижним меню */
 .main-content {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  bottom: 60px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-top: 50px;
+  padding-top: 0;
 }
 
 .main-content > div {
@@ -91,6 +92,7 @@ button {
   bottom: 0;
   left: 0;
   right: 0;
+  height: 60px;
   min-height: 60px;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: #111;

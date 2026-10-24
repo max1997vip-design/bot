@@ -326,9 +326,9 @@ export const GarageScreen: React.FC = () => {
           alt="Подвеска"
           className="interactive-object"
           style={{
-            top: '31%',
+            top: '33%',
             left: '76%',
-            width: '24%',
+            width: '25%',
           }}
           animate={{ scale: [1, 1.03, 1] }}
           transition={{
