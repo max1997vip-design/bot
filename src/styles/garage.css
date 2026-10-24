@@ -15,10 +15,10 @@
 .garage-scene {
   position: relative;
   flex: 0 1 auto;
-  width: min(100%, calc((100dvh - 60px) * 941 / 1672));
-  height: 100%;
+  width: 100%;
+  /* Запрещаем контейнеру растягиваться шире, чем позволяет высота экрана */
+  max-width: min(100vw, calc(100dvh * 941 / 1672)); 
   aspect-ratio: 941 / 1672;
-  max-width: 100%;
   max-height: 100%;
   overflow: hidden;
   isolation: isolate;
