@@ -242,9 +242,10 @@ button {
 
 @media (max-width: 499px) {
   .main-content {
+    /* ИЗМЕНЕНО: сдвигаем контейнер вниз через top, чтобы абсолютные экраны тоже опустились */
+    top: max(56px, env(safe-area-inset-top, 0px));
     bottom: 98px;
-    /* ДОБАВЛЕНО: отступ под кнопки Telegram (56px для Android или вырез для iPhone) */
-    padding-top: max(56px, env(safe-area-inset-top, 0px));
+    padding-top: 0;
   }
 
   .bottom-nav {
