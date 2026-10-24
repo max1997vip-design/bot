@@ -1,7 +1,4 @@
 
-/* src/styles/garage.css */
-
-/* --- Основной экран гаража --- */
 .garage-screen {
   position: absolute;
   inset: 0;
@@ -20,14 +17,13 @@
   flex: 0 1 auto;
   width: min(100%, 52.5dvh);
   height: auto;
-  aspect-ratio: 21 / 40;
+  aspect-ratio: 941 / 1672;
   max-width: 100%;
   max-height: 100%;
   overflow: hidden;
   isolation: isolate;
 }
 
-/* Фон масштабируется вместе со сценой */
 .garage-bg {
   position: absolute;
   inset: 0;
