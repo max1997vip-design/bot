@@ -8,7 +8,7 @@
 
 .city-hub {
   padding: 15px;
-  padding-top: 20px;
+  padding-top: calc(20px + var(--tg-safe-top));
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -23,7 +23,6 @@
   font-weight: 800;
 }
 
-/* Сетка в 3 колонки для компактности */
 .city-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr); 
@@ -75,7 +74,6 @@
   margin: 0;
 }
 
-/* Контейнер для вложенных экранов (например, Трек) */
 .city-location {
   position: absolute;
   inset: 0;
@@ -85,10 +83,9 @@
   flex-direction: column;
 }
 
-/* Кнопка "Назад" внутри локации */
 .back-to-city {
   position: absolute;
-  top: 20px;
+  top: calc(20px + var(--tg-safe-top));
   left: 20px;
   z-index: 10;
   background: rgba(255, 255, 255, 0.1);
@@ -102,7 +99,6 @@
   backdrop-filter: blur(4px);
   transition: background 0.2s;
   -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
   transform: translateZ(0);
 }
 
@@ -110,9 +106,8 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Сдвигаем контент гонок вниз, чтобы кнопка "Назад" не перекрывала заголовок */
 .city-location .races-screen {
-  padding-top: 70px;
+  padding-top: calc(70px + var(--tg-safe-top));
 }
 
 @media (max-height: 700px) {

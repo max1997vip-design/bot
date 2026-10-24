@@ -114,8 +114,7 @@ export const GarageScreen: React.FC = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '10px 15px',
-                cursor:
-                  isEquipped || isSelling ? 'default' : 'pointer',
+                cursor: isEquipped || isSelling ? 'default' : 'pointer',
                 background: 'rgba(255,255,255,0.02)',
                 borderRadius: '8px',
                 marginBottom: '8px',
@@ -220,12 +219,12 @@ export const GarageScreen: React.FC = () => {
       <div className="garage-scene">
         <div className="garage-bg" />
 
-        {/* Переключатель автомобилей */}
+                {/* Переключатель автомобилей */}
         {ownedCars.length > 1 && (
           <div
             style={{
               position: 'absolute',
-              top: '70px', // ИЗМЕНЕНО: Опущено вниз под кнопки Telegram
+              top: 'calc(20px + var(--tg-safe-top, 0px))', // Используем переменную
               left: 0,
               width: '100%',
               display: 'flex',

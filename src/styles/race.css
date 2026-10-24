@@ -4,23 +4,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start; 
-  
   height: 100%; 
   width: 100%;
-  /* Уменьшили нижний отступ с 80px до 10px */
-  padding: 30px 16px 30px 16px; 
+  padding: calc(30px + var(--tg-safe-top)) 16px 30px 16px; 
   box-sizing: border-box;
   position: relative; 
   overflow: hidden; 
 }
 
-
-
 /* --- ФОН --- */
 .race-background {
   position: absolute;
   inset: 0;
-  background-image: url('/images/bg-night-city.jpg'); /* Если у тебя все-таки png, поменяй тут на .png! */
+  background-image: url('/images/bg-night-city.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -38,7 +34,7 @@
     rgba(9, 10, 12, 0.8) 80%,
     #090A0C 100%
   );
-  z-index: 1; /* Поверх картинки */
+  z-index: 1;
 }
 
 /* Обертка для верхнего UI */
@@ -51,7 +47,7 @@
   position: relative;
   width: 100%;
   max-width: 280px;
-  margin-bottom: 20px; /* Отступ от полоски уровня до машины */
+  margin-bottom: 20px; 
 }
 
 /* HUD над машиной */
@@ -108,7 +104,7 @@
 /* Сама полоска */
 .race-xp-bar {
   width: 100%;
-  height: 4px; /* Тонкая, чтобы не отвлекать от машины */
+  height: 4px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   overflow: hidden;
@@ -133,20 +129,16 @@
   user-select: none;
   transition: transform 60ms ease-out;
   z-index: 2;
-  
-  /* Толкает машину вниз */
   margin-top: auto; 
-  
-  /* Отступ от меню. Если 10px мало, ставь 20px или 30px */
   margin-bottom: 10vh; 
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
-/* Эффект нажатия (чтобы машина не прыгала) */
 .race-car-container:active {
   transform: scale(0.985);
 }
 
-/* Анимация отказа */
 .race-car-container.rejected {
   animation: car-reject 160ms ease-out;
 }
@@ -165,11 +157,9 @@
   height: auto;
   pointer-events: none;
   -webkit-user-drag: none;
-  /* Растягиваем по вертикали на 5% (если нужно больше — ставь 1.1) */
   transform: scaleY(1.05); 
-  transform-origin: bottom center; /* Растягиваем от колес вверх */
+  transform-origin: bottom center; 
 }
-
 
 /* Слой 1: Свечение фар (с переменными) */
 .headlight-glow {
@@ -178,20 +168,9 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 70ms ease-out;
-  
   background:
-    radial-gradient(
-      ellipse 8% 6% at var(--left-hl-x) var(--left-hl-y),
-      rgba(255, 250, 220, 1) 0%,
-      rgba(255, 235, 160, 0.7) 40%,
-      rgba(255, 220, 120, 0) 85%
-    ),
-    radial-gradient(
-      ellipse 8% 6% at var(--right-hl-x) var(--right-hl-y),
-      rgba(255, 250, 220, 1) 0%,
-      rgba(255, 235, 160, 0.7) 40%,
-      rgba(255, 220, 120, 0) 85%
-    );
+    radial-gradient(ellipse 8% 6% at var(--left-hl-x) var(--left-hl-y), rgba(255, 250, 220, 1) 0%, rgba(255, 235, 160, 0.7) 40%, rgba(255, 220, 120, 0) 85%),
+    radial-gradient(ellipse 8% 6% at var(--right-hl-x) var(--right-hl-y), rgba(255, 250, 220, 1) 0%, rgba(255, 235, 160, 0.7) 40%, rgba(255, 220, 120, 0) 85%);
   mix-blend-mode: screen;
 }
 
@@ -204,21 +183,11 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 90ms ease-out;
-  
   background:
-    radial-gradient(
-      ellipse 16% 14% at var(--left-hl-x) var(--left-hl-y),
-      rgba(255, 245, 200, 0.4) 0%,
-      rgba(255, 230, 140, 0) 70%
-    ),
-    radial-gradient(
-      ellipse 16% 14% at var(--right-hl-x) var(--right-hl-y),
-      rgba(255, 245, 200, 0.4) 0%,
-      rgba(255, 230, 140, 0) 70%
-    );
+    radial-gradient(ellipse 16% 14% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, rgba(255, 230, 140, 0) 70%),
+    radial-gradient(ellipse 16% 14% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, rgba(255, 230, 140, 0) 70%);
   mix-blend-mode: screen;
-  will-change: opacity;
-  transform: translateZ(0);
+  /* Убрали will-change и translateZ, так как в WebView2 они могут вызывать мерцание */
 }
 
 .headlight-halo.flash { opacity: 1; }
@@ -258,20 +227,6 @@
   z-index: 2;
 }
 
-/* --- Обертка для машины на экране кликера --- */
-.race-car-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  isolation: isolate;
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
 .car-color-overlay,
 .race-color-overlay {
   position: absolute;
@@ -279,11 +234,7 @@
   mix-blend-mode: color;
   pointer-events: none;
   z-index: 2;
-  
-  /* 👇 Делаем цвет чуть прозрачным для сохранения металлического блеска */
   opacity: 0.85;
-
-  /* Маски (из прошлого шага) */
   -webkit-mask-image: url('/cars/audi-tt-front.png');
   mask-image: url('/cars/audi-tt-front.png');
   -webkit-mask-size: 100% 100%;
