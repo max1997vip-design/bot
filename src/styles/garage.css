@@ -1,9 +1,10 @@
 
+/* Основной экран гаража */
 .garage-screen {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #000;
+  background-color: #090a0c;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,12 +12,12 @@
   min-height: 0;
 }
 
-/* --- Единая сцена с пропорциями 21:40 --- */
+/* Сцена заполняет всю доступную область над навигацией */
 .garage-scene {
   position: relative;
-  flex: 0 1 auto;
-  width: min(100%, 52.5dvh);
-  height: auto;
+  flex: 0 0 auto;
+  height: 100%;
+  width: auto;
   aspect-ratio: 941 / 1672;
   max-width: 100%;
   max-height: 100%;
@@ -24,6 +25,7 @@
   isolation: isolate;
 }
 
+/* Фон занимает всю сцену без незаполненных участков */
 .garage-bg {
   position: absolute;
   inset: 0;
@@ -33,9 +35,20 @@
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
+  background-color: #090a0c;
   z-index: 0;
   pointer-events: none;
 }
+
+@media (max-aspect-ratio: 941 / 1672) {
+  .garage-scene {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
 
 /* --- Машина --- */
 .garage-car-container {
