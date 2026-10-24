@@ -40,6 +40,13 @@ export default function App() {
     const platform = webApp.platform;
     const isMobile = platform === 'ios' || platform === 'android';
 
+    // ДИНАМИЧЕСКИЙ ОТСТУП: Управляем через JS, а не через CSS
+    if (isMobile) {
+      document.documentElement.style.setProperty('--tg-safe-top', 'max(85px, env(safe-area-inset-top, 0px))');
+    } else {
+      document.documentElement.style.setProperty('--tg-safe-top', '0px');
+    }
+
     if (isMobile) {
       try {
         webApp.setHeaderColor?.('#000000');

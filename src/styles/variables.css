@@ -13,16 +13,11 @@
   --safe-bottom: env(safe-area-inset-bottom, 20px);
   --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   
-  /* НОВОЕ: безопасный отступ под шапку Telegram */
- --tg-safe-top: max(85px, env(safe-area-inset-top, 0px)); 
+  /* Дефолтное значение (для SSR или если JS еще не загрузился) */
+  --tg-safe-top: 0px; 
 }
 
-/* На ПК отступ не нужен, чтобы не было сдвигов */
-@media (min-width: 500px) {
-  :root {
-    --tg-safe-top: 0px;
-  }
-}
+/* УДАЛЕН МЕДИА-ЗАПРОС @media (min-width: 500px), так как теперь этим управляет App.tsx */
 
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-20px); }
