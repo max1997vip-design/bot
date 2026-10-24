@@ -22,74 +22,49 @@ export default function App() {
   const user = useGameStore((state) => state.user);
 
   useEffect(() => {
-    let mounted = true;
-    let loadTimeout: ReturnType<typeof setTimeout> | undefined;
-    let readyTimeout: ReturnType<typeof setTimeout> | undefined;
+    WebApp.ready();
 
-    const initTelegram = () => {
+    const platform = WebApp.platform;
+    const isMobile = platform === 'ios' || platform === 'android';
+
+    // Полный экран только на мобильных устройствах.
+    // На ПК не вызываем expand() и requestFullscreen().
+    if (isMobile) {
       try {
-        WebApp.ready();
+        WebApp.expand();
 
-        const platform = WebApp.platform;
-        const isMobile =
-          platform === 'ios' || platform === 'android';
+        const webApp = WebApp as typeof WebApp & {
+          version?: string;
+          requestFullscreen?: () => void;
+          disableVerticalSwipes?: () => void;
+        };
 
-        // Desktop intentionally keeps its compact layout.
-        if (!isMobile) return;
+        const version = Number(webApp.version || '0');
 
-        try {
-          WebApp.expand();
-        } catch (e) {
-          console.warn('Telegram expand unavailable:', e);
+        if (
+          version >= 8.0 &&
+          typeof webApp.requestFullscreen === 'function'
+        ) {
+          webApp.requestFullscreen();
         }
 
-        // Fullscreen is optional and depends on Telegram version.
-        try {
-          const telegram = WebApp as any;
-
-          if (
-            typeof telegram.requestFullscreen === 'function' &&
-            (
-              typeof telegram.isVersionAtLeast !== 'function' ||
-              telegram.isVersionAtLeast('8.0')
-            )
-          ) {
-            telegram.requestFullscreen();
-          }
-        } catch (e) {
-          // The game must remain usable without fullscreen.
-          console.warn('Telegram fullscreen unavailable:', e);
-        }
-
-        // Disable Telegram's vertical swipe-to-close gesture
-        // only when the method exists on this client.
-        try {
-          const telegram = WebApp as any;
-
-          if (
-            typeof telegram.disableVerticalSwipes === 'function'
-          ) {
-            telegram.disableVerticalSwipes();
-          }
-        } catch (e) {
-          console.warn('Vertical swipe control unavailable:', e);
+        if (typeof webApp.disableVerticalSwipes === 'function') {
+          webApp.disableVerticalSwipes();
         }
       } catch (e) {
-        // The app should still attempt to load if Telegram
-        // WebApp initialization is unavailable.
-        console.warn('Telegram WebApp initialization failed:', e);
+        console.warn('Не удалось включить полноэкранный режим:', e);
       }
-    };
+    }
 
-    initTelegram();
+    let cancelled = false;
+    let readyTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const loadUser = async () => {
       const startTime = Date.now();
 
       try {
         const initData = WebApp.initData || '';
-        const startParam =
-          WebApp.initDataUnsafe?.start_param || '';
+        const startParam = WebApp.initDataUnsafe?.start_param || '';
 
         const res = await fetch('/api/game?action=sync', {
           method: 'POST',
@@ -98,12 +73,12 @@ export default function App() {
         });
 
         if (!res.ok) {
-          throw new Error(`Server error: ${res.status}`);
+          throw new Error(`Ошибка сервера: ${res.status}`);
         }
 
         const data = await res.json();
 
-        if (!mounted) return;
+        if (cancelled) return;
 
         if (data.user && data.user.id) {
           setUser(
@@ -117,50 +92,47 @@ export default function App() {
             }
           );
 
-          if (
-            typeof data.offlineEarnings === 'number' &&
-            data.offlineEarnings > 0
-          ) {
+          if (data.offlineEarnings > 0) {
             setOfflineEarnings(data.offlineEarnings);
           }
         } else {
           setError(data.error || 'Не удалось загрузить профиль');
         }
       } catch (e) {
-        if (!mounted) return;
-
         console.error('Ошибка sync:', e);
-        setError('Ошибка сети. Проверьте интернет.');
+
+        if (!cancelled) {
+          setError('Ошибка сети. Проверьте интернет и попробуйте снова.');
+        }
       } finally {
-        if (!mounted) return;
+        if (!cancelled) {
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, 1500 - elapsed);
 
-        const elapsed = Date.now() - startTime;
-        const minTime = 2500;
-        const remaining = Math.max(0, minTime - elapsed);
-
-        readyTimeout = setTimeout(() => {
-          if (mounted) setIsReady(true);
-        }, remaining);
+          readyTimeout = setTimeout(() => {
+            if (!cancelled) setIsReady(true);
+          }, remaining);
+        }
       }
     };
 
-    loadTimeout = setTimeout(() => {
-      void loadUser();
-    }, 100);
-
-    const syncInterval = setInterval(() => {
-      syncTaps();
-    }, 1000);
+    const loadTimeout = setTimeout(loadUser, 100);
+    const syncInterval = setInterval(() => syncTaps(), 1000);
 
     return () => {
-      mounted = false;
+      cancelled = true;
+      clearTimeout(loadTimeout);
+      clearTimeout(syncInterval);
 
-      if (loadTimeout) clearTimeout(loadTimeout);
-      if (readyTimeout) clearTimeout(readyTimeout);
-
-      clearInterval(syncInterval);
+      if (readyTimeout) {
+        clearTimeout(readyTimeout);
+      }
     };
   }, [setUser, syncTaps]);
+
+  const reloadApp = () => {
+    window.location.reload();
+  };
 
   return (
     <>
@@ -169,12 +141,10 @@ export default function App() {
       </AnimatePresence>
 
       {isReady && (error || !user) && (
-        <div className="app-error-screen">
+        <div className="app-error">
           <h2>Ошибка загрузки</h2>
           <p>{error || 'Пользователь не найден'}</p>
-          <button onClick={() => window.location.reload()}>
-            Перезагрузить
-          </button>
+          <button onClick={reloadApp}>Перезагрузить</button>
         </div>
       )}
 
@@ -190,9 +160,7 @@ export default function App() {
 
             <nav className="bottom-nav">
               <button
-                className={`nav-btn ${
-                  activeTab === 'race' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`}
                 onClick={() => setActiveTab('race')}
               >
                 <span className="nav-icon">🏁</span>
@@ -200,9 +168,7 @@ export default function App() {
               </button>
 
               <button
-                className={`nav-btn ${
-                  activeTab === 'city' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`}
                 onClick={() => setActiveTab('city')}
               >
                 <span className="nav-icon">🏙️</span>
@@ -210,9 +176,7 @@ export default function App() {
               </button>
 
               <button
-                className={`nav-btn ${
-                  activeTab === 'garage' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`}
                 onClick={() => setActiveTab('garage')}
               >
                 <span className="nav-icon">🔧</span>
@@ -220,9 +184,7 @@ export default function App() {
               </button>
 
               <button
-                className={`nav-btn ${
-                  activeTab === 'profile' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
                 onClick={() => setActiveTab('profile')}
               >
                 <span className="nav-icon">👤</span>
@@ -239,7 +201,7 @@ export default function App() {
                   exit={{ opacity: 0 }}
                 >
                   <motion.div
-                    className="offline-modal"
+                    className="offline-card"
                     initial={{ scale: 0.8, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
                   >
@@ -250,10 +212,7 @@ export default function App() {
                       +{offlineEarnings.toLocaleString('ru-RU')} 🪙
                     </div>
 
-                    <button
-                      className="offline-claim"
-                      onClick={() => setOfflineEarnings(0)}
-                    >
+                    <button onClick={() => setOfflineEarnings(0)}>
                       Забрать
                     </button>
                   </motion.div>

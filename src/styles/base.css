@@ -1,18 +1,10 @@
 
-/* --- БАЗОВЫЕ НАСТРОЙКИ --- */
-:root {
-  --nav-height: 60px;
-  --app-background: #000;
-  --panel-background: #111;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 html,
@@ -20,93 +12,92 @@ body,
 #root {
   width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: var(--app-background);
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  background: #000;
 }
 
 body {
   overscroll-behavior: none;
-  font-family: Arial, sans-serif;
 }
 
-/* --- ОБЕРТКА ИГРЫ --- */
+button {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .game-wrapper {
   position: fixed;
   inset: 0;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  background: var(--app-background);
+  background: #000;
   z-index: 10;
 }
 
-/* --- ОСНОВНОЙ КОНТЕЙНЕР --- */
 .app-container {
   position: relative;
-  isolation: isolate;
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--panel-background);
-  color: #fff;
+  background: #111;
+  isolation: isolate;
 }
 
-/* --- ОСНОВНОЙ КОНТЕНТ --- */
 .main-content {
   position: absolute;
-  inset: 0 0 calc(var(--nav-height) + var(--safe-bottom)) 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 60px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-top: 0;
-  overscroll-behavior: contain;
+  padding-top: 50px;
 }
 
-/* Экраны игры заполняют область контента */
 .main-content > div {
   position: absolute !important;
-  inset: 0;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* --- НИЖНЯЯ НАВИГАЦИЯ --- */
-.bottom-nav {
-  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  height: calc(var(--nav-height) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: #111;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 100;
 }
 
 .nav-btn {
   flex: 1;
   min-width: 0;
+  max-width: 100px;
   height: 100%;
-  min-height: 44px;
-  padding: 4px 2px;
+  position: relative;
   background: transparent;
   border: none;
   color: var(--text-muted, #888);
@@ -114,12 +105,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  position: relative;
+  gap: 4px;
   cursor: pointer;
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 .nav-btn.active {
@@ -128,54 +115,42 @@ body {
 
 .nav-icon {
   font-size: 24px;
-  line-height: 1.1;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", sans-serif;
+  line-height: 1;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
 .nav-label {
   font-size: 10px;
-  line-height: 1.2;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
 }
 
-/* --- ЭКРАН ОШИБКИ --- */
-.app-error-screen {
+.app-error {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  padding:
-    max(20px, var(--safe-top))
-    20px
-    max(20px, var(--safe-bottom));
+  z-index: 20000;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  overflow: auto;
+  padding: 24px;
+  text-align: center;
   background: #111;
   color: #fff;
-  text-align: center;
-  z-index: 10000;
 }
 
-.app-error-screen h2 {
+.app-error h2 {
   color: #ff4444;
-  font-size: 22px;
+  margin-bottom: 10px;
 }
 
-.app-error-screen p {
+.app-error p {
   color: #aaa;
-  overflow-wrap: anywhere;
+  margin-bottom: 20px;
 }
 
-.app-error-screen button {
-  min-height: 44px;
+.app-error button {
   padding: 12px 24px;
   background: #00ff41;
   color: #000;
@@ -183,75 +158,72 @@ body {
   border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
-  touch-action: manipulation;
 }
 
-/* --- ОКНО ОФЛАЙН-НАГРАДЫ --- */
 .offline-overlay {
   position: absolute;
   inset: 0;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  overflow-y: auto;
+  padding: 20px;
   background: rgba(0, 0, 0, 0.85);
-  z-index: 9999;
   transform: translateZ(0);
   isolation: isolate;
 }
 
-.offline-modal {
+.offline-card {
   width: 100%;
   max-width: 340px;
-  max-height: 100%;
-  overflow-y: auto;
   padding: 30px;
-  border-radius: 20px;
-  background: #1a1a1a;
   text-align: center;
+  background: #1a1a1a;
   border: 1px solid #ffd700;
+  border-radius: 20px;
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
 }
 
-.offline-modal h2 {
+.offline-card h2 {
   color: #ffd700;
-  margin-bottom: 10px;
+  margin: 0 0 10px;
 }
 
-.offline-modal p {
+.offline-card p {
   color: #ccc;
   margin-bottom: 20px;
 }
 
 .offline-amount {
+  margin-bottom: 25px;
+  color: #00ff41;
   font-size: 32px;
   font-weight: 700;
-  color: #00ff41;
-  margin-bottom: 25px;
-  overflow-wrap: anywhere;
   text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
 }
 
-.offline-claim {
+.offline-card button {
   width: 100%;
-  min-height: 48px;
-  padding: 14px 20px;
+  padding: 14px 40px;
   background: #00ff41;
   color: #000;
   border: none;
   border-radius: 12px;
-  font-weight: 700;
   font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
-  touch-action: manipulation;
 }
 
-/* --- КОМПАКТНЫЙ ВИД НА ПК --- */
+/* Компактное игровое окно на ПК */
 @media (min-width: 500px) {
   .app-container {
-    width: min(420px, calc(100vw - 24px));
-    height: min(800px, calc(100dvh - 32px));
+    flex: 0 0 auto;
+    width: 420px;
+    height: min(800px, 95vh);
+    height: min(800px, 95dvh);
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    aspect-ratio: 9 / 16;
     border: 4px solid #222;
     border-radius: 20px;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
@@ -259,66 +231,5 @@ body {
 
   .main-content {
     padding-top: 0;
-  }
-
-  .bottom-nav {
-    border-radius: 0 0 16px 16px;
-  }
-}
-
-/* --- УЗКИЕ ИЛИ НИЗКИЕ ЭКРАНЫ --- */
-@media (max-width: 360px) {
-  .nav-icon {
-    font-size: 21px;
-  }
-
-  .nav-label {
-    font-size: 9px;
-    letter-spacing: 0;
-  }
-
-  .offline-modal {
-    padding: 22px 18px;
-  }
-
-  .offline-amount {
-    font-size: 26px;
-  }
-}
-
-@media (max-height: 500px) and (orientation: landscape) {
-  .offline-modal {
-    padding: 16px;
-  }
-
-  .offline-modal h2 {
-    font-size: 20px;
-  }
-
-  .offline-modal p {
-    margin-bottom: 10px;
-  }
-
-  .offline-amount {
-    font-size: 24px;
-    margin-bottom: 12px;
-  }
-}
-
-/* --- УПРАВЛЕНИЕ КАСАНИЯМИ --- */
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:focus-visible {
-  outline: 2px solid var(--accent, #00e5ff);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
   }
 }
