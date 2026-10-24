@@ -254,3 +254,19 @@ button {
     min-height: 98px;
   }
 }
+
+button, 
+.nav-btn, 
+.city-card, 
+.race-card, 
+.inventory-item {
+  transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+}
+
+.nav-btn {
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.nav-btn:active {
+  transform: scale(0.92);
+}

@@ -57,6 +57,7 @@ export const CityScreen = () => {
             initial={{ opacity: 0, y: 10 }} 
             animate={{ opacity: 1, y: 0 }} 
             exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
           >
             <h2 className="city-title">ГОРОД</h2>
             
@@ -178,8 +179,19 @@ export const CityScreen = () => {
 
       <AnimatePresence>
         {showTopBalance && (
-          <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="leaderboard-modal">
+          <motion.div 
+            className="race-overlay" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="leaderboard-modal"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
               <div className="lb-header">
                 <h3>Топ Баланса</h3>
                 <button className="close-btn" onClick={() => setShowTopBalance(false)}>✕</button>
@@ -193,7 +205,7 @@ export const CityScreen = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -206,10 +218,11 @@ export const CityScreen = () => {
       {showCasino && <CasinoScreen onClose={() => setShowCasino(false)} />}
       {showPass && <PassScreen onClose={() => setShowPass(false)} />}
       {showClan && <ClanScreen onClose={() => setShowClan(false)} />} 
-      {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />} {/* <-- Рендер админки */}
+      {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />}
       {showShop && <ShopModal onClose={() => setShowShop(false)} />}
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
-        <CaseModal 
+      
+      <CaseModal 
         isOpen={activeCase !== null} 
         onClose={() => setActiveCase(null)} 
         caseType={activeCase || 'bronze'} 

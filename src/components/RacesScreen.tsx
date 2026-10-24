@@ -43,7 +43,6 @@ export const RacesScreen = () => {
         setRaceData(res.result);
         setStatus('result');
         
-        // Звук победы для бота (здесь переменная res)
         if (res.result.winner === 'player') {
           playSound('win');
         }
@@ -85,7 +84,6 @@ export const RacesScreen = () => {
         setRaceData(data.result);
         setStatus('result');
         
-        // Звук победы для PvP (здесь переменная data)
         if (data.result.winner === 'player') {
           playSound('win');
         }
@@ -165,11 +163,17 @@ export const RacesScreen = () => {
             style={{ 
               position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
               background: 'rgba(0,0,0,0.85)', zIndex: 1000, 
-              display: 'flex', alignItems: 'center', justifyContent: 'center' , transform: 'translateZ(0)', isolation: 'isolate'
+              display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'translateZ(0)', isolation: 'isolate'
             }}
           >
             {status === 'racing' && (
-              <div className="simulation-container">
+              <motion.div 
+                className="simulation-container"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              >
                 <h3 className="sim-title">Заезд 1000м...</h3>
                 <div className="sim-track">
                   <span className="sim-label">Соперник</span>
@@ -187,7 +191,7 @@ export const RacesScreen = () => {
                     </motion.div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {status === 'result' && raceData && (
@@ -195,6 +199,7 @@ export const RacesScreen = () => {
                 className="race-result-modal"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ type: 'spring', damping: 20 }}
               >
                 <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
@@ -218,8 +223,19 @@ export const RacesScreen = () => {
       {/* Модалка лидерборда */}
       <AnimatePresence>
         {showLeaderboard && (
-          <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="leaderboard-modal">
+          <motion.div 
+            className="race-overlay" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="leaderboard-modal"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
               <div className="lb-header">
                 <h3>Топ Рейтинга</h3>
                 <button className="close-btn" onClick={() => setShowLeaderboard(false)}>✕</button>
@@ -233,7 +249,7 @@ export const RacesScreen = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

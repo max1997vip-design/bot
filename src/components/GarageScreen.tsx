@@ -98,15 +98,18 @@ export const GarageScreen: React.FC = () => {
           </p>
         )}
 
-        {uniqueItems.map((itemId) => {
+        {uniqueItems.map((itemId, index) => {
           const item = ITEMS[itemId];
           const isEquipped = equipped[item.slot] === itemId;
           const sellPrice = SELL_PRICES[item.rarity];
           const isSelling = sellingId === itemId;
 
           return (
-            <div
+            <motion.div
               key={itemId}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.2, ease: 'easeOut' }}
               className={`inventory-item ${isEquipped ? 'equipped' : ''}`}
               style={{
                 borderColor: RARITY_COLORS[item.rarity],
@@ -207,7 +210,7 @@ export const GarageScreen: React.FC = () => {
                   Надето
                 </span>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -219,12 +222,15 @@ export const GarageScreen: React.FC = () => {
       <div className="garage-scene">
         <div className="garage-bg" />
 
-                {/* Переключатель автомобилей */}
+        {/* Переключатель автомобилей */}
         {ownedCars.length > 1 && (
-          <div
+          <motion.div
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             style={{
               position: 'absolute',
-              top: 'calc(20px + var(--tg-safe-top, 0px))', // Используем переменную
+              top: 'calc(20px + var(--tg-safe-top, 0px))',
               left: 0,
               width: '100%',
               display: 'flex',
@@ -234,8 +240,9 @@ export const GarageScreen: React.FC = () => {
             }}
           >
             {ownedCars.map((id) => (
-              <button
+              <motion.button
                 key={id}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => switchCar(id)}
                 style={{
                   padding: '8px 16px',
@@ -243,7 +250,7 @@ export const GarageScreen: React.FC = () => {
                   background:
                     id === activeCarId
                       ? 'rgba(255,255,255,0.2)'
-                      : 'rgba(0,0,0,0.5)',
+                      : 'rgba(0,0,0,0.65)', // Убран blur для предотвращения мерцания
                   border:
                     id === activeCarId
                       ? '2px solid #fff'
@@ -251,15 +258,14 @@ export const GarageScreen: React.FC = () => {
                   color: id === activeCarId ? '#fff' : '#888',
                   fontSize: '12px',
                   fontWeight: 'bold',
-                  backdropFilter: 'blur(5px)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  transition: 'background 0.2s, border-color 0.2s, color 0.2s',
                 }}
               >
                 {CARS[id]?.name || id}
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Машина — нажатие открывает двигатель */}
@@ -307,11 +313,11 @@ export const GarageScreen: React.FC = () => {
             left: '0%',
             width: '18%',
           }}
-          animate={{ scale: [1, 1.03, 1] }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: [1, 1.03, 1] }}
           transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'easeInOut',
+            opacity: { duration: 0.3 },
+            scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
           }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('tires')}
@@ -327,11 +333,11 @@ export const GarageScreen: React.FC = () => {
             left: '76%',
             width: '25%',
           }}
-          animate={{ scale: [1, 1.03, 1] }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: [1, 1.03, 1] }}
           transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'easeInOut',
+            opacity: { duration: 0.3 },
+            scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
           }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('suspension')}
@@ -347,11 +353,11 @@ export const GarageScreen: React.FC = () => {
             left: '6%',
             width: '32%',
           }}
-          animate={{ scale: [1, 1.03, 1] }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: [1, 1.03, 1] }}
           transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'easeInOut',
+            opacity: { duration: 0.3 },
+            scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
           }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('ecu')}
@@ -375,8 +381,9 @@ export const GarageScreen: React.FC = () => {
               exit={{ y: '100%' }}
               transition={{
                 type: 'spring',
-                damping: 25,
-                stiffness: 200,
+                damping: 30,
+                stiffness: 300,
+                mass: 0.8,
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -400,8 +407,9 @@ export const GarageScreen: React.FC = () => {
 
                     <div className="color-grid">
                       {PAINT_COLORS.map((color) => (
-                        <button
+                        <motion.button
                           key={color.id}
+                          whileTap={{ scale: 0.95 }}
                           className={`color-btn ${
                             carColor === color.id ? 'active' : ''
                           }`}
@@ -418,7 +426,7 @@ export const GarageScreen: React.FC = () => {
                           />
 
                           <span>{color.label}</span>
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>

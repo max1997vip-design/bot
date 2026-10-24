@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useGameStore } from './store/gameStore';
 import { RaceScreen } from './components/RaceScreen';
@@ -68,8 +67,7 @@ export default function App() {
 
       try {
         const initData = webApp.initData || '';
-        const startParam =
-          webApp.initDataUnsafe?.start_param || '';
+        const startParam = webApp.initDataUnsafe?.start_param || '';
 
         const res = await fetch('/api/game?action=sync', {
           method: 'POST',
@@ -106,17 +104,13 @@ export default function App() {
             setOfflineEarnings(data.offlineEarnings);
           }
         } else {
-          setError(
-            data.error || 'Не удалось загрузить профиль'
-          );
+          setError(data.error || 'Не удалось загрузить профиль');
         }
       } catch (e) {
         console.error('Ошибка sync:', e);
 
         if (!cancelled) {
-          setError(
-            'Ошибка сети. Проверьте интернет и попробуйте снова.'
-          );
+          setError('Ошибка сети. Проверьте интернет и попробуйте снова.');
         }
       } finally {
         if (!cancelled) {
@@ -137,13 +131,9 @@ export default function App() {
 
     return () => {
       cancelled = true;
-
       clearTimeout(loadTimeout);
       clearInterval(syncInterval);
-
-      if (readyTimeout) {
-        clearTimeout(readyTimeout);
-      }
+      if (readyTimeout) clearTimeout(readyTimeout);
     };
   }, [setUser, syncTaps]);
 
@@ -161,9 +151,7 @@ export default function App() {
         <div className="app-error">
           <h2>Ошибка загрузки</h2>
           <p>{error || 'Пользователь не найден'}</p>
-          <button onClick={reloadApp}>
-            Перезагрузить
-          </button>
+          <button onClick={reloadApp}>Перезагрузить</button>
         </div>
       )}
 
@@ -171,17 +159,34 @@ export default function App() {
         <div className="game-wrapper">
           <div className="app-container">
             <main className="main-content">
-              {activeTab === 'race' && <RaceScreen />}
-              {activeTab === 'city' && <CityScreen />}
-              {activeTab === 'garage' && <GarageScreen />}
-              {activeTab === 'profile' && <ProfileScreen />}
+              {/* ПЛАВНОЕ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  {activeTab === 'race' && <RaceScreen />}
+                  {activeTab === 'city' && <CityScreen />}
+                  {activeTab === 'garage' && <GarageScreen />}
+                  {activeTab === 'profile' && <ProfileScreen />}
+                </motion.div>
+              </AnimatePresence>
             </main>
 
             <nav className="bottom-nav">
               <button
-                className={`nav-btn ${
-                  activeTab === 'race' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`}
                 onClick={() => setActiveTab('race')}
               >
                 <span className="nav-icon">🏁</span>
@@ -189,9 +194,7 @@ export default function App() {
               </button>
 
               <button
-                className={`nav-btn ${
-                  activeTab === 'city' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`}
                 onClick={() => setActiveTab('city')}
               >
                 <span className="nav-icon">🏙️</span>
@@ -199,9 +202,7 @@ export default function App() {
               </button>
 
               <button
-                className={`nav-btn ${
-                  activeTab === 'garage' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`}
                 onClick={() => setActiveTab('garage')}
               >
                 <span className="nav-icon">🔧</span>
@@ -209,9 +210,7 @@ export default function App() {
               </button>
 
               <button
-                className={`nav-btn ${
-                  activeTab === 'profile' ? 'active' : ''
-                }`}
+                className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
                 onClick={() => setActiveTab('profile')}
               >
                 <span className="nav-icon">👤</span>
@@ -231,22 +230,14 @@ export default function App() {
                     className="offline-card"
                     initial={{ scale: 0.8, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.8, y: 20 }}
                   >
                     <h2>С возвращением!</h2>
-
-                    <p>
-                      Пока вас не было, механики заработали:
-                    </p>
-
+                    <p>Пока вас не было, механики заработали:</p>
                     <div className="offline-amount">
                       +{offlineEarnings.toLocaleString('ru-RU')} 🪙
                     </div>
-
-                    <button
-                      onClick={() => setOfflineEarnings(0)}
-                    >
-                      Забрать
-                    </button>
+                    <button onClick={() => setOfflineEarnings(0)}>Забрать</button>
                   </motion.div>
                 </motion.div>
               )}
