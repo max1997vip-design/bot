@@ -24,37 +24,47 @@ export default function App() {
   useEffect(() => {
     WebApp.ready();
 
-    const platform = WebApp.platform;
-    const isMobile = platform === 'ios' || platform === 'android';
+    
+const platform = WebApp.platform;
+const isMobile = platform === 'ios' || platform === 'android';
 
-    // Полный экран только на мобильных устройствах.
-    // На ПК не вызываем expand() и requestFullscreen().
-    if (isMobile) {
-      try {
-        WebApp.expand();
+if (isMobile) {
+  const webApp = WebApp as typeof WebApp & {
+    version?: string;
+    isFullscreen?: boolean;
+    requestFullscreen?: () => void;
+    disableVerticalSwipes?: () => void;
+    onEvent?: (event: string, callback: (...args: any[]) => void) => void;
+    offEvent?: (event: string, callback: (...args: any[]) => void) => void;
+  };
 
-        const webApp = WebApp as typeof WebApp & {
-          version?: string;
-          requestFullscreen?: () => void;
-          disableVerticalSwipes?: () => void;
-        };
+  // Разворачиваем Mini App на максимальную высоту.
+  WebApp.expand();
 
-        const version = Number(webApp.version || '0');
+  // Отключаем вертикальные свайпы, если API поддерживается.
+  try {
+    webApp.disableVerticalSwipes?.();
+  } catch (e) {
+    console.warn('Не удалось отключить вертикальные свайпы:', e);
+  }
 
-        if (
-          version >= 8.0 &&
-          typeof webApp.requestFullscreen === 'function'
-        ) {
-          webApp.requestFullscreen();
-        }
+  // Полноэкранный режим доступен начиная с версии 8.0.
+  const version = Number(webApp.version || '0');
 
-        if (typeof webApp.disableVerticalSwipes === 'function') {
-          webApp.disableVerticalSwipes();
-        }
-      } catch (e) {
-        console.warn('Не удалось включить полноэкранный режим:', e);
-      }
+  if (version >= 8 && typeof webApp.requestFullscreen === 'function') {
+    try {
+      webApp.requestFullscreen();
+    } catch (e) {
+      console.warn('Не удалось запросить полный экран:', e);
     }
+  } else {
+    console.warn(
+      'Полный экран не поддерживается этой версией Telegram Web App API.',
+      webApp.version
+    );
+  }
+  }
+
 
     let cancelled = false;
     let readyTimeout: ReturnType<typeof setTimeout> | undefined;

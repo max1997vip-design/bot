@@ -37,7 +37,7 @@ button {
   height: 100dvh;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   overflow: hidden;
   background: #000;
   z-index: 10;
@@ -216,6 +216,10 @@ button {
 
 /* Компактное игровое окно на ПК */
 @media (min-width: 500px) {
+  .game-wrapper {
+    align-items: center;
+  }
+
   .app-container {
     flex: 0 0 auto;
     width: 420px;
@@ -228,6 +232,7 @@ button {
     border-radius: 20px;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
   }
+
 
   .main-content {
     padding-top: 0;
