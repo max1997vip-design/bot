@@ -1,5 +1,4 @@
-
- // src/components/GarageScreen.tsx
+// src/components/GarageScreen.tsx
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -226,7 +225,7 @@ export const GarageScreen: React.FC = () => {
           <div
             style={{
               position: 'absolute',
-              top: 20,
+              top: '70px', // ИЗМЕНЕНО: Опущено вниз под кнопки Telegram
               left: 0,
               width: '100%',
               display: 'flex',

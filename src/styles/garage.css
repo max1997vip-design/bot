@@ -1,4 +1,3 @@
-
 /* Основной экран гаража */
 .garage-screen {
   position: absolute;
@@ -14,10 +13,10 @@
 
 .garage-scene {
   position: relative;
-  flex: 0 0 auto; /* Запрещаем сжиматься */
-  height: 100%; /* Растягиваем на всю доступную высоту */
+  flex: 0 0 auto;
+  height: 100%;
   aspect-ratio: 941 / 1672;
-  /* Убрали max-width и max-height, чтобы контейнер мог чуть-чуть вылезти за края */
+  max-height: 100%;
   overflow: hidden;
   isolation: isolate;
 }
