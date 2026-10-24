@@ -11,6 +11,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 type Tab = 'race' | 'city' | 'garage' | 'profile';
 
+type FullscreenWebApp = typeof WebApp & {
+  version?: string;
+  isFullscreen?: boolean;
+  requestFullscreen?: () => void;
+  disableVerticalSwipes?: () => void;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
+  onEvent?: (
+    event: string,
+    callback: (...args: any[]) => void
+  ) => void;
+  offEvent?: (
+    event: string,
+    callback: (...args: any[]) => void
+  ) => void;
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('race');
   const [isReady, setIsReady] = useState(false);
@@ -22,49 +39,71 @@ export default function App() {
   const user = useGameStore((state) => state.user);
 
   useEffect(() => {
-    WebApp.ready();
+    const webApp = WebApp as FullscreenWebApp;
 
-    
-const platform = WebApp.platform;
-const isMobile = platform === 'ios' || platform === 'android';
+    webApp.ready();
 
-if (isMobile) {
-  const webApp = WebApp as typeof WebApp & {
-    version?: string;
-    isFullscreen?: boolean;
-    requestFullscreen?: () => void;
-    disableVerticalSwipes?: () => void;
-    onEvent?: (event: string, callback: (...args: any[]) => void) => void;
-    offEvent?: (event: string, callback: (...args: any[]) => void) => void;
-  };
+    const platform = webApp.platform;
+    const isMobile = platform === 'ios' || platform === 'android';
 
-  // Разворачиваем Mini App на максимальную высоту.
-  WebApp.expand();
+    const handleFullscreenChanged = () => {
+      console.info(
+        '[Telegram] Полноэкранный режим:',
+        webApp.isFullscreen ? 'включён' : 'выключен'
+      );
+    };
 
-  // Отключаем вертикальные свайпы, если API поддерживается.
-  try {
-    webApp.disableVerticalSwipes?.();
-  } catch (e) {
-    console.warn('Не удалось отключить вертикальные свайпы:', e);
-  }
+    const handleFullscreenFailed = (event: any) => {
+      console.warn(
+        '[Telegram] Не удалось включить полный экран:',
+        event?.error || 'Причина не указана'
+      );
+    };
 
-  // Полноэкранный режим доступен начиная с версии 8.0.
-  const version = Number(webApp.version || '0');
+    if (isMobile) {
+      try {
+        webApp.setHeaderColor?.('#000000');
+        webApp.setBackgroundColor?.('#000000');
 
-  if (version >= 8 && typeof webApp.requestFullscreen === 'function') {
-    try {
-      webApp.requestFullscreen();
-    } catch (e) {
-      console.warn('Не удалось запросить полный экран:', e);
+        // Сначала разворачиваем окно Telegram.
+        webApp.expand();
+
+        webApp.disableVerticalSwipes?.();
+
+        // Полный экран поддерживается начиная с версии API 8.0.
+        const version = Number(webApp.version || '0');
+
+        if (
+          version >= 8 &&
+          typeof webApp.requestFullscreen === 'function'
+        ) {
+          webApp.onEvent?.(
+            'fullscreenChanged',
+            handleFullscreenChanged
+          );
+
+          webApp.onEvent?.(
+            'fullscreenFailed',
+            handleFullscreenFailed
+          );
+
+          if (!webApp.isFullscreen) {
+            webApp.requestFullscreen();
+          }
+        } else {
+          console.warn(
+            '[Telegram] API полного экрана недоступен.',
+            'Версия:',
+            webApp.version
+          );
+        }
+      } catch (e) {
+        console.error(
+          '[Telegram] Ошибка настройки экрана:',
+          e
+        );
+      }
     }
-  } else {
-    console.warn(
-      'Полный экран не поддерживается этой версией Telegram Web App API.',
-      webApp.version
-    );
-  }
-  }
-
 
     let cancelled = false;
     let readyTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -73,13 +112,19 @@ if (isMobile) {
       const startTime = Date.now();
 
       try {
-        const initData = WebApp.initData || '';
-        const startParam = WebApp.initDataUnsafe?.start_param || '';
+        const initData = webApp.initData || '';
+        const startParam =
+          webApp.initDataUnsafe?.start_param || '';
 
         const res = await fetch('/api/game?action=sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData, startParam }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            initData,
+            startParam,
+          }),
         });
 
         if (!res.ok) {
@@ -106,13 +151,17 @@ if (isMobile) {
             setOfflineEarnings(data.offlineEarnings);
           }
         } else {
-          setError(data.error || 'Не удалось загрузить профиль');
+          setError(
+            data.error || 'Не удалось загрузить профиль'
+          );
         }
       } catch (e) {
         console.error('Ошибка sync:', e);
 
         if (!cancelled) {
-          setError('Ошибка сети. Проверьте интернет и попробуйте снова.');
+          setError(
+            'Ошибка сети. Проверьте интернет и попробуйте снова.'
+          );
         }
       } finally {
         if (!cancelled) {
@@ -120,7 +169,9 @@ if (isMobile) {
           const remaining = Math.max(0, 1500 - elapsed);
 
           readyTimeout = setTimeout(() => {
-            if (!cancelled) setIsReady(true);
+            if (!cancelled) {
+              setIsReady(true);
+            }
           }, remaining);
         }
       }
@@ -131,11 +182,24 @@ if (isMobile) {
 
     return () => {
       cancelled = true;
+
       clearTimeout(loadTimeout);
-      clearTimeout(syncInterval);
+      clearInterval(syncInterval);
 
       if (readyTimeout) {
         clearTimeout(readyTimeout);
+      }
+
+      if (isMobile) {
+        webApp.offEvent?.(
+          'fullscreenChanged',
+          handleFullscreenChanged
+        );
+
+        webApp.offEvent?.(
+          'fullscreenFailed',
+          handleFullscreenFailed
+        );
       }
     };
   }, [setUser, syncTaps]);
@@ -154,7 +218,9 @@ if (isMobile) {
         <div className="app-error">
           <h2>Ошибка загрузки</h2>
           <p>{error || 'Пользователь не найден'}</p>
-          <button onClick={reloadApp}>Перезагрузить</button>
+          <button onClick={reloadApp}>
+            Перезагрузить
+          </button>
         </div>
       )}
 
@@ -170,7 +236,9 @@ if (isMobile) {
 
             <nav className="bottom-nav">
               <button
-                className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`}
+                className={`nav-btn ${
+                  activeTab === 'race' ? 'active' : ''
+                }`}
                 onClick={() => setActiveTab('race')}
               >
                 <span className="nav-icon">🏁</span>
@@ -178,7 +246,9 @@ if (isMobile) {
               </button>
 
               <button
-                className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`}
+                className={`nav-btn ${
+                  activeTab === 'city' ? 'active' : ''
+                }`}
                 onClick={() => setActiveTab('city')}
               >
                 <span className="nav-icon">🏙️</span>
@@ -186,7 +256,9 @@ if (isMobile) {
               </button>
 
               <button
-                className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`}
+                className={`nav-btn ${
+                  activeTab === 'garage' ? 'active' : ''
+                }`}
                 onClick={() => setActiveTab('garage')}
               >
                 <span className="nav-icon">🔧</span>
@@ -194,7 +266,9 @@ if (isMobile) {
               </button>
 
               <button
-                className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
+                className={`nav-btn ${
+                  activeTab === 'profile' ? 'active' : ''
+                }`}
                 onClick={() => setActiveTab('profile')}
               >
                 <span className="nav-icon">👤</span>
@@ -216,13 +290,18 @@ if (isMobile) {
                     animate={{ scale: 1, y: 0 }}
                   >
                     <h2>С возвращением!</h2>
-                    <p>Пока вас не было, механики заработали:</p>
+
+                    <p>
+                      Пока вас не было, механики заработали:
+                    </p>
 
                     <div className="offline-amount">
                       +{offlineEarnings.toLocaleString('ru-RU')} 🪙
                     </div>
 
-                    <button onClick={() => setOfflineEarnings(0)}>
+                    <button
+                      onClick={() => setOfflineEarnings(0)}
+                    >
                       Забрать
                     </button>
                   </motion.div>
