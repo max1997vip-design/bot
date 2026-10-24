@@ -34,7 +34,6 @@ export const CityScreen = () => {
   const [showShop, setShowShop] = useState(false);
   const [activeCase, setActiveCase] = useState<'bronze' | 'silver' | 'gold' | null>(null);
 
-  // Получаем юзера и флаги
   const user = useGameStore((s) => s.user);
   const features = user?.features || {};
 
@@ -54,7 +53,7 @@ export const CityScreen = () => {
           <motion.div 
             key="city-menu" 
             className="city-hub" 
-            initial={{ opacity: 0, y: 10 }} 
+            initial={false} // Убрана анимация появления при входе на вкладку
             animate={{ opacity: 1, y: 0 }} 
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
@@ -150,7 +149,6 @@ export const CityScreen = () => {
                 </div>
               )}
 
-              {/* Кнопка Админки (видна только админу) */}
               {user?.isAdmin && (
                 <div className="city-card" onClick={() => setShowAdmin(true)} style={{ border: '1px solid #ff4444', background: 'rgba(255,68,68,0.1)' }}>
                   <span className="city-icon">🛠️</span>
@@ -227,7 +225,6 @@ export const CityScreen = () => {
         onClose={() => setActiveCase(null)} 
         caseType={activeCase || 'bronze'} 
       />
-
     </div>
   );
 };

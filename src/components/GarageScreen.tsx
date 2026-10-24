@@ -224,10 +224,7 @@ export const GarageScreen: React.FC = () => {
 
         {/* Переключатель автомобилей */}
         {ownedCars.length > 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+          <div
             style={{
               position: 'absolute',
               top: 'calc(20px + var(--tg-safe-top, 0px))',
@@ -250,7 +247,7 @@ export const GarageScreen: React.FC = () => {
                   background:
                     id === activeCarId
                       ? 'rgba(255,255,255,0.2)'
-                      : 'rgba(0,0,0,0.65)', // Убран blur для предотвращения мерцания
+                      : 'rgba(0,0,0,0.65)',
                   border:
                     id === activeCarId
                       ? '2px solid #fff'
@@ -265,7 +262,7 @@ export const GarageScreen: React.FC = () => {
                 {CARS[id]?.name || id}
               </motion.button>
             ))}
-          </motion.div>
+          </div>
         )}
 
         {/* Машина — нажатие открывает двигатель */}
@@ -313,11 +310,11 @@ export const GarageScreen: React.FC = () => {
             left: '0%',
             width: '18%',
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: [1, 1.03, 1] }}
+          animate={{ scale: [1, 1.03, 1] }}
           transition={{
-            opacity: { duration: 0.3 },
-            scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
+            repeat: Infinity,
+            duration: 2,
+            ease: 'easeInOut',
           }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('tires')}
@@ -333,11 +330,11 @@ export const GarageScreen: React.FC = () => {
             left: '76%',
             width: '25%',
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: [1, 1.03, 1] }}
+          animate={{ scale: [1, 1.03, 1] }}
           transition={{
-            opacity: { duration: 0.3 },
-            scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
+            repeat: Infinity,
+            duration: 2,
+            ease: 'easeInOut',
           }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('suspension')}
@@ -353,11 +350,11 @@ export const GarageScreen: React.FC = () => {
             left: '6%',
             width: '32%',
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: [1, 1.03, 1] }}
+          animate={{ scale: [1, 1.03, 1] }}
           transition={{
-            opacity: { duration: 0.3 },
-            scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
+            repeat: Infinity,
+            duration: 2,
+            ease: 'easeInOut',
           }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('ecu')}

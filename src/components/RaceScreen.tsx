@@ -16,7 +16,6 @@ interface FloatingText {
   value: number;
 }
 
-// 👇 ВЫНОСИМ МАШИНУ В ОТДЕЛЬНЫЙ КОМПОНЕНТ (чтобы она не ререндерилась от баланса)
 const CarClicker = memo(({ 
   isFlashing, 
   isRejected, 
@@ -32,7 +31,7 @@ const CarClicker = memo(({
     <motion.div
       className={`race-car-container ${isRejected ? 'rejected' : ''}`}
       onPointerDown={onPointerDown}
-      style={carStyles}
+      style={{ ...carStyles, willChange: 'transform' }} // 👈 GPU Ускорение
       whileTap={{ scale: 0.96 }}
     >
       <div className="race-car-wrapper">
@@ -41,11 +40,15 @@ const CarClicker = memo(({
           alt={activeCar.name}
           className="race-car-image"
           draggable={false}
+          loading="eager"        // 👈 Загружать сразу
+          decoding="sync"        // 👈 Декодировать в основном потоке (мгновенно)
           style={{
             filter: isOriginal 
               ? 'drop-shadow(0 15px 15px rgba(0,0,0,0.6))' 
               : 'grayscale(1) brightness(1.1) contrast(1.2) drop-shadow(0 15px 15px rgba(0,0,0,0.6))',
             transition: 'filter 0.4s ease',
+            transform: 'translateZ(0)', // 👈 Выносим на отдельный слой видеокарты
+            backfaceVisibility: 'hidden',
           }}
         />
         {!isOriginal && (
@@ -69,7 +72,7 @@ export function RaceScreen() {
   const textIdCounter = useRef(0);
 
   const tap = useGameStore((s) => s.tap);
-  const balance = useGameStore((s) => s.balance); // Баланс обновляется, но машина теперь в memo
+  const balance = useGameStore((s) => s.balance); 
   const carColor = useGameStore((s) => s.carColor);
   
   const user = useGameStore((s) => s.user);
@@ -136,7 +139,6 @@ export function RaceScreen() {
       <div className="race-background" />
       <div className="race-background-overlay" />
 
-      {/* Всплывающие цифры (оптимизированные) */}
       <AnimatePresence>
         {floatingTexts.map(text => (
           <motion.div
@@ -147,8 +149,8 @@ export function RaceScreen() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             style={{
               position: 'fixed',
-              left: text.x,        // 👈 Позиция через left/top
-              top: text.y,         // 👈 А анимация через y (transform)
+              left: text.x,
+              top: text.y,
               color: '#FFD700',
               fontSize: '24px',
               fontWeight: '900',
@@ -156,7 +158,7 @@ export function RaceScreen() {
               pointerEvents: 'none',
               zIndex: 9999,
               userSelect: 'none',
-              transform: 'translate(-50%, -50%)' // 👈 Центрирование
+              transform: 'translate(-50%, -50%)'
             }}
           >
             +{text.value} 🪙
@@ -179,7 +181,6 @@ export function RaceScreen() {
         </div>
       </div>
 
-      {/* МАШИНА (изолирована) */}
       <CarClicker 
         isFlashing={isFlashing}
         isRejected={isRejected}
@@ -223,7 +224,7 @@ export function RaceScreen() {
               position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
               background: 'rgba(0,0,0,0.85)', zIndex: 1000,
               display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-              transform: 'translateZ(0)', isolation: 'isolate' // 👈 Защита слоя
+              transform: 'translateZ(0)', isolation: 'isolate'
             }}
           >
             <motion.div
@@ -242,7 +243,6 @@ export function RaceScreen() {
                 borderBottom: 'none',
               }}
             >
-              {/* Твой код улучшений без изменений... */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ color: 'white', margin: 0, fontSize: '22px' }}>⚡ Улучшения</h2>
                 <button

@@ -5,6 +5,7 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { GarageScreen } from './components/GarageScreen';
 import { CityScreen } from './components/CityScreen';
 import { LoadingScreen } from './components/LoadingScreen';
+import { CARS } from './config/cars'; // 👈 Импортируем конфиг машин для предзагрузки
 import WebApp from '@twa-dev/sdk';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,6 +30,27 @@ export default function App() {
   const syncTaps = useGameStore((state) => state.syncTaps);
   const user = useGameStore((state) => state.user);
 
+  // ПРЕДЗАГРУЗКА ВСЕХ КАРТИНОК
+  useEffect(() => {
+    const imagesToPreload = [
+      '/images/bg-garage.jpg',
+      '/images/bg-night-city.jpg',
+      '/images/tires.png',
+      '/images/suspension.png',
+      '/images/computer.png',
+    ];
+
+    // Добавляем все картинки машин из конфига
+    Object.values(CARS).forEach((car: any) => {
+      if (car.image) imagesToPreload.push(car.image);
+    });
+
+    imagesToPreload.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   useEffect(() => {
     const webApp = WebApp as FullscreenWebApp;
 
@@ -40,7 +62,6 @@ export default function App() {
     const platform = webApp.platform;
     const isMobile = platform === 'ios' || platform === 'android';
 
-    // ДИНАМИЧЕСКИЙ ОТСТУП: Управляем через JS, а не через CSS
     if (isMobile) {
       document.documentElement.style.setProperty('--tg-safe-top', 'max(85px, env(safe-area-inset-top, 0px))');
     } else {
@@ -166,14 +187,13 @@ export default function App() {
         <div className="game-wrapper">
           <div className="app-container">
             <main className="main-content">
-              {/* ПЛАВНОЕ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК */}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  initial={{ opacity: 0 }} // 👈 Убрали y: 10 (чтобы не дергался лейаут)
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }} // 👈 Сделали чуть быстрее
                   style={{
                     position: 'absolute',
                     inset: 0,
