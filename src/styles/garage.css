@@ -1,23 +1,38 @@
 /* src/styles/garage.css */
 
 .garage-screen {
-  position: absolute; /* Должно быть absolute! */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Единая игровая сцена с пропорциями 21:40 */
+.garage-scene {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100%, 52.5dvh);
+  aspect-ratio: 21 / 40;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .garage-bg {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   background-image: url('/images/bg-garage.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 1;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* --- Машина --- */
