@@ -270,3 +270,10 @@ button,
 .nav-btn:active {
   transform: scale(0.92);
 }
+
+[class*="overlay"], 
+[class*="modal-screen"], 
+[class*="fullscreen"],
+.referral-overlay {
+  padding-top: var(--tg-safe-top, 0px) !important;
+}

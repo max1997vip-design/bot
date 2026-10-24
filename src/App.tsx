@@ -30,7 +30,7 @@ export default function App() {
   const syncTaps = useGameStore((state) => state.syncTaps);
   const user = useGameStore((state) => state.user);
 
-  // ПРЕДЗАГРУЗКА ВСЕХ КАРТИНОК
+    // Безопасная предзагрузка (чтобы Vercel не ругался на типы)
   useEffect(() => {
     const imagesToPreload = [
       '/images/bg-garage.jpg',
@@ -40,10 +40,14 @@ export default function App() {
       '/images/computer.png',
     ];
 
-    // Добавляем все картинки машин из конфига
-    Object.values(CARS).forEach((car: any) => {
-      if (car.image) imagesToPreload.push(car.image);
-    });
+    // Безопасно проверяем, что CARS существует и перебираем его
+    if (CARS) {
+      Object.values(CARS).forEach((car: any) => {
+        if (car && car.image) {
+          imagesToPreload.push(car.image);
+        }
+      });
+    }
 
     imagesToPreload.forEach((src) => {
       const img = new Image();
