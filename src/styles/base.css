@@ -225,8 +225,7 @@ button {
   .app-container {
     flex: 0 0 auto;
     width: 420px;
-    height: min(800px, 95vh);
-    height: min(800px, 95dvh);
+    height: 746px;
     max-width: calc(100vw - 24px);
     max-height: calc(100dvh - 24px);
     aspect-ratio: 9 / 16;
