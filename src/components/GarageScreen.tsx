@@ -218,7 +218,15 @@ export const GarageScreen: React.FC = () => {
 
   return (
     <div className="garage-screen">
-      {/* Единая сцена: фон, машина и интерактивные предметы */}
+     <div
+  style={{
+    position: 'absolute',
+    inset: 0,
+    border: '3px solid red',
+    zIndex: 9999,
+    pointerEvents: 'none',
+  }}
+/>
       <div className="garage-scene">
         <div className="garage-bg" />
 
