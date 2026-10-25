@@ -28,8 +28,6 @@ const CarClicker = memo(({
 }: any) => {
   const activeColorHex = PAINT_COLORS.find((c: any) => c.id === carColor)?.hex || 'transparent';
   const isOriginal = carColor === 'original';
-
-  // Проверяем, является ли картинка заглушкой или отсутствует
   const isPlaceholder = !activeCar.image || activeCar.image.includes('placeholder');
 
   return (
@@ -39,16 +37,12 @@ const CarClicker = memo(({
       style={{ ...carStyles, willChange: 'transform' }}
       whileTap={{ scale: 0.96 }}
     >
-      {/* 👇 Обертка для картинки с заглушкой */}
       <div className="race-car-wrapper" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         
-        {/* Иконка-заглушка (видна, если нет картинки) */}
+        {/* Иконка-заглушка */}
         <span style={{ 
-          fontSize: '120px', 
-          position: 'absolute', 
-          zIndex: 0,
-          opacity: isPlaceholder ? 1 : 0,
-          transition: 'opacity 0.3s ease'
+          fontSize: '120px', position: 'absolute', zIndex: 0,
+          opacity: isPlaceholder ? 1 : 0, transition: 'opacity 0.3s ease'
         }}>
           🏎️
         </span>
@@ -69,8 +63,7 @@ const CarClicker = memo(({
             transition: 'filter 0.4s ease, opacity 0.3s ease',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden',
-            position: 'relative',
-            zIndex: 1
+            position: 'relative', zIndex: 1
           }}
         />
         {!isOriginal && !isPlaceholder && (
@@ -110,7 +103,6 @@ export function RaceScreen() {
   const xpNextLevel = Math.pow(level, 2) * 50;
   const progress = Math.min(100, ((totalEarned - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100);
 
-  // 👇 ИЗМЕНЕНО НА ВАЗ 2107 (защита от undefined)
   const activeCarId = user?.activeCarId || 'vaz-2107';
   const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
 
@@ -153,7 +145,6 @@ export function RaceScreen() {
     }
   }, [tap, clickLevel]);
 
-  // 👇 Безопасное получение координат фар (чтобы не упало на новых машинах)
   const carStyles = {
     '--left-hl-x': activeCar.leftHeadlight?.x || '30%',
     '--left-hl-y': activeCar.leftHeadlight?.y || '50%',
@@ -162,161 +153,163 @@ export function RaceScreen() {
   } as React.CSSProperties;
 
   return (
-    <div className="race-screen" style={{ position: 'relative', overflow: 'hidden' }}>
-      <div className="race-background" />
-      <div className="race-background-overlay" />
+    <div className="race-screen">
+      {/* 👇 Оборачиваем в сцену с фиксированными пропорциями 9:16 */}
+      <div className="race-scene">
+        <div className="race-background" />
+        <div className="race-background-overlay" />
 
-      <AnimatePresence>
-        {floatingTexts.map(text => (
-          <motion.div
-            key={text.id}
-            initial={{ opacity: 1, y: 0, scale: 0.8 }}
-            animate={{ opacity: 0, y: -120, scale: 1.2 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            style={{
-              position: 'fixed',
-              left: text.x,
-              top: text.y,
-              color: '#FFD700',
-              fontSize: '24px',
-              fontWeight: '900',
-              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-              pointerEvents: 'none',
-              zIndex: 9999,
-              userSelect: 'none',
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-            +{text.value} 🪙
-          </motion.div>
-        ))}
-      </AnimatePresence>
-
-      <div className="race-top-ui">
-        <div className="race-hud">
-          <span className="race-hud-coins">{Math.floor(balance).toLocaleString('ru-RU')}</span>
-        </div>
-        <div className="race-level-bar-wrapper">
-          <div className="race-level-text">
-            <span>LVL {level}</span>
-            <span>{Math.floor(progress)}%</span>
-          </div>
-          <div className="race-xp-bar">
-            <div className="race-xp-fill" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      </div>
-
-      <CarClicker 
-        isFlashing={isFlashing}
-        isRejected={isRejected}
-        carColor={carColor}
-        activeCar={activeCar}
-        carStyles={carStyles}
-        onPointerDown={handlePointerDown}
-      />
-
-      {/* Кнопка заданий */}
-      <button
-        onClick={() => setShowQuests(true)}
-        style={{
-          position: 'absolute', bottom: '260px', left: '20px', zIndex: 100,
-          background: 'linear-gradient(135deg, #ff8c00, #ff4500)', border: 'none',
-          borderRadius: '50%', width: '60px', height: '60px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(255,140,0,0.4)',
-        }}
-      >
-        📋
-      </button>
-
-      {/* Кнопка пропуска */}
-      <button
-        onClick={() => setShowPass(true)}
-        style={{
-          position: 'absolute', bottom: '330px', left: '20px', zIndex: 100,
-          background: 'linear-gradient(135deg, #00bfff, #0055ff)', border: 'none',
-          borderRadius: '50%', width: '60px', height: '60px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,191,255,0.4)',
-        }}
-      >
-        🏁
-      </button>
-
-      {/* Кнопка улучшений */}
-      <button
-        onClick={() => setShowUpgrades(true)}
-        style={{
-          position: 'absolute', bottom: '260px', right: '20px', zIndex: 100,
-          background: 'linear-gradient(135deg, #00FF41, #00bfff)', border: 'none',
-          borderRadius: '50%', width: '60px', height: '60px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,255,65,0.4)',
-        }}
-      >
-        ⚡
-      </button>
-
-      {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
-      {showPass && <PassScreen onClose={() => setShowPass(false)} />}
-
-      {/* Модалка улучшений кликера */}
-      <AnimatePresence>
-        {showUpgrades && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setShowUpgrades(false)}
-            style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(0,0,0,0.85)', zIndex: 1000,
-              display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-              transform: 'translateZ(0)', isolation: 'isolate'
-            }}
-          >
+        <AnimatePresence>
+          {floatingTexts.map(text => (
             <motion.div
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              onClick={(e) => e.stopPropagation()}
+              key={text.id}
+              initial={{ opacity: 1, y: 0, scale: 0.8 }}
+              animate={{ opacity: 0, y: -120, scale: 1.2 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               style={{
-                background: '#1a1a1a', borderRadius: '24px 24px 0 0',
-                width: '100%', maxWidth: '500px', padding: '25px 20px 40px 20px',
-                border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none',
+                position: 'fixed',
+                left: text.x,
+                top: text.y,
+                color: '#FFD700',
+                fontSize: '24px',
+                fontWeight: '900',
+                textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                pointerEvents: 'none',
+                zIndex: 9999,
+                userSelect: 'none',
+                transform: 'translate(-50%, -50%)'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ color: 'white', margin: 0, fontSize: '22px' }}>⚡ Улучшения</h2>
-                <button onClick={() => setShowUpgrades(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: 'pointer' }}>✕</button>
-              </div>
-
-              <div style={{ background: 'rgba(0,255,65,0.08)', border: '1px solid rgba(0,255,65,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '36px' }}>💪</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Сила клика</div>
-                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 монета за клик</div>
-                  <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
-                </div>
-                <button onClick={() => { upgradeClicker(); playSound('coin'); }} disabled={balance < clickCost} style={{ background: balance >= clickCost ? '#00FF41' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-                  {clickCost.toLocaleString('ru-RU')} 🪙
-                </button>
-              </div>
-
-              <div style={{ background: 'rgba(0,191,255,0.08)', border: '1px solid rgba(0,191,255,0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '36px' }}>⏱️</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Оффлайн-доход</div>
-                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+500 монет/час</div>
-                  <div style={{ color: '#00bfff', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {offlineLevel}</div>
-                </div>
-                <button onClick={() => { upgradeOffline(); playSound('coin'); }} disabled={balance < offlineCost} style={{ background: balance >= offlineCost ? '#00bfff' : '#333', color: balance >= offlineCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= offlineCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-                  {offlineCost.toLocaleString('ru-RU')} 🪙
-                </button>
-              </div>
+              +{text.value} 🪙
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </AnimatePresence>
+
+        <div className="race-top-ui">
+          <div className="race-hud">
+            <span className="race-hud-coins">{Math.floor(balance).toLocaleString('ru-RU')}</span>
+          </div>
+          <div className="race-level-bar-wrapper">
+            <div className="race-level-text">
+              <span>LVL {level}</span>
+              <span>{Math.floor(progress)}%</span>
+            </div>
+            <div className="race-xp-bar">
+              <div className="race-xp-fill" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        </div>
+
+        <CarClicker 
+          isFlashing={isFlashing}
+          isRejected={isRejected}
+          carColor={carColor}
+          activeCar={activeCar}
+          carStyles={carStyles}
+          onPointerDown={handlePointerDown}
+        />
+
+        {/* Кнопка заданий */}
+        <button
+          onClick={() => setShowQuests(true)}
+          style={{
+            position: 'absolute', bottom: '32%', left: '5%', zIndex: 100,
+            background: 'linear-gradient(135deg, #ff8c00, #ff4500)', border: 'none',
+            borderRadius: '50%', width: '60px', height: '60px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(255,140,0,0.4)',
+          }}
+        >
+          📋
+        </button>
+
+        {/* Кнопка пропуска */}
+        <button
+          onClick={() => setShowPass(true)}
+          style={{
+            position: 'absolute', bottom: '42%', left: '5%', zIndex: 100,
+            background: 'linear-gradient(135deg, #00bfff, #0055ff)', border: 'none',
+            borderRadius: '50%', width: '60px', height: '60px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,191,255,0.4)',
+          }}
+        >
+          🏁
+        </button>
+
+        {/* Кнопка улучшений */}
+        <button
+          onClick={() => setShowUpgrades(true)}
+          style={{
+            position: 'absolute', bottom: '32%', right: '5%', zIndex: 100,
+            background: 'linear-gradient(135deg, #00FF41, #00bfff)', border: 'none',
+            borderRadius: '50%', width: '60px', height: '60px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,255,65,0.4)',
+          }}
+        >
+          ⚡
+        </button>
+
+        {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
+        {showPass && <PassScreen onClose={() => setShowPass(false)} />}
+
+        <AnimatePresence>
+          {showUpgrades && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowUpgrades(false)}
+              style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', zIndex: 1000,
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                transform: 'translateZ(0)', isolation: 'isolate'
+              }}
+            >
+              <motion.div
+                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: '#1a1a1a', borderRadius: '24px 24px 0 0',
+                  width: '100%', maxWidth: '500px', padding: '25px 20px 40px 20px',
+                  border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ color: 'white', margin: 0, fontSize: '22px' }}>⚡ Улучшения</h2>
+                  <button onClick={() => setShowUpgrades(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+                </div>
+
+                <div style={{ background: 'rgba(0,255,65,0.08)', border: '1px solid rgba(0,255,65,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div style={{ fontSize: '36px' }}>💪</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Сила клика</div>
+                    <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 монета за клик</div>
+                    <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
+                  </div>
+                  <button onClick={() => { upgradeClicker(); playSound('coin'); }} disabled={balance < clickCost} style={{ background: balance >= clickCost ? '#00FF41' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                    {clickCost.toLocaleString('ru-RU')} 🪙
+                  </button>
+                </div>
+
+                <div style={{ background: 'rgba(0,191,255,0.08)', border: '1px solid rgba(0,191,255,0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div style={{ fontSize: '36px' }}>⏱️</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Оффлайн-доход</div>
+                    <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+500 монет/час</div>
+                    <div style={{ color: '#00bfff', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {offlineLevel}</div>
+                  </div>
+                  <button onClick={() => { upgradeOffline(); playSound('coin'); }} disabled={balance < offlineCost} style={{ background: balance >= offlineCost ? '#00bfff' : '#333', color: balance >= offlineCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= offlineCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                    {offlineCost.toLocaleString('ru-RU')} 🪙
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

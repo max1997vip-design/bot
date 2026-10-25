@@ -1,15 +1,24 @@
 /* --- ЭКРАН КЛИКЕРА --- */
 .race-screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: #090a0c; /* Черный фон по бокам, если экран шире 9:16 */
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start; 
-  height: 100%; 
-  width: 100%;
-  padding-top: calc(30px + var(--tg-safe-top)); 
-  box-sizing: border-box;
-  position: relative; 
-  overflow: hidden; 
+  justify-content: center;
+}
+
+/* 👇 Новый контейнер сцены, как в гараже */
+.race-scene {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  aspect-ratio: 9 / 16; /* Фиксируем пропорции */
+  max-height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 /* --- ФОН --- */
@@ -17,7 +26,7 @@
   position: absolute;
   inset: 0;
   background-image: url('/images/bg-night-city.jpg');
-  background-size: 100% 100%; /* Растягиваем на 100%, чтобы не было зума */
+  background-size: 100% 100%; /* Теперь безопасно, так как сцена 9:16 */
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0; 
@@ -44,10 +53,12 @@
   align-items: center;
   gap: 8px;
   z-index: 2;
-  position: relative;
+  position: absolute; /* Привязываем к верху сцены */
+  top: calc(30px + var(--tg-safe-top, 0px));
   width: 100%;
   max-width: 280px;
-  margin-bottom: 20px; 
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* HUD над машиной */
@@ -121,7 +132,7 @@
 /* --- КОНТЕЙНЕР МАШИНЫ --- */
 .race-car-container {
   position: absolute;
-  bottom: 14%; /* 👈 Привязка к низу в процентах (одинаково везде) */
+  bottom: 14%; /* Одинаково везде */
   left: 50%;
   transform: translateX(-50%);
   display: inline-block;
