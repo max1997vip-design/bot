@@ -179,7 +179,7 @@ export default function App() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
-                  initial={false} // 👈 Убрали initial opacity: 0, чтобы не было вспышки при загрузке
+                  initial={false}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15, ease: 'easeOut' }}
@@ -190,6 +190,7 @@ export default function App() {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
+                    overflow: 'hidden', // 👈 ВАЖНО: не даем контенту вылезти за пределы
                   }}
                 >
                   {activeTab === 'race' && <RaceScreen />}

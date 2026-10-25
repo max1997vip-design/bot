@@ -23,14 +23,14 @@ export const ProfileScreen = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
 
-  // Загружаем достижения при открытии профиля, чтобы посчитать бейдж
+  // Загружаем достижения при открытии профиля
   useEffect(() => {
     getAchievements();
   }, [getAchievements]);
 
   if (!user) {
     return (
-      <div className="profile-screen">
+      <div className="profile-screen" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="placeholder-screen">Загрузка профиля...</div>
       </div>
     );
@@ -43,7 +43,6 @@ export const ProfileScreen = () => {
     day: 'numeric', month: 'long', year: 'numeric',
   });
 
-  // 👇 Считаем, сколько достижений можно забрать прямо сейчас
   const unclaimedCount = achievementsList.filter(a => a.isCompleted && !a.isUnlocked).length;
 
   return (
@@ -52,8 +51,14 @@ export const ProfileScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      // 👇 Добавлен inline-style для скролла
-      style={{ overflowY: 'auto', height: '100%', paddingBottom: '100px' }}
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        flex: 1, 
+        minHeight: 0, // 👈 Важно для работы скролла во flex-контейнере
+        overflowY: 'auto', 
+        paddingBottom: '100px' 
+      }}
     >
       <div className="profile-header">
         <div className="avatar-wrapper">
@@ -111,7 +116,6 @@ export const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* Кнопка Достижений с бейджем */}
       <button
         className="profile-referral-btn"
         onClick={() => setShowAchievements(true)}
@@ -122,16 +126,9 @@ export const ProfileScreen = () => {
           <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
           {unclaimedCount > 0 && (
             <div style={{
-              background: '#ff4444',
-              color: '#fff',
-              fontSize: '11px',
-              fontWeight: 'bold',
-              padding: '2px 6px',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 10px rgba(255,68,68,0.5)'
+              background: '#ff4444', color: '#fff', fontSize: '11px', fontWeight: 'bold',
+              padding: '2px 6px', borderRadius: '10px', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', boxShadow: '0 0 10px rgba(255,68,68,0.5)'
             }}>
               {unclaimedCount}
             </div>

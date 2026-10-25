@@ -203,13 +203,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  
-  /* 👇 Включаем скролл */
-  height: 100%;
-  overflow-y: auto;
-  padding-bottom: 100px; /* Отступ, чтобы последняя карточка не прилипала к меню */
 }
 
+/* Шапка профиля */
 .profile-header {
   display: flex;
   flex-direction: column;
