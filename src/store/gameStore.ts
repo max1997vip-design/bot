@@ -29,7 +29,14 @@ export interface UserData {
   businesses?: Record<string, { level: number; lastCollected: number }>;
   partUpgrades?: Record<string, PartUpgrade>;
   features?: Record<string, boolean>;
-  weeklyPass?: { weekId: number; xp: number; claimed: number[] };
+  // 👇 Обновленный тип пропуска с поддержкой премиума
+  weeklyPass?: { 
+    weekId: number; 
+    xp: number; 
+    isPremium?: boolean; 
+    claimed: number[]; 
+    claimedPremium?: number[]; 
+  };
   isAdmin?: boolean;
 }
 
@@ -46,8 +53,6 @@ interface GameState {
   lastDroppedItem: any | null;
   history: any[];
 
-  
-  
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
   craftItem: (itemId: string) => Promise<boolean>;
@@ -73,7 +78,6 @@ interface GameState {
   joinClan: (clanName: string) => Promise<boolean>;
   clanAction: (action: 'donate' | 'upgrade', amount?: number) => Promise<boolean>;
 
-  
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
   reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
@@ -84,7 +88,10 @@ interface GameState {
   claimDaily: () => Promise<boolean>;
   claimQuest: (questId: string) => Promise<any>;
   getPass: () => Promise<void>;
-  claimPassReward: (level: number) => Promise<boolean>;
+  
+  // 👇 Обновленные сигнатуры методов пропуска
+  claimPassReward: (level: number, track: 'free' | 'premium') => Promise<boolean>;
+  buyPremiumPass: () => Promise<boolean>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -353,12 +360,13 @@ fetchHistory: async () => {
     } catch {}
   },
 
-      claimPassReward: async (level: number) => { // <-- Добавлен : number
+  // 👇 ОБНОВЛЕННЫЙ МЕТОД ПОЛУЧЕНИЯ НАГРАДЫ (принимает track)
+  claimPassReward: async (level: number, track: 'free' | 'premium') => {
     const initData = window.Telegram?.WebApp?.initData || '';
     try {
       const res = await fetch('/api/game?action=claimPassReward', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, level }),
+        body: JSON.stringify({ initData, level, track }),
       });
       const data = await res.json();
       if (data.success) {
@@ -372,6 +380,25 @@ fetchHistory: async () => {
     } catch { return false; }
   },
 
+  // 👇 НОВЫЙ МЕТОД ПОКУПКИ ПРЕМИУМА
+  buyPremiumPass: async () => {
+    const initData = window.Telegram?.WebApp?.initData || '';
+    try {
+      const res = await fetch('/api/game?action=buyPremium', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { ...s.user, balance: data.newBalance, weeklyPass: data.pass } : null
+        }));
+        return true;
+      }
+      return false;
+    } catch { return false; }
+  },
 
   claimUpgrade: async (itemId) => {
     const initData = window.Telegram?.WebApp?.initData || '';

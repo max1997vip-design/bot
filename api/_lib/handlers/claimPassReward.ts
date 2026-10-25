@@ -1,3 +1,4 @@
+// api/_lib/handlers/claimPassReward.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
@@ -6,7 +7,7 @@ import { getOrCreatePass, PASS_LEVELS, PassLevel } from '../pass.js';
 
 export async function claimPassRewardHandler(req: any, res: any) {
   try {
-    const { initData, level } = req.body;
+    const { initData, level, track } = req.body; // 👈 track = 'free' или 'premium'
     const valid = validateInitData(initData, process.env.BOT_TOKEN!);
     if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -18,12 +19,22 @@ export async function claimPassRewardHandler(req: any, res: any) {
 
     if (!levelConfig) return res.status(400).json({ error: 'Уровень не найден' });
     if (pass.xp < levelConfig.xpReq) return res.status(400).json({ error: 'Недостаточно опыта' });
-    if (pass.claimed.includes(level)) return res.status(400).json({ error: 'Уже получено' });
 
-    // Начисляем
-    pass.claimed.push(level);
-    const newBalance = user.balance + levelConfig.reward;
-    const newTotalEarned = user.totalEarned + levelConfig.reward;
+    let rewardAmount = levelConfig.reward;
+
+    if (track === 'premium') {
+      if (!pass.isPremium) return res.status(400).json({ error: 'Премиум пропуск не куплен' });
+      if (pass.claimedPremium.includes(level)) return res.status(400).json({ error: 'Уже получено' });
+      
+      rewardAmount = levelConfig.reward * 3; // 👈 Х3 НАГРАДА
+      pass.claimedPremium.push(level);
+    } else {
+      if (pass.claimed.includes(level)) return res.status(400).json({ error: 'Уже получено' });
+      pass.claimed.push(level);
+    }
+
+    const newBalance = user.balance + rewardAmount;
+    const newTotalEarned = user.totalEarned + rewardAmount;
 
     await db.update(users).set({ 
       balance: newBalance, 

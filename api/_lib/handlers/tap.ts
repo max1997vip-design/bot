@@ -26,7 +26,9 @@ export async function tapHandler(req: any, res: any) {
 
     // 3. Обновляем прогресс Гоночного пропуска (1 клик = 1 XP)
     const pass = getOrCreatePass(user.weeklyPass);
-    pass.xp += amount;
+    const xpMultiplier = pass.isPremium ? 3 : 1; // 👈 ПРОВЕРКА НА ПРЕМИУМ
+    pass.xp += amount * xpMultiplier;
+
 
     // 4. Обновляем баланс, квесты и пропуск
     const [updatedUser] = await db.update(users).set({

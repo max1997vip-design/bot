@@ -49,11 +49,13 @@ export const users = pgTable('users', {
     lastCollected: number;
   }>>().notNull().default({}),
 
-  weeklyPass: jsonb('weekly_pass').$type<{
+   weeklyPass: jsonb('weekly_pass').$type<{
     weekId: number;
     xp: number;
-    claimed: number[];
-  }>().notNull().default({ weekId: 0, xp: 0, claimed: [] }),
+    isPremium?: boolean;       // Куплен ли премиум на эту неделю
+    claimed: number[];         // Забранные награды (Бесплатные)
+    claimedPremium?: number[]; // Забранные награды (Премиум)
+  }>().notNull().default({ weekId: 0, xp: 0, isPremium: false, claimed: [], claimedPremium: [] }),
 });
 
 export const ownedCars = pgTable('owned_cars', {
