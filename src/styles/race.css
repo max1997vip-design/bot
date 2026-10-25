@@ -6,7 +6,7 @@
   justify-content: flex-start; 
   height: 100%; 
   width: 100%;
-  padding: calc(30px + var(--tg-safe-top)) 16px 30px 16px; 
+  padding-top: calc(30px + var(--tg-safe-top)); 
   box-sizing: border-box;
   position: relative; 
   overflow: hidden; 
@@ -17,7 +17,7 @@
   position: absolute;
   inset: 0;
   background-image: url('/images/bg-night-city.jpg');
-  background-size: cover;
+  background-size: 100% 100%; /* Растягиваем на 100%, чтобы не было зума */
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0; 
@@ -47,7 +47,7 @@
   position: relative;
   width: 100%;
   max-width: 280px;
-  margin-bottom: 20px;
+  margin-bottom: 20px; 
 }
 
 /* HUD над машиной */
@@ -120,23 +120,23 @@
 
 /* --- КОНТЕЙНЕР МАШИНЫ --- */
 .race-car-container {
-  position: relative;
+  position: absolute;
+  bottom: 14%; /* 👈 Привязка к низу в процентах (одинаково везде) */
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-block;
   width: 85%;
   max-width: 450px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  transition: transform 60ms ease-out;
   z-index: 2;
-  margin-top: auto; 
-  margin-bottom: 10vh; 
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
 .race-car-container:active {
-  transform: scale(0.985);
+  transform: translateX(-50%) scale(0.985);
 }
 
 .race-car-container.rejected {
@@ -144,11 +144,11 @@
 }
 
 @keyframes car-reject {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-3px); }
-  50%  { transform: translateX(3px); }
-  75%  { transform: translateX(-1px); }
-  100% { transform: translateX(0); }
+  0%   { transform: translateX(-50%) translateX(0); }
+  25%  { transform: translateX(-50%) translateX(-3px); }
+  50%  { transform: translateX(-50%) translateX(3px); }
+  75%  { transform: translateX(-50%) translateX(-1px); }
+  100% { transform: translateX(-50%) translateX(0); }
 }
 
 .race-car-image {
@@ -174,9 +174,7 @@
   mix-blend-mode: screen;
 }
 
-.headlight-glow.flash {
-  opacity: 1;
-}
+.headlight-glow.flash { opacity: 1; }
 
 /* Слой 2: Ореол фар */
 .headlight-halo {
@@ -189,12 +187,9 @@
     radial-gradient(ellipse 16% 14% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, rgba(255, 230, 140, 0) 70%),
     radial-gradient(ellipse 16% 14% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, rgba(255, 230, 140, 0) 70%);
   mix-blend-mode: screen;
-  /* Убрали will-change и translateZ для предотвращения мерцания WebView2 */
 }
 
-.headlight-halo.flash {
-  opacity: 1;
-}
+.headlight-halo.flash { opacity: 1; }
 
 /* Всплывающие цифры */
 .floating-text {
@@ -225,10 +220,7 @@
 .car-color-overlay,
 .race-color-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   mix-blend-mode: color;
   pointer-events: none;
   z-index: 2;

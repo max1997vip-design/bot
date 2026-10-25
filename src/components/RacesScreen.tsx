@@ -1,253 +1,307 @@
-// src/components/RacesScreen.tsx
-import { useState, useEffect } from 'react';
+// src/components/RaceScreen.tsx
+import React, { useCallback, useRef, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
+import { PAINT_COLORS } from '../config/garage';
+import { CARS } from '../config/cars';
 import WebApp from '@twa-dev/sdk';
-import { playSound } from '../utils/sound'; // <-- ДОБАВЛЕН ИМПОРТ ЗВУКА
-import '../styles/races.css';
+import { playSound } from '../utils/sound';
+import { QuestModal } from './QuestModal';
+import { PassScreen } from './PassScreen';
 
-const getLeague = (rating: number) => {
-  if (rating >= 2000) return { name: 'Легенда', color: '#ff0055', icon: '👑' };
-  if (rating >= 1000) return { name: 'Платина', color: '#00e5ff', icon: '💎' };
-  if (rating >= 600) return { name: 'Золото', color: '#ffd700', icon: '🥇' };
-  if (rating >= 300) return { name: 'Серебро', color: '#c0c0c0', icon: '🥈' };
-  if (rating >= 100) return { name: 'Бронза', color: '#cd7f32', icon: '🥉' };
-  return { name: 'Новичок', color: '#aaaaaa', icon: '🚗' };
-};
+const FLASH_DURATION_MS = 110;
 
-export const RacesScreen = () => {
-  const equipped = useGameStore((s) => s.equipped);
-  const startBotRace = useGameStore((s) => s.startBotRace);
-  const reportPvpResult = useGameStore((s) => s.reportPvpResult);
-  const user = useGameStore((s) => s.user);
+interface FloatingText {
+  id: number;
+  x: number;
+  y: number;
+  value: number;
+}
 
-  const [status, setStatus] = useState<'idle' | 'racing' | 'result'>('idle');
-  const [raceData, setRaceData] = useState<any>(null);
-  
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
-
-  const currentRating = user?.rating || 0;
-  const league = getLeague(currentRating);
-
-  const handleStartBotRace = async () => {
-    if (status !== 'idle') return; 
-    setStatus('racing');
-    setRaceData(null);
-
-    try {
-      const res = await startBotRace();
-      await new Promise(resolve => setTimeout(resolve, 3500));
-
-      if (res.success && res.result) {
-        setRaceData(res.result);
-        setStatus('result');
-        
-        if (res.result.winner === 'player') {
-          playSound('win');
-        }
-
-        reportPvpResult({
-          won: res.result.winner === 'player',
-          ratingDelta: res.result.ratingChange,
-          coinsDelta: res.result.reward
-        });
-      } else {
-        setStatus('idle');
-      }
-    } catch (e) {
-      console.error(e);
-      setStatus('idle');
-    }
-  };
-
-  const handlePvP = async () => {
-    if (status !== 'idle') return;
-    setStatus('racing');
-    setRaceData(null);
-
-    try {
-      const initData = WebApp.initData || '';
-      
-      const fetchPromise = fetch('/api/game?action=pvp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData }),
-      }).then(r => r.json());
-
-      const [data] = await Promise.all([
-        fetchPromise,
-        new Promise(resolve => setTimeout(resolve, 3500))
-      ]);
-
-      if (data.success) {
-        setRaceData(data.result);
-        setStatus('result');
-        
-        if (data.result.winner === 'player') {
-          playSound('win');
-        }
-
-        useGameStore.setState((state) => ({ 
-          balance: data.newBalance,
-          user: state.user ? { ...state.user, balance: data.newBalance, rating: data.newRating } : null
-        })); 
-      } else {
-        setStatus('idle');
-      }
-    } catch (e) {
-      console.error(e);
-      setStatus('idle');
-    }
-  };
-
-  const fetchLeaderboard = async () => {
-    setShowLeaderboard(true);
-    try {
-      const res = await fetch(`/api/game?action=leaderboard&type=rating`);
-      const data = await res.json();
-      if (data.success) setLeaderboardData(data.players);
-    } catch (e) { console.error(e); }
-  };
-
-  useEffect(() => {
-    if (status === 'racing' && raceData) {
-      const timer = setTimeout(() => setStatus('result'), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [status, raceData]);
-
-  const getBarDurations = () => {
-    if (!raceData) return { player: 3.5, opponent: 3.5 };
-    const minTime = Math.min(raceData.playerTime, raceData.opponentTime);
-    return {
-      player: (raceData.playerTime / minTime) * 3.5,
-      opponent: (raceData.opponentTime / minTime) * 3.5
-    };
-  };
-  const durations = getBarDurations();
+const CarClicker = memo(({ 
+  isFlashing, 
+  isRejected, 
+  carColor, 
+  activeCar, 
+  carStyles, 
+  onPointerDown 
+}: any) => {
+  const activeColorHex = PAINT_COLORS.find((c: any) => c.id === carColor)?.hex || 'transparent';
+  const isOriginal = carColor === 'original';
+  const isPlaceholder = !activeCar.image || activeCar.image.includes('placeholder');
 
   return (
-    <div className="races-screen">
-      <div className="races-header" style={{ position: 'relative' }}>
-        <h2>ТРЕК</h2>
-        <button className="top-rating-btn" onClick={fetchLeaderboard}>🏆</button>
+    <motion.div
+      className={`race-car-container ${isRejected ? 'rejected' : ''}`}
+      onPointerDown={onPointerDown}
+      style={{ ...carStyles, willChange: 'transform' }}
+      whileTap={{ scale: 0.96 }}
+    >
+      <div className="race-car-wrapper" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         
-        <div className="league-badge" style={{ color: league.color }}>
-          {league.icon} {league.name} ({currentRating})
-        </div>
-      </div>
+        {/* Иконка-заглушка */}
+        <span style={{ 
+          fontSize: '120px', position: 'absolute', zIndex: 0,
+          opacity: isPlaceholder ? 1 : 0, transition: 'opacity 0.3s ease'
+        }}>
+          🏎️
+        </span>
 
-      <div className="race-modes">
-        <div className={`race-card ${status !== 'idle' ? 'disabled' : ''}`} onClick={handleStartBotRace} style={{ cursor: status === 'idle' ? 'pointer' : 'not-allowed', opacity: status === 'idle' ? 1 : 0.5 }}>
-          <div className="race-icon">🤖</div>
-          <h3>Тренировка с ботом</h3>
-          <p>+1 рейтинг за победу</p>
-        </div>
-        
-        <div className={`race-card pvp-card ${status !== 'idle' ? 'disabled' : ''}`} onClick={handlePvP} style={{ cursor: status === 'idle' ? 'pointer' : 'not-allowed', opacity: status === 'idle' ? 1 : 0.5 }}>
-          <div className="race-icon">⚔️</div>
-          <h3>PvP Гонка</h3>
-          <p>Награда х5, +5 рейтинга</p>
-        </div>
+        <img
+          src={activeCar.image}
+          alt={activeCar.name}
+          className="race-car-image"
+          draggable={false}
+          loading="eager"
+          decoding="sync"
+          onError={(e) => { e.currentTarget.style.opacity = '0'; }}
+          style={{
+            opacity: isPlaceholder ? 0 : 1,
+            filter: isOriginal 
+              ? 'drop-shadow(0 15px 15px rgba(0,0,0,0.6))' 
+              : 'grayscale(1) brightness(1.1) contrast(1.2) drop-shadow(0 15px 15px rgba(0,0,0,0.6))',
+            transition: 'filter 0.4s ease, opacity 0.3s ease',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            position: 'relative', zIndex: 1
+          }}
+        />
+        {!isOriginal && !isPlaceholder && (
+          <div className="race-color-overlay" style={{ backgroundColor: activeColorHex }} />
+        )}
       </div>
+      
+      <div className={`headlight-glow ${isFlashing ? 'flash' : ''}`} />
+      <div className={`headlight-halo ${isFlashing ? 'flash' : ''}`} />
+    </motion.div>
+  );
+});
 
-      {/* Модалка гонки */}
+export function RaceScreen() {
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
+  const [showUpgrades, setShowUpgrades] = useState(false);
+  const [showQuests, setShowQuests] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [floatingTexts, setFloatingTexts] = useState<FloatingText[]>([]);
+  
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rejectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const textIdCounter = useRef(0);
+
+  const tap = useGameStore((s) => s.tap);
+  const balance = useGameStore((s) => s.balance); 
+  const carColor = useGameStore((s) => s.carColor);
+  
+  const user = useGameStore((s) => s.user);
+  const upgradeClicker = useGameStore((s) => s.upgradeClicker);
+  const upgradeOffline = useGameStore((s) => s.upgradeOffline);
+
+  const totalEarned = user?.totalEarned || 0;
+  const level = Math.floor(Math.sqrt(totalEarned / 50)) + 1;
+  const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
+  const xpNextLevel = Math.pow(level, 2) * 50;
+  const progress = Math.min(100, ((totalEarned - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100);
+
+  const activeCarId = user?.activeCarId || 'vaz-2107';
+  const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
+
+  const clickLevel = user?.clickLevel || 1;
+  const offlineLevel = user?.offlineLevel || 1;
+  const clickCost = Math.floor(1000 * Math.pow(1.5, clickLevel - 1));
+  const offlineCost = Math.floor(5000 * Math.pow(1.8, offlineLevel - 1));
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const before = useGameStore.getState().balance;
+    tap();
+    const after = useGameStore.getState().balance;
+    const accepted = after > before;
+
+    if (accepted) {
+      playSound('click');
+      try { WebApp.HapticFeedback?.impactOccurred('light'); } catch {}
+
+      setIsFlashing(true);
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setIsFlashing(false), FLASH_DURATION_MS);
+
+      const newText: FloatingText = {
+        id: textIdCounter.current++,
+        x: e.clientX,
+        y: e.clientY - 50,
+        value: clickLevel
+      };
+      
+      setFloatingTexts(prev => [...prev, newText]);
+
+      setTimeout(() => {
+        setFloatingTexts(prev => prev.filter(t => t.id !== newText.id));
+      }, 800);
+
+    } else {
+      setIsRejected(true);
+      if (rejectTimer.current) clearTimeout(rejectTimer.current);
+      rejectTimer.current = setTimeout(() => setIsRejected(false), 160);
+    }
+  }, [tap, clickLevel]);
+
+  const carStyles = {
+    '--left-hl-x': activeCar.leftHeadlight?.x || '30%',
+    '--left-hl-y': activeCar.leftHeadlight?.y || '50%',
+    '--right-hl-x': activeCar.rightHeadlight?.x || '70%',
+    '--right-hl-y': activeCar.rightHeadlight?.y || '50%',
+  } as React.CSSProperties;
+
+  return (
+    <div className="race-screen" style={{ position: 'relative', overflow: 'hidden' }}>
+      <div className="race-background" />
+      <div className="race-background-overlay" />
+
       <AnimatePresence>
-        {(status === 'racing' || status === 'result') && (
-          <motion.div 
-            className="race-overlay" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+        {floatingTexts.map(text => (
+          <motion.div
+            key={text.id}
+            initial={{ opacity: 1, y: 0, scale: 0.8 }}
+            animate={{ opacity: 0, y: -120, scale: 1.2 }}
             exit={{ opacity: 0 }}
-            style={{ 
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-              background: 'rgba(0,0,0,0.85)', zIndex: 1000, 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'translateZ(0)', isolation: 'isolate'
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            style={{
+              position: 'fixed',
+              left: text.x,
+              top: text.y,
+              color: '#FFD700',
+              fontSize: '24px',
+              fontWeight: '900',
+              textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+              pointerEvents: 'none',
+              zIndex: 9999,
+              userSelect: 'none',
+              transform: 'translate(-50%, -50%)'
             }}
           >
-            {status === 'racing' && (
-              <motion.div 
-                className="simulation-container"
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              >
-                <h3 className="sim-title">Заезд 1000м...</h3>
-                <div className="sim-track">
-                  <span className="sim-label">Соперник</span>
-                  <div className="sim-bar-bg">
-                    <motion.div className="sim-bar-fill opponent" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: durations.opponent, ease: "linear" }} style={{ width: '100%' }}>
-                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
-                    </motion.div>
-                  </div>
-                </div>
-                <div className="sim-track">
-                  <span className="sim-label">Вы</span>
-                  <div className="sim-bar-bg">
-                    <motion.div className="sim-bar-fill player" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: durations.player, ease: "linear" }} style={{ width: '100%' }}>
-                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
-                    </motion.div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {status === 'result' && raceData && (
-              <motion.div 
-                className="race-result-modal"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: 'spring', damping: 20 }}
-              >
-                <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
-                  {raceData.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
-                </h2>
-                {raceData.ratingChange !== undefined && (
-                  <p style={{ color: raceData.ratingChange > 0 ? '#00FF41' : '#ff4444', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px' }}>
-                    Рейтинг: {raceData.ratingChange > 0 ? '+' : ''}{raceData.ratingChange}
-                  </p>
-                )}
-                <div className="race-log">
-                  {raceData.log.map((line: string, i: number) => <p key={i}>{line}</p>)}
-                </div>
-                <button className="race-close-btn" onClick={() => setStatus('idle')}>Закрыть</button>
-              </motion.div>
-            )}
+            +{text.value} 🪙
           </motion.div>
-        )}
+        ))}
       </AnimatePresence>
 
-      {/* Модалка лидерборда */}
+      <div className="race-top-ui">
+        <div className="race-hud">
+          <span className="race-hud-coins">{Math.floor(balance).toLocaleString('ru-RU')}</span>
+        </div>
+        <div className="race-level-bar-wrapper">
+          <div className="race-level-text">
+            <span>LVL {level}</span>
+            <span>{Math.floor(progress)}%</span>
+          </div>
+          <div className="race-xp-bar">
+            <div className="race-xp-fill" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <CarClicker 
+        isFlashing={isFlashing}
+        isRejected={isRejected}
+        carColor={carColor}
+        activeCar={activeCar}
+        carStyles={carStyles}
+        onPointerDown={handlePointerDown}
+      />
+
+      {/* 👇 КНОПКА ЗАДАНИЙ (теперь bottom в процентах) */}
+      <button
+        onClick={() => setShowQuests(true)}
+        style={{
+          position: 'absolute', bottom: '32%', left: '5%', zIndex: 100,
+          background: 'linear-gradient(135deg, #ff8c00, #ff4500)', border: 'none',
+          borderRadius: '50%', width: '60px', height: '60px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(255,140,0,0.4)',
+        }}
+      >
+        📋
+      </button>
+
+      {/* 👇 КНОПКА ПРОПУСКА (теперь bottom в процентах) */}
+      <button
+        onClick={() => setShowPass(true)}
+        style={{
+          position: 'absolute', bottom: '42%', left: '5%', zIndex: 100,
+          background: 'linear-gradient(135deg, #00bfff, #0055ff)', border: 'none',
+          borderRadius: '50%', width: '60px', height: '60px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,191,255,0.4)',
+        }}
+      >
+        🏁
+      </button>
+
+      {/* 👇 КНОПКА УЛУЧШЕНИЙ (теперь bottom в процентах) */}
+      <button
+        onClick={() => setShowUpgrades(true)}
+        style={{
+          position: 'absolute', bottom: '32%', right: '5%', zIndex: 100,
+          background: 'linear-gradient(135deg, #00FF41, #00bfff)', border: 'none',
+          borderRadius: '50%', width: '60px', height: '60px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,255,65,0.4)',
+        }}
+      >
+        ⚡
+      </button>
+
+      {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
+      {showPass && <PassScreen onClose={() => setShowPass(false)} />}
+
       <AnimatePresence>
-        {showLeaderboard && (
-          <motion.div 
-            className="race-overlay" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
+        {showUpgrades && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowUpgrades(false)}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.85)', zIndex: 1000,
+              display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+              transform: 'translateZ(0)', isolation: 'isolate'
+            }}
           >
-            <motion.div 
-              className="leaderboard-modal"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#1a1a1a', borderRadius: '24px 24px 0 0',
+                width: '100%', maxWidth: '500px', padding: '25px 20px 40px 20px',
+                border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none',
+              }}
             >
-              <div className="lb-header">
-                <h3>Топ Рейтинга</h3>
-                <button className="close-btn" onClick={() => setShowLeaderboard(false)}>✕</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '22px' }}>⚡ Улучшения</h2>
+                <button onClick={() => setShowUpgrades(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: 'pointer' }}>✕</button>
               </div>
-              <div className="lb-list">
-                {leaderboardData.map((p, i) => (
-                  <div key={p.id} className={`lb-row ${p.id === user?.id ? 'me' : ''}`}>
-                    <span className="lb-rank">{i + 1}</span>
-                    <span className="lb-name">{p.firstName || 'Гонщик'}</span>
-                    <span className="lb-value">{p.rating} 🏁</span>
-                  </div>
-                ))}
+
+              <div style={{ background: 'rgba(0,255,65,0.08)', border: '1px solid rgba(0,255,65,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ fontSize: '36px' }}>💪</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Сила клика</div>
+                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 монета за клик</div>
+                  <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
+                </div>
+                <button onClick={() => { upgradeClicker(); playSound('coin'); }} disabled={balance < clickCost} style={{ background: balance >= clickCost ? '#00FF41' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                  {clickCost.toLocaleString('ru-RU')} 🪙
+                </button>
+              </div>
+
+              <div style={{ background: 'rgba(0,191,255,0.08)', border: '1px solid rgba(0,191,255,0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ fontSize: '36px' }}>⏱️</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Оффлайн-доход</div>
+                  <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+500 монет/час</div>
+                  <div style={{ color: '#00bfff', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {offlineLevel}</div>
+                </div>
+                <button onClick={() => { upgradeOffline(); playSound('coin'); }} disabled={balance < offlineCost} style={{ background: balance >= offlineCost ? '#00bfff' : '#333', color: balance >= offlineCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= offlineCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                  {offlineCost.toLocaleString('ru-RU')} 🪙
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -255,4 +309,4 @@ export const RacesScreen = () => {
       </AnimatePresence>
     </div>
   );
-};
+}
