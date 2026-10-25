@@ -11,12 +11,13 @@ const CASES = {
     currency: 'ad',
     cooldownMs: 60 * 60 * 1000, 
     items: [
-      { id: 'coins_5000', weight: 25 },   // Мелкий возврат
-      { id: 'coins_10000', weight: 25 },  // Норм
-      { id: 'coins_20000', weight: 15 },  // Джекпот монет
-      { id: 'engine_2', weight: 15 },
-      { id: 'tires_2', weight: 10 },
-      { id: 'ecu_2', weight: 10 }
+      { id: 'coins_5000', weight: 25 },
+      { id: 'coins_10000', weight: 25 },
+      { id: 'coins_20000', weight: 15 },
+      { id: 'engine_2', weight: 12 },
+      { id: 'tires_2', weight: 8 },
+      { id: 'ecu_2', weight: 8 },     // 👈 Прошивка
+      { id: 'susp_2', weight: 7 }     // 👈 Подвеска (тоже добавили для баланса)
     ] 
   },
   silver: { 
@@ -26,9 +27,10 @@ const CASES = {
       { id: 'coins_10000', weight: 25 },
       { id: 'coins_25000', weight: 25 },
       { id: 'coins_40000', weight: 15 },
-      { id: 'engine_2', weight: 15 },
-      { id: 'tires_2', weight: 10 },
-      { id: 'ecu_1', weight: 10 }
+      { id: 'engine_2', weight: 12 },
+      { id: 'tires_2', weight: 8 },
+      { id: 'ecu_1', weight: 8 },     // 👈 Прошивка
+      { id: 'susp_2', weight: 7 }
     ] 
   },
   gold: { 
@@ -38,9 +40,10 @@ const CASES = {
       { id: 'coins_50000', weight: 25 },
       { id: 'coins_100000', weight: 25 },
       { id: 'coins_150000', weight: 15 },
-      { id: 'engine_3', weight: 15 },
-      { id: 'ecu_3', weight: 10 },
-      { id: 'susp_3', weight: 10 }
+      { id: 'engine_3', weight: 12 },
+      { id: 'tires_3', weight: 8 },
+      { id: 'ecu_3', weight: 8 },     // 👈 Прошивка
+      { id: 'susp_3', weight: 7 }
     ] 
   },
   platinum: { 
@@ -50,9 +53,10 @@ const CASES = {
       { id: 'coins_250000', weight: 25 },
       { id: 'coins_500000', weight: 25 },
       { id: 'coins_750000', weight: 15 },
-      { id: 'engine_4', weight: 15 },
-      { id: 'tires_4', weight: 10 },
-      { id: 'susp_4', weight: 10 }
+      { id: 'engine_4', weight: 12 },
+      { id: 'tires_4', weight: 8 },
+      { id: 'ecu_4', weight: 8 },     // 👈 ДОБАВЛЕНА ПРОШИВКА
+      { id: 'susp_4', weight: 7 }
     ] 
   },
   diamond: { 
@@ -62,23 +66,23 @@ const CASES = {
       { id: 'coins_1000000', weight: 25 },
       { id: 'coins_2000000', weight: 25 },
       { id: 'coins_3000000', weight: 15 },
-      { id: 'engine_4', weight: 12 },
-      { id: 'engine_5', weight: 10 }, // Легендарка!
-      { id: 'tires_5', weight: 8 },   // Легендарка!
-      { id: 'susp_5', weight: 5 }     // Легендарка!
+      { id: 'engine_5', weight: 10 },
+      { id: 'tires_5', weight: 8 },
+      { id: 'ecu_5', weight: 8 },     // 👈 ДОБАВЛЕНА ЛЕГЕНДАРНАЯ ПРОШИВКА
+      { id: 'susp_5', weight: 9 }
     ] 
   },
   star_premium: { 
     price: 50, 
     currency: 'stars',
     items: [
-      { id: 'coins_2000000', weight: 25 },
-      { id: 'coins_5000000', weight: 25 },
+      { id: 'coins_2000000', weight: 20 },
+      { id: 'coins_5000000', weight: 20 },
       { id: 'coins_10000000', weight: 15 },
-      { id: 'engine_5', weight: 15 },
-      { id: 'tires_5', weight: 10 },
-      { id: 'ecu_5', weight: 6 },
-      { id: 'susp_5', weight: 4 }
+      { id: 'engine_5', weight: 12 },
+      { id: 'tires_5', weight: 11 },
+      { id: 'ecu_5', weight: 12 },    // 👈 Прошивка
+      { id: 'susp_5', weight: 10 }
     ] 
   }
 };

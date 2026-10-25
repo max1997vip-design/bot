@@ -54,15 +54,16 @@ const CASE_ITEMS_POOL = {
     'coins_750000', 'coins_750000', 'coins_750000',
     'engine_4', 'engine_4', 'engine_4',
     'tires_4', 'tires_4',
+    'ecu_4', 'ecu_4', // 👈 Добавлена прошивка
     'susp_4', 'susp_4'
   ],
   diamond: [
     'coins_1000000', 'coins_1000000', 'coins_1000000', 'coins_1000000', 'coins_1000000',
     'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000',
     'coins_3000000', 'coins_3000000', 'coins_3000000',
-    'engine_4', 'engine_4', 'engine_4',
     'engine_5', 'engine_5', 
     'tires_5', 'tires_5',
+    'ecu_5', 'ecu_5', // 👈 Добавлена прошивка
     'susp_5'
   ],
   star_premium: [
@@ -71,7 +72,7 @@ const CASE_ITEMS_POOL = {
     'coins_10000000', 'coins_10000000', 'coins_10000000',
     'engine_5', 'engine_5', 'engine_5',
     'tires_5', 'tires_5',
-    'ecu_5',
+    'ecu_5', // 👈 Добавлена прошивка
     'susp_5'
   ]
 };
@@ -86,7 +87,6 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const [targetX, setTargetX] = useState(0);
   
   const reelRef = useRef<HTMLDivElement>(null);
-  // 👇 Ref для актуального состояния (чтобы избежать проблем с замыканием в onReward)
   const stateRef = useRef({ isWatchingAd, pendingAdOpen, activeCase });
   useEffect(() => {
     stateRef.current = { isWatchingAd, pendingAdOpen, activeCase };
@@ -116,7 +116,6 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
     return `${m}м ${s}с`;
   };
 
-  // 👇 Выносим логику открытия в отдельную функцию, чтобы вызывать её из рекламы
   const executeCaseOpening = async (caseTypeToOpen: string) => {
     setIsOpening(true);
     setWonItem(null);
@@ -160,11 +159,8 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const showAd = useAdsgram({
     blockId: '55486', 
     onReward: async () => {
-      // 👇 Сбрасываем статус рекламы и принудительно открываем кейс
       setIsWatchingAd(false);
       setPendingAdOpen(false);
-      
-      // Небольшая задержка, чтобы UI успел обновиться перед началом анимации
       setTimeout(() => {
         executeCaseOpening(stateRef.current.activeCase);
       }, 100);
@@ -257,7 +253,11 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
               })}
             </motion.div>
           ) : (
-            <div className="case-placeholder">Нажми, чтобы испытать удачу</div>
+            /* 👇 НОВЫЙ ПЛЕЙСХОЛДЕР */
+            <div className="case-placeholder">
+              <div className="case-placeholder-icon">🎁</div>
+              <div>Испытай свою удачу</div>
+            </div>
           )}
         </div>
 
