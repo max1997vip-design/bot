@@ -1,7 +1,7 @@
 // src/components/CityScreen.tsx
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RacesScreen } from './RacesScreen'; // 👈 Именованный импорт
+import { RacesScreen } from './RacesScreen';
 import { CarDealership } from './CarDealership'; 
 import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen';
@@ -24,7 +24,9 @@ export const CityScreen = () => {
   const [showClan, setShowClan] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showShop, setShowShop] = useState(false);
-  const [activeCase, setActiveCase] = useState<'bronze' | 'silver' | 'gold' | null>(null);
+  
+  // 👇 ТЕПЕРЬ ПО УМОЛЧАНИЮ 'hourly'
+  const [activeCase, setActiveCase] = useState<string | null>(null);
 
   const user = useGameStore((s) => s.user);
   const features = user?.features || {};
@@ -87,10 +89,11 @@ export const CityScreen = () => {
                 </div>
               )}
 
-              <div className="city-card" onClick={() => setActiveCase('bronze')}>
+              {/* 👇 ИЗМЕНЕНО НА 'hourly' */}
+              <div className="city-card" onClick={() => setActiveCase('hourly')}>
                 <div className="city-icon">📦</div>
                 <h3>Кейсы</h3>
-                <p>От 5.000 🪙</p>
+                <p>Бесплатный и другие</p>
               </div>
 
               <div className="city-card" onClick={() => setShowShop(true)} style={{ border: '1px solid #ffd700' }}>
@@ -180,7 +183,7 @@ export const CityScreen = () => {
       <CaseModal 
         isOpen={activeCase !== null} 
         onClose={() => setActiveCase(null)} 
-        caseType={activeCase || 'bronze'} 
+        caseType={activeCase || 'hourly'} 
       />
     </div>
   );

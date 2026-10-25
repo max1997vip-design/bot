@@ -7,18 +7,13 @@ import { eq } from 'drizzle-orm';
 
 const CASES = {
   hourly: { 
-    price: 0, // Бесплатно, но за рекламу
+    price: 0, 
     currency: 'ad',
-    cooldownMs: 60 * 60 * 1000, // 1 час
+    cooldownMs: 60 * 60 * 1000, 
     items: [
       { id: 'engine_2', weight: 50 }, { id: 'tires_2', weight: 30 }, 
       { id: 'coins_10000', weight: 15 }, { id: 'ecu_2', weight: 5 }
     ] 
-  },
-  bronze: { 
-    price: 5000, 
-    currency: 'coins',
-    items: [{ id: 'engine_1', weight: 60 }, { id: 'tires_1', weight: 30 }, { id: 'coins_1000', weight: 10 }] 
   },
   silver: { 
     price: 25000, 
@@ -41,7 +36,7 @@ const CASES = {
     items: [{ id: 'engine_4', weight: 20 }, { id: 'engine_5', weight: 5 }, { id: 'tires_5', weight: 5 }, { id: 'coins_500000', weight: 70 }] 
   },
   star_premium: { 
-    price: 50, // 50 Stars
+    price: 50, 
     currency: 'stars',
     items: [{ id: 'engine_5', weight: 40 }, { id: 'tires_5', weight: 30 }, { id: 'ecu_5', weight: 20 }, { id: 'coins_5000000', weight: 10 }] 
   }
@@ -64,31 +59,21 @@ export async function openCaseHandler(req: any, res: any) {
     let newStars = user.starsBalance;
     let updateData: any = {};
 
-    // 👇 ЛОГИКА ДЛЯ РЕКЛАМНОГО КЕЙСА
     if (selectedCase.currency === 'ad') {
       const lastAd = user.lastAdCaseAt ? new Date(user.lastAdCaseAt).getTime() : 0;
       if (Date.now() - lastAd < (selectedCase as any).cooldownMs) {
         return res.status(400).json({ error: 'Бесплатный кейс еще не готов. Ждите.' });
       }
       updateData.lastAdCaseAt = new Date();
-    } 
-    // 👇 ЛОГИКА ДЛЯ КЕЙСА ЗА ЗВЕЗДЫ
-    else if (selectedCase.currency === 'stars') {
-      if (user.starsBalance < selectedCase.price) {
-        return res.status(400).json({ error: 'Недостаточно звезд' });
-      }
+    } else if (selectedCase.currency === 'stars') {
+      if (user.starsBalance < selectedCase.price) return res.status(400).json({ error: 'Недостаточно звезд' });
       newStars -= selectedCase.price;
       updateData.starsBalance = newStars;
-    } 
-    // 👇 ЛОГИКА ДЛЯ КЕЙСОВ ЗА МОНЕТЫ
-    else {
-      if (user.balance < selectedCase.price) {
-        return res.status(400).json({ error: 'Недостаточно монет' });
-      }
+    } else {
+      if (user.balance < selectedCase.price) return res.status(400).json({ error: 'Недостаточно монет' });
       newBalance -= selectedCase.price;
     }
 
-    // Рандомайзер
     const totalWeight = selectedCase.items.reduce((acc, item) => acc + item.weight, 0);
     let random = Math.random() * totalWeight;
     let wonItemId = selectedCase.items[0].id;
@@ -112,7 +97,6 @@ export async function openCaseHandler(req: any, res: any) {
       await db.insert(userItems).values({ userId: user.id, itemId: wonItemId });
     }
 
-    // Логирование
     if (selectedCase.currency === 'coins') {
       await logTransaction(user.id, -selectedCase.price, 'case_open', `Открытие ${caseType} кейса`);
     }
