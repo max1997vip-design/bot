@@ -23,12 +23,18 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setLoading(null);
   };
 
-  const handleBuyPremium = async () => {
+    const handleBuyPremium = async () => {
     if (!window.confirm('Купить Премиум Пропуск за 500,000 🪙?\n\nВы получите х3 опыта и х3 награды!')) return;
+    
     setLoading('buy');
-    const success = await buyPremiumPass();
-    if (!success) alert('Не хватает монет или произошла ошибка!');
+    const result = await buyPremiumPass();
     setLoading(null);
+
+    if (result.success) {
+      alert('👑 Премиум Пропуск успешно куплен!');
+    } else {
+      alert(`❌ Ошибка: ${result.error}`); // 👈 Показываем реальную ошибку
+    }
   };
 
   const nextLevel = PASS_LEVELS.find(l => pass.xp < l.xpReq) || PASS_LEVELS[PASS_LEVELS.length - 1];

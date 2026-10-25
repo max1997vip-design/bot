@@ -29,6 +29,7 @@ import { adminHandler } from './_lib/handlers/admin.js';
 import { claimAdRewardHandler } from './_lib/handlers/claimAdReward.js';
 import { openCaseHandler } from './_lib/handlers/openCase.js';
 import { getHistoryHandler } from './_lib/handlers/getHistory.js';
+import { buyPremiumHandler } from './_lib/handlers/buyPremium.js';
 
 
 export default async function handler(req: any, res: any) {
@@ -67,6 +68,7 @@ export default async function handler(req: any, res: any) {
     case 'clanAction': return clanActionHandler(req, res);
     case 'admin': return adminHandler(req, res);
     case 'getHistory': return getHistoryHandler(req, res);
+    if (action === 'buyPremium') return buyPremiumHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

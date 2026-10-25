@@ -381,7 +381,7 @@ fetchHistory: async () => {
   },
 
   // 👇 НОВЫЙ МЕТОД ПОКУПКИ ПРЕМИУМА
-  buyPremiumPass: async () => {
+    buyPremiumPass: async (): Promise<{ success: boolean; error?: string }> => {
     const initData = window.Telegram?.WebApp?.initData || '';
     try {
       const res = await fetch('/api/game?action=buyPremium', {
@@ -389,15 +389,19 @@ fetchHistory: async () => {
         body: JSON.stringify({ initData }),
       });
       const data = await res.json();
-      if (data.success) {
+      
+      if (res.ok && data.success) {
         set((s) => ({
           balance: data.newBalance,
           user: s.user ? { ...s.user, balance: data.newBalance, weeklyPass: data.pass } : null
         }));
-        return true;
+        return { success: true };
       }
-      return false;
-    } catch { return false; }
+      // Возвращаем ошибку от сервера
+      return { success: false, error: data.error || 'Ошибка сервера' };
+    } catch (e) {
+      return { success: false, error: 'Ошибка сети' };
+    }
   },
 
   claimUpgrade: async (itemId) => {
