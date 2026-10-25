@@ -4,7 +4,7 @@ import { ITEMS, RARITY_COLORS } from '../config/items';
 
 export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
-  const equipped = useGameStore((s) => s.equipped); // <-- Берем equipped из стора, а не из user
+  const equipped = useGameStore((s) => s.equipped);
   const inventory = useGameStore((s) => s.inventory);
   const upgradePart = useGameStore((s) => s.upgradePart);
   const claimUpgrade = useGameStore((s) => s.claimUpgrade);
@@ -13,13 +13,11 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
   const partUpgrades: Record<string, PartUpgrade> = user?.partUpgrades || {};
 
-  // Группируем инвентарь для крафта
   const itemCounts = inventory.reduce((acc, id) => {
     acc[id] = (acc[id] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  // Детали, которые можно скрафтить (5+ штук)
   const craftableIds = Object.keys(itemCounts).filter(id => itemCounts[id] >= 5);
 
   const handleUpgrade = async (itemId: string, type: 'level' | 'gold' | 'red') => {
@@ -43,7 +41,10 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: '#111', zIndex: 1000, overflowY: 'auto', padding: '20px'
+      background: '#111', zIndex: 1000, overflowY: 'auto', 
+      padding: '20px',
+      paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 ДОБАВЛЕНА ЭТА СТРОКА
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))'
     }}>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -56,7 +57,7 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
           {Object.values(equipped)
-            .filter((id): id is string => Boolean(id)) // <-- Строгий фильтр типов
+            .filter((id): id is string => Boolean(id))
             .map(itemId => {
             const item = ITEMS[itemId];
             if (!item) return null;

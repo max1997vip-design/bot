@@ -39,7 +39,9 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'radial-gradient(circle at center, #2a0a0a 0%, #111 100%)', zIndex: 1000, overflowY: 'auto', padding: '20px'
+      background: 'radial-gradient(circle at center, #2a0a0a 0%, #111 100%)', zIndex: 1000, overflowY: 'auto', padding: '20px',
+      paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 ДОБАВИТЬ
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' // 👈 ДОБАВИТЬ (для iPhone)
     }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>

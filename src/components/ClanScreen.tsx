@@ -70,7 +70,9 @@ export const ClanScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
     <div style={{ 
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 1000, overflowY: 'auto', 
-      padding: '20px', paddingTop: 'calc(20px + var(--tg-safe-top, 0px))' // 👈 Отступ для Telegram
+      padding: '20px',
+      paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 ДОБАВИТЬ
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' // 👈 ДОБАВИТЬ (для iPhone)
     }}>
       <div style={{ maxWidth: '500px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
