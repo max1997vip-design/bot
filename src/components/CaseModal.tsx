@@ -1,5 +1,5 @@
 // src/components/CaseModal.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { ITEMS } from '../config/items'; 
@@ -26,8 +26,8 @@ const CASE_ITEMS: Record<string, any> = {
 const CASE_ITEMS_POOL = {
   hourly: ['engine_2', 'tires_2', 'coins_10000', 'ecu_2'],
   silver: ['engine_2', 'tires_2', 'coins_5000', 'ecu_1'],
-  gold: ['engine_3', 'ecu_3', 'suspension_3', 'coins_25000'],
-  platinum: ['engine_4', 'tires_4', 'suspension_4', 'coins_100000'],
+  gold: ['engine_3', 'ecu_3', 'susp_3', 'coins_25000'],
+  platinum: ['engine_4', 'tires_4', 'susp_4', 'coins_100000'],
   diamond: ['engine_4', 'engine_5', 'tires_5', 'coins_500000'],
   star_premium: ['engine_5', 'tires_5', 'ecu_5', 'coins_5000000'],
 };
@@ -39,11 +39,13 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const [wonItem, setWonItem] = useState<any | null>(null);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [pendingAdOpen, setPendingAdOpen] = useState(false);
+  const [targetX, setTargetX] = useState(0);
+  
+  const reelRef = useRef<HTMLDivElement>(null);
 
   const balance = useGameStore((s) => s.balance);
   const user = useGameStore((s) => s.user);
   const openCase = useGameStore((s) => s.openCase); 
-  const syncTaps = useGameStore((s) => s.syncTaps);
 
   const caseConfig = CASE_ITEMS[activeCase];
   const itemsPool = CASE_ITEMS_POOL[activeCase as keyof typeof CASE_ITEMS_POOL];
@@ -72,9 +74,6 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
       if (pendingAdOpen) {
         setPendingAdOpen(false);
         processOpenCase(); 
-      } else {
-        WebApp.showAlert("Реклама просмотрена! 5000 монет зачислено.");
-        setTimeout(() => syncTaps(), 500);
       }
     },
     onError: (err) => {
@@ -84,19 +83,20 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
     },
   });
 
-  const handleWatchAd = () => {
-    setIsWatchingAd(true);
-    setPendingAdOpen(false);
-    showAd();
-  };
-
   const getItemData = (id: string) => {
     if (id.startsWith('coins_')) {
       const amount = id.split('_')[1];
       return { name: `${Number(amount).toLocaleString('ru-RU')} монет`, icon: '🪙', rarity: 'common' };
     }
     const item = (ITEMS as any)[id];
-    return { name: item?.name || 'Неизвестный', icon: item?.icon || '📦', rarity: item?.rarity || 'common' };
+    
+    let icon = '📦';
+    if (item?.slot === 'engine') icon = '⚙️';
+    else if (item?.slot === 'tires') icon = '🛞';
+    else if (item?.slot === 'ecu') icon = '💻';
+    else if (item?.slot === 'suspension') icon = '🧲';
+
+    return { name: item?.name || 'Неизвестный предмет', icon, rarity: item?.rarity || 'common' };
   };
 
   const processOpenCase = async () => {
@@ -116,6 +116,12 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
         
         setReelItems(newReel);
         setWonItem(res.wonItem);
+
+        const containerWidth = reelRef.current ? reelRef.current.offsetWidth : 300;
+        const ITEM_WIDTH = 100;
+        const exactX = (containerWidth / 2) - (45 * ITEM_WIDTH + 45);
+        
+        setTargetX(exactX);
 
         setTimeout(() => {
           setIsOpening(false);
@@ -143,9 +149,6 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
       processOpenCase();
     }
   };
-
-  const ITEM_WIDTH = 100; // 90px ширина + 10px gap
-  const targetX = -(45 * ITEM_WIDTH) + (window.innerWidth / 2) - (ITEM_WIDTH / 2);
 
   if (!isOpen) return null;
 
@@ -179,7 +182,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
           ))}
         </div>
 
-        <div className="case-reel-container">
+        <div className="case-reel-container" ref={reelRef}>
           <div className="case-reel-pointer" />
           {reelItems.length > 0 ? (
             <motion.div 
@@ -228,18 +231,12 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
             {isOpening ? 'Крутим...' : 
              isWatchingAd ? 'Загрузка рекламы...' :
              caseConfig.currency === 'ad' && timeLeft > 0 ? `Ждать ${formatTime(timeLeft)}` :
-             caseConfig.currency === 'ad' ? '🎬 Смотреть рекламу' :
+             caseConfig.currency === 'ad' ? '🎬 Смотреть рекламу (Бесплатно)' :
              caseConfig.currency === 'stars' ? `Открыть за ${caseConfig.price} ⭐` :
              `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} 🪙`}
           </button>
 
-          <button 
-            className="case-btn-ad"
-            onClick={handleWatchAd}
-            disabled={isOpening || isWatchingAd}
-          >
-            {isWatchingAd ? 'Загрузка...' : '🎬 Смотреть рекламу (+5000 🪙)'}
-          </button>
+          {/* 👇 Кнопка рекламы за +5000 удалена */}
 
         </div>
       </motion.div>

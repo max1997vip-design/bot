@@ -23,12 +23,12 @@ const CASES = {
   gold: { 
     price: 100000, 
     currency: 'coins',
-    items: [{ id: 'engine_3', weight: 40 }, { id: 'ecu_3', weight: 30 }, { id: 'suspension_3', weight: 20 }, { id: 'coins_25000', weight: 10 }] 
+    items: [{ id: 'engine_3', weight: 40 }, { id: 'ecu_3', weight: 30 }, { id: 'susp_3', weight: 20 }, { id: 'coins_25000', weight: 10 }] // 👈 susp_3
   },
   platinum: { 
     price: 500000, 
     currency: 'coins',
-    items: [{ id: 'engine_4', weight: 40 }, { id: 'tires_4', weight: 30 }, { id: 'suspension_4', weight: 20 }, { id: 'coins_100000', weight: 10 }] 
+    items: [{ id: 'engine_4', weight: 40 }, { id: 'tires_4', weight: 30 }, { id: 'susp_4', weight: 20 }, { id: 'coins_100000', weight: 10 }] // 👈 susp_4
   },
   diamond: { 
     price: 2000000, 
