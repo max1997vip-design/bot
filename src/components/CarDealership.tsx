@@ -7,25 +7,20 @@ import { CARS } from '../config/cars';
 export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
   const buyCar = useGameStore((s) => s.buyCar);
-  const switchCar = useGameStore((s) => s.switchCar);
   const [buyingId, setBuyingId] = useState<string | null>(null);
 
   const ownedCars = user?.ownedCars || ['vaz-2107'];
-  const activeCarId = user?.activeCarId || 'vaz-2107';
   const balance = user?.balance || 0;
+
+  // 👇 ФИЛЬТРУЕМ МАШИНЫ: показываем только те, которых нет у игрока
+  const availableCars = Object.values(CARS).filter(car => !ownedCars.includes(car.id));
 
   const handleBuy = async (carId: string, price: number) => {
     if (balance < price) return;
     setBuyingId(carId);
-    const success = await buyCar(carId, price);
-    if (success) {
-      await switchCar(carId);
-    }
+    await buyCar(carId, price);
     setBuyingId(null);
-  };
-
-  const handleSelect = async (carId: string) => {
-    await switchCar(carId);
+    // После покупки машина автоматически исчезнет из списка благодаря фильтру
   };
 
   return (
@@ -33,8 +28,10 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#090A0C', zIndex: 1000,
       display: 'flex', flexDirection: 'column', overflow: 'hidden'
     }}>
+      {/* Шапка салона */}
       <div style={{ 
-        padding: '20px', paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', 
+        padding: '20px', 
+        paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 Безопасный отступ сверху
         background: 'rgba(20, 22, 26, 0.95)', borderBottom: '1px solid rgba(255,255,255,0.1)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10
       }}>
@@ -49,20 +46,31 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         </button>
       </div>
 
+      {/* Список машин */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {Object.values(CARS).map((car) => {
-          const isOwned = ownedCars.includes(car.id);
-          const isActive = activeCarId === car.id;
+        
+        {/* 👇 Если все машины куплены, показываем сообщение */}
+        {availableCars.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#aaa', marginTop: '50px' }}>
+            <span style={{ fontSize: '60px' }}>🏆</span>
+            <h3 style={{ color: '#fff', marginTop: '20px' }}>Все машины скуплены!</h3>
+            <p>Вы собрали всю коллекцию. Зайдите в Гараж, чтобы выбрать автомобиль по вкусу.</p>
+          </div>
+        )}
+
+        {/* Список доступных машин */}
+        {availableCars.map((car) => {
           const canAfford = balance >= car.price;
           const isBuying = buyingId === car.id;
 
           return (
             <motion.div 
               key={car.id}
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               style={{
                 background: '#14161A', borderRadius: '20px', padding: '20px',
-                border: isActive ? '2px solid #00FF41' : '1px solid rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.05)',
                 display: 'flex', flexDirection: 'column', gap: '15px'
               }}
             >
@@ -89,6 +97,7 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '18px' }}>{car.name}</h3>
                   
+                  {/* Статы */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '12px', color: '#aaa' }}>
                     <span>⚡ {car.baseStats.power} HP</span>
                     <span>🏁 {car.baseStats.topSpeed} Vmax</span>
@@ -98,40 +107,24 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
                 </div>
               </div>
 
+              {/* Кнопка покупки */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
-                {!isOwned ? (
-                  <div style={{ color: canAfford ? '#ffd700' : '#ff4444', fontWeight: 'bold', fontSize: '16px' }}>
-                    {car.price.toLocaleString('ru-RU')} 🪙
-                  </div>
-                ) : (
-                  <div style={{ color: '#00FF41', fontWeight: 'bold', fontSize: '14px' }}>Куплено</div>
-                )}
+                <div style={{ color: canAfford ? '#ffd700' : '#ff4444', fontWeight: 'bold', fontSize: '16px' }}>
+                  {car.price.toLocaleString('ru-RU')} 🪙
+                </div>
 
-                {!isOwned ? (
-                  <button
-                    onClick={() => handleBuy(car.id, car.price)} disabled={!canAfford || isBuying}
-                    style={{
-                      background: canAfford ? '#ffd700' : '#333', color: canAfford ? '#000' : '#666',
-                      border: 'none', padding: '10px 20px', borderRadius: '10px',
-                      fontWeight: 'bold', fontSize: '14px', cursor: canAfford ? 'pointer' : 'not-allowed'
-                    }}
-                  >
-                    {isBuying ? 'ПОКУПКА...' : 'КУПИТЬ'}
-                  </button>
-                ) : isActive ? (
-                  <span style={{ color: '#00FF41', fontWeight: 'bold', fontSize: '14px' }}>Активна</span>
-                ) : (
-                  <button
-                    onClick={() => handleSelect(car.id)}
-                    style={{
-                      background: 'rgba(255,255,255,0.1)', color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.2)', padding: '10px 20px', borderRadius: '10px',
-                      fontWeight: 'bold', fontSize: '14px', cursor: 'pointer'
-                    }}
-                  >
-                    ВЫБРАТЬ
-                  </button>
-                )}
+                <button
+                  onClick={() => handleBuy(car.id, car.price)}
+                  disabled={!canAfford || isBuying}
+                  style={{
+                    background: canAfford ? '#ffd700' : '#333',
+                    color: canAfford ? '#000' : '#666',
+                    border: 'none', padding: '10px 20px', borderRadius: '10px',
+                    fontWeight: 'bold', fontSize: '14px', cursor: canAfford ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  {isBuying ? 'ПОКУПКА...' : 'КУПИТЬ'}
+                </button>
               </div>
             </motion.div>
           );

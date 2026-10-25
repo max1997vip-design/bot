@@ -1,3 +1,4 @@
+// src/components/AdminScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 
@@ -19,6 +20,7 @@ export const AdminScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [targetId, setTargetId] = useState('');
   const [amount, setAmount] = useState('');
   const [itemId, setItemId] = useState('engine_5');
+  const [isResetting, setIsResetting] = useState(false); // 👈 Стейт для кнопки сброса
 
   const loadData = async () => {
     const data = await adminGetData();
@@ -51,8 +53,39 @@ export const AdminScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
   };
 
+  // 👇 ФУНКЦИЯ ГЛОБАЛЬНОГО СБРОСА
+  const handleGlobalReset = async () => {
+    // Первое подтверждение
+    const firstConfirm = window.confirm(
+      '⚠️ ВНИМАНИЕ! Вы собираетесь ПОЛНОСТЬЮ СБРОСИТЬ прогресс ВСЕХ игроков в игре (баланс, машины, кланы, инвентарь).\n\nВы уверены?'
+    );
+    if (!firstConfirm) return;
+
+    // Второе подтверждение (защита от случайного клика)
+    const secondConfirm = window.confirm(
+      '🚨 ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!\n\nЭто действие НЕЛЬЗЯ ОТМЕНИТЬ. Все игроки начнут игру с нуля. Нажмите ОК, чтобы уничтожить все данные.'
+    );
+    if (!secondConfirm) return;
+
+    setIsResetting(true);
+    const success = await adminAction('globalReset', {});
+    setIsResetting(false);
+
+    if (success) {
+      alert('✅ Все игроки успешно сброшены. Приложение сейчас перезагрузится.');
+      window.location.reload(); // Принудительная перезагрузка, чтобы сбросить локальный стейт
+    } else {
+      alert('❌ Ошибка при сбросе. Проверьте консоль сервера.');
+    }
+  };
+
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 2000, overflowY: 'auto', padding: '20px' }}>
+    <div style={{ 
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 2000, overflowY: 'auto', 
+      padding: '20px',
+      paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 Безопасный отступ сверху
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' // 👈 Безопасный отступ снизу
+    }}>
       <div style={{ maxWidth: '500px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ color: '#ff4444', margin: 0 }}>🛠️ Админ Панель</h2>
@@ -99,6 +132,40 @@ export const AdminScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <button onClick={() => handleGive('item')} style={{ background: '#b000ff', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>Выдать 🔧</button>
           </div>
         </div>
+
+        {/* 👇 ОПАСНАЯ ЗОНА */}
+        <div style={{ 
+          marginTop: '40px', 
+          padding: '20px', 
+          border: '2px solid #ff4444', 
+          borderRadius: '12px',
+          background: 'rgba(255, 68, 68, 0.1)'
+        }}>
+          <h3 style={{ color: '#ff4444', marginTop: 0, marginBottom: '10px' }}>☢️ Опасная зона</h3>
+          <p style={{ color: '#ff8888', fontSize: '13px', marginBottom: '15px', lineHeight: '1.4' }}>
+            Внимание! Кнопка ниже обнулит прогресс абсолютно всех игроков в игре. 
+            Будут удалены: монеты, машины, детали, кланы и вся история транзакций.
+          </p>
+          <button
+            onClick={handleGlobalReset}
+            disabled={isResetting}
+            style={{
+              background: '#ff4444',
+              color: '#fff',
+              border: 'none',
+              padding: '14px 20px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              fontSize: '15px',
+              cursor: isResetting ? 'wait' : 'pointer',
+              width: '100%',
+              boxShadow: '0 4px 15px rgba(255, 68, 68, 0.3)'
+            }}
+          >
+            {isResetting ? 'УНИЧТОЖЕНИЕ ДАННЫХ...' : 'СБРОСИТЬ ВСЕХ ИГРОКОВ'}
+          </button>
+        </div>
+
       </div>
     </div>
   );

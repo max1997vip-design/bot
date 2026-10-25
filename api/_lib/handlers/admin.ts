@@ -1,7 +1,8 @@
+// api/_lib/handlers/admin.ts
 import { db } from '../db.js';
-import { users, userItems, featureFlags } from '../schema.js';
+import { users, userItems, featureFlags, equippedItems, ownedCars, clanMembers, clans, transactions } from '../schema.js'; // 👈 Добавлены импорты таблиц
 import { validateInitData } from '../telegram.js';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export async function adminHandler(req: any, res: any) {
   try {
@@ -46,6 +47,40 @@ export async function adminHandler(req: any, res: any) {
         await db.insert(userItems).values({ userId: targetUser.id, itemId: String(itemId) });
       }
       return res.json({ success: true });
+    }
+
+    // 👇 4. ГЛОБАЛЬНЫЙ СБРОС ВСЕХ ИГРОКОВ
+    if (action === 'globalReset') {
+      // Сбрасываем данные всех пользователей
+      await db.update(users).set({
+        balance: 0,
+        totalEarned: 0,
+        starsBalance: 0,
+        activeCarId: 'vaz-2107', // Дефолтная машина
+        ownedCars: ['vaz-2107'],
+        carColor: 'original',
+        level: 1,
+        xp: 0,
+        rating: 100,
+        clickLevel: 1,
+        offlineLevel: 1,
+        dailyStreak: 0,
+        lastDailyClaim: null,
+        dailyQuests: {},
+        partUpgrades: {},
+        businesses: {},
+        weeklyPass: { weekId: 0, xp: 0, claimed: [] }
+      }); // Без .where() обновляет ВСЕ записи
+
+      // Очищаем связанные таблицы
+      await db.delete(userItems);
+      await db.delete(equippedItems);
+      await db.delete(ownedCars);
+      await db.delete(clanMembers);
+      await db.delete(clans);
+      await db.delete(transactions);
+
+      return res.json({ success: true, message: 'All players reset successfully' });
     }
 
     return res.status(400).json({ error: 'Invalid action' });
