@@ -1,7 +1,7 @@
 // src/components/CityScreen.tsx
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RacesScreen } from './RacesScreen';
+import { RacesScreen } from './RacesScreen'; // 👈 Именованный импорт
 import { CarDealership } from './CarDealership'; 
 import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen';

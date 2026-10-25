@@ -154,7 +154,7 @@ export function RaceScreen() {
 
   return (
     <div className="race-screen">
-      {/* 👇 Оборачиваем в сцену с фиксированными пропорциями 9:16 */}
+      {/* 👇 ВОТ ОНА, ОБЕРТКА СЦЕНЫ 9:16 ДЛЯ ПК */}
       <div className="race-scene">
         <div className="race-background" />
         <div className="race-background-overlay" />
