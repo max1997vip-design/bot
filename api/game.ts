@@ -30,6 +30,8 @@ import { claimAdRewardHandler } from './_lib/handlers/claimAdReward.js';
 import { openCaseHandler } from './_lib/handlers/openCase.js';
 import { getHistoryHandler } from './_lib/handlers/getHistory.js';
 import { buyPremiumHandler } from './_lib/handlers/buyPremium.js';
+import { getAchievementsHandler } from './_lib/handlers/getAchievements.js';
+import { claimAchievementHandler } from './_lib/handlers/claimAchievement.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -67,6 +69,8 @@ export default async function handler(req: any, res: any) {
     case 'clanAction': return clanActionHandler(req, res);
     case 'admin': return adminHandler(req, res);
     case 'getHistory': return getHistoryHandler(req, res);
+    case 'getAchievements': return getAchievementsHandler(req, res);
+    case 'claimAchievement': return claimAchievementHandler(req, res);
     
     // 👇 ИСПРАВЛЕНИЕ: Теперь это case, а не if
     case 'buyPremium': return buyPremiumHandler(req, res);

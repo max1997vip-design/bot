@@ -44,7 +44,6 @@
   z-index: 1;
 }
 
-/* Обертка для верхнего UI */
 .race-top-ui {
   display: flex;
   flex-direction: column;
@@ -130,8 +129,6 @@
   z-index: 2;
 }
 
-/* 👇 УДАЛЕНО: .race-car-container:active — так как анимацией занимается Framer Motion */
-
 .race-car-container.rejected {
   animation: car-reject 160ms ease-out;
 }
@@ -154,6 +151,7 @@
   transform-origin: bottom center; 
 }
 
+/* 👇 ИСПРАВЛЕНО: Увеличены радиусы эллипсов, чтобы свечение не сужалось на 9:16 */
 .headlight-glow {
   position: absolute;
   inset: 0;
@@ -161,8 +159,8 @@
   opacity: 0;
   transition: opacity 70ms ease-out;
   background:
-    radial-gradient(ellipse 8% 6% at var(--left-hl-x) var(--left-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%),
-    radial-gradient(ellipse 8% 6% at var(--right-hl-x) var(--right-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%);
+    radial-gradient(ellipse 12% 8% at var(--left-hl-x) var(--left-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%),
+    radial-gradient(ellipse 12% 8% at var(--right-hl-x) var(--right-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%);
 }
 
 .headlight-glow.flash { opacity: 1; }
@@ -174,8 +172,8 @@
   opacity: 0;
   transition: opacity 90ms ease-out;
   background:
-    radial-gradient(ellipse 16% 14% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%),
-    radial-gradient(ellipse 16% 14% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%);
+    radial-gradient(ellipse 22% 16% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 22% 16% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%);
 }
 
 .headlight-halo.flash { opacity: 1; }

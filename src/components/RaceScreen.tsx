@@ -226,7 +226,7 @@ export function RaceScreen() {
         <button
           onClick={() => setShowPass(true)}
           style={{
-            position: 'absolute', bottom: '63%', left: '5%', zIndex: 100,
+            position: 'absolute', bottom: '67%', left: '5%', zIndex: 100,
             background: 'linear-gradient(135deg, #00bfff, #0055ff)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',

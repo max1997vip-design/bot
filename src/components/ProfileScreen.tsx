@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { ReferralScreen } from './ReferralScreen';
-import { HistoryModal } from './HistoryModal'; // 👈 Добавлен импорт истории
+import { HistoryModal } from './HistoryModal';
+import { AchievementsScreen } from './AchievementsScreen'; // 👈 Импорт экрана достижений
 
-// Формула уровня: level = floor(sqrt(xp / 50)) + 1
-// Пороги: 0, 50, 200, 450, 800, 1250 XP = уровни 1, 2, 3, 4, 5, 6
+// Формула уровня
 const calcLevelInfo = (xp: number) => {
   const level = Math.floor(Math.sqrt(xp / 50)) + 1;
   const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
@@ -15,12 +15,7 @@ const calcLevelInfo = (xp: number) => {
     100,
     ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100
   );
-  return {
-    level,
-    xpCurrentLevel,
-    xpNextLevel,
-    progress,
-  };
+  return { level, xpCurrentLevel, xpNextLevel, progress };
 };
 
 export const ProfileScreen = () => {
@@ -28,7 +23,8 @@ export const ProfileScreen = () => {
   
   // Состояния для открытия модалок
   const [showReferral, setShowReferral] = useState(false);
-  const [showHistory, setShowHistory] = useState(false); // 👈 Новый стейт
+  const [showHistory, setShowHistory] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false); // 👈 Стейт для достижений
 
   if (!user) {
     return (
@@ -92,7 +88,7 @@ export const ProfileScreen = () => {
           <div className="stat-label">Всего заработано</div>
         </div>
 
-        {/* 👇 КАРТОЧКА БАЛАНСА С ОТКРЫТИЕМ ИСТОРИИ */}
+        {/* Карточка баланса с открытием истории */}
         <div 
           className="stat-card" 
           onClick={() => setShowHistory(true)}
@@ -117,6 +113,20 @@ export const ProfileScreen = () => {
           <div className="stat-label">Активная машина</div>
         </div>
       </div>
+
+      {/* 👇 КНОПКА ДОСТИЖЕНИЙ */}
+      <button
+        className="profile-referral-btn"
+        onClick={() => setShowAchievements(true)}
+        style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }} // Золотая рамка для выделения
+      >
+        <span className="profile-referral-icon">🏆</span>
+        <div className="profile-referral-text">
+          <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
+          <span className="profile-referral-sub">Получай монеты за прогресс</span>
+        </div>
+        <span className="profile-referral-arrow">›</span>
+      </button>
 
       {/* Кнопка: Приглашение друзей */}
       <button
@@ -150,13 +160,9 @@ export const ProfileScreen = () => {
       </div>
 
       {/* Модалки */}
-      {showReferral && (
-        <ReferralScreen onClose={() => setShowReferral(false)} />
-      )}
-      
-      {showHistory && (
-        <HistoryModal onClose={() => setShowHistory(false)} />
-      )}
+      {showReferral && <ReferralScreen onClose={() => setShowReferral(false)} />}
+      {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
+      {showAchievements && <AchievementsScreen onClose={() => setShowAchievements(false)} />}
     </motion.div>
   );
 };
