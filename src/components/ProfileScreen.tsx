@@ -1,8 +1,9 @@
 // src/components/ProfileScreen.tsx
-import { useState } from 'react'; // <-- Добавили useState
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
-import { ReferralScreen } from './ReferralScreen'; // <-- Импорт модалки
+import { ReferralScreen } from './ReferralScreen';
+import { HistoryModal } from './HistoryModal'; // 👈 Добавлен импорт истории
 
 // Формула уровня: level = floor(sqrt(xp / 50)) + 1
 // Пороги: 0, 50, 200, 450, 800, 1250 XP = уровни 1, 2, 3, 4, 5, 6
@@ -25,8 +26,9 @@ const calcLevelInfo = (xp: number) => {
 export const ProfileScreen = () => {
   const user = useGameStore((state) => state.user);
   
-  // Состояние для открытия/закрытия окна рефералки
+  // Состояния для открытия модалок
   const [showReferral, setShowReferral] = useState(false);
+  const [showHistory, setShowHistory] = useState(false); // 👈 Новый стейт
 
   if (!user) {
     return (
@@ -90,10 +92,15 @@ export const ProfileScreen = () => {
           <div className="stat-label">Всего заработано</div>
         </div>
 
-        <div className="stat-card">
+        {/* 👇 КАРТОЧКА БАЛАНСА С ОТКРЫТИЕМ ИСТОРИИ */}
+        <div 
+          className="stat-card" 
+          onClick={() => setShowHistory(true)}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon">💵</div>
           <div className="stat-value">{user.balance.toLocaleString('ru-RU')}</div>
-          <div className="stat-label">Баланс</div>
+          <div className="stat-label">Баланс 📜</div>
         </div>
 
         <div className="stat-card">
@@ -111,7 +118,7 @@ export const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* НОВАЯ КНОПКА: Приглашение друзей */}
+      {/* Кнопка: Приглашение друзей */}
       <button
         className="profile-referral-btn"
         onClick={() => setShowReferral(true)}
@@ -142,9 +149,13 @@ export const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* Рендерим модалку поверх всего, если она открыта */}
+      {/* Модалки */}
       {showReferral && (
         <ReferralScreen onClose={() => setShowReferral(false)} />
+      )}
+      
+      {showHistory && (
+        <HistoryModal onClose={() => setShowHistory(false)} />
       )}
     </motion.div>
   );

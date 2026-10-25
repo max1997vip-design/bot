@@ -4,10 +4,43 @@ import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq } from 'drizzle-orm';
 
-// Цены машин (должны совпадать с cars.ts)
 const CAR_PRICES: Record<string, number> = {
-  'bmw-m3': 50000, 
-  // 'supra': 150000,
+  // Старые машины
+  'audi-tt': 0,
+  'bmw-m3': 50000,
+
+  // Тир 1
+  'vaz-2107': 0,
+  'moskvich': 5000,
+  'priora': 15000,
+  'vesta': 40000,
+  // Тир 2
+  'civic': 100000,
+  'rx7': 250000,
+  'supra': 500000,
+  'skyline': 850000,
+  // Тир 3
+  'mustang': 2000000,
+  'camaro': 3500000,
+  'm3gtr': 6000000,
+  'rs6': 10000000,
+  // Тир 4
+  'gtr': 25000000,
+  'porsche911': 40000000,
+  'r8': 60000000,
+  'amggt': 85000000,
+  // Тир 5
+  'ferrari458': 150000000,
+  'huracan': 250000000,
+  'mclaren720': 350000000,
+  'aventador': 500000000,
+  // Тир 6
+  'sf90': 1000000000,
+  'veyron': 1500000000,
+  'chiron': 2500000000,
+  'speedtail': 4000000000,
+  'jesko': 6000000000,
+  'solus': 10000000000,
 };
 
 export async function buyCarHandler(req: any, res: any) {
@@ -28,7 +61,9 @@ export async function buyCarHandler(req: any, res: any) {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const owned = user.ownedCars || ['audi-tt'];
+    // 👇 Если у пользователя нет массива ownedCars, даем ему базовую ВАЗ 2107
+    const owned = user.ownedCars || ['vaz-2107'];
+    
     if (owned.includes(carId)) {
       return res.status(400).json({ error: 'У вас уже есть эта машина' });
     }
@@ -37,10 +72,10 @@ export async function buyCarHandler(req: any, res: any) {
       return res.status(400).json({ error: 'Недостаточно монет' });
     }
 
-    // Списываем деньги и добавляем машину
     const newBalance = user.balance - price;
     const newOwnedCars = [...owned, carId];
 
+    // 👇 ИСПРАВЛЕНА ОШИБКА С ДВОЙНЫМ .update()
     const [updated] = await db
       .update(users)
       .set({ balance: newBalance, ownedCars: newOwnedCars })

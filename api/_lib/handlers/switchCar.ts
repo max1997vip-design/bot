@@ -1,3 +1,4 @@
+// api/_lib/handlers/switchCar.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
@@ -7,7 +8,6 @@ export async function switchCarHandler(req: any, res: any) {
   try {
     const { initData, carId } = req.body;
     
-    // Твоя авторизация
     const validatedData = validateInitData(initData, process.env.BOT_TOKEN!);
     if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
     const userId = validatedData.user.id;
@@ -17,7 +17,8 @@ export async function switchCarHandler(req: any, res: any) {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const owned = user.ownedCars || ['audi-tt'];
+    // 👇 Если у пользователя нет массива ownedCars, даем ему базовую ВАЗ 2107
+    const owned = user.ownedCars || ['vaz-2107'];
     if (!owned.includes(carId)) {
       return res.status(403).json({ error: 'Car not owned' });
     }

@@ -12,5 +12,6 @@ export const CLAN_LEVELS = [
 ];
 
 export function getClanStats(level: number) {
-  return CLAN_LEVELS.find(l => l.level === level) || CLAN_LEVELS[0];
+  // 👇 ИСПРАВЛЕНИЕ: Убрали || CLAN_LEVELS[0], чтобы не сбрасывало на 1 уровень
+  return CLAN_LEVELS.find(l => l.level === level); 
 }

@@ -5,7 +5,8 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { GarageScreen } from './components/GarageScreen';
 import { CityScreen } from './components/CityScreen';
 import { LoadingScreen } from './components/LoadingScreen';
-import { CARS } from './config/cars'; // 👈 Импортируем конфиг машин для предзагрузки
+import { DailyRewardModal } from './components/DailyRewardModal';
+import { CARS } from './config/cars';
 import WebApp from '@twa-dev/sdk';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,17 +21,26 @@ type FullscreenWebApp = typeof WebApp & {
   setBackgroundColor?: (color: string) => void;
 };
 
+// Та же функция для вычисления 00:00 МСК
+const getMskMidnight = (offsetDays = 0) => {
+  const now = new Date();
+  const mskTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  mskTime.setUTCHours(0, 0, 0, 0);
+  mskTime.setUTCDate(mskTime.getUTCDate() + offsetDays);
+  return mskTime.getTime() - 3 * 60 * 60 * 1000;
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('race');
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offlineEarnings, setOfflineEarnings] = useState(0);
+  const [showAutoDaily, setShowAutoDaily] = useState(false);
 
   const setUser = useGameStore((state) => state.setUser);
   const syncTaps = useGameStore((state) => state.syncTaps);
   const user = useGameStore((state) => state.user);
 
-    // Безопасная предзагрузка (чтобы Vercel не ругался на типы)
   useEffect(() => {
     const imagesToPreload = [
       '/images/bg-garage.jpg',
@@ -40,12 +50,9 @@ export default function App() {
       '/images/computer.png',
     ];
 
-    // Безопасно проверяем, что CARS существует и перебираем его
     if (CARS) {
       Object.values(CARS).forEach((car: any) => {
-        if (car && car.image) {
-          imagesToPreload.push(car.image);
-        }
+        if (car && car.image) imagesToPreload.push(car.image);
       });
     }
 
@@ -76,17 +83,10 @@ export default function App() {
       try {
         webApp.setHeaderColor?.('#000000');
         webApp.setBackgroundColor?.('#000000');
-
         webApp.expand();
         webApp.disableVerticalSwipes?.();
-
         const version = Number(webApp.version || '0');
-
-        if (
-          version >= 8 &&
-          typeof webApp.requestFullscreen === 'function' &&
-          !webApp.isFullscreen
-        ) {
+        if (version >= 8 && typeof webApp.requestFullscreen === 'function' && !webApp.isFullscreen) {
           webApp.requestFullscreen();
         }
       } catch (e) {
@@ -103,34 +103,29 @@ export default function App() {
 
         const res = await fetch('/api/game?action=sync', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            initData,
-            startParam,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData, startParam }),
         });
 
-        if (!res.ok) {
-          throw new Error(`Ошибка сервера: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Ошибка сервера: ${res.status}`);
 
         const data = await res.json();
-
         if (cancelled) return;
 
         if (data.user && data.user.id) {
           setUser(
             data.user,
             data.inventory || [],
-            data.equipped || {
-              engine: null,
-              tires: null,
-              ecu: null,
-              suspension: null,
-            }
+            data.equipped || { engine: null, tires: null, ecu: null, suspension: null }
           );
+
+          // 👇 ПРОВЕРКА ЕЖЕДНЕВНОЙ НАГРАДЫ (по МСК)
+          const lastDaily = data.user.lastDailyClaim ? new Date(data.user.lastDailyClaim).getTime() : 0;
+          const todayMidnight = getMskMidnight(0);
+
+          if (lastDaily < todayMidnight) {
+            setShowAutoDaily(true);
+          }
 
           if (data.offlineEarnings > 0) {
             setOfflineEarnings(data.offlineEarnings);
@@ -140,19 +135,13 @@ export default function App() {
         }
       } catch (e) {
         console.error('Ошибка sync:', e);
-
-        if (!cancelled) {
-          setError('Ошибка сети. Проверьте интернет и попробуйте снова.');
-        }
+        if (!cancelled) setError('Ошибка сети. Проверьте интернет и попробуйте снова.');
       } finally {
         if (!cancelled) {
           const elapsed = Date.now() - startTime;
           const remaining = Math.max(0, 1500 - elapsed);
-
           readyTimeout = setTimeout(() => {
-            if (!cancelled) {
-              setIsReady(true);
-            }
+            if (!cancelled) setIsReady(true);
           }, remaining);
         }
       }
@@ -169,9 +158,7 @@ export default function App() {
     };
   }, [setUser, syncTaps]);
 
-  const reloadApp = () => {
-    window.location.reload();
-  };
+  const reloadApp = () => window.location.reload();
 
   return (
     <>
@@ -194,10 +181,10 @@ export default function App() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0 }} // 👈 Убрали y: 10 (чтобы не дергался лейаут)
+                  initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15, ease: 'easeOut' }} // 👈 Сделали чуть быстрее
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
                   style={{
                     position: 'absolute',
                     inset: 0,
@@ -216,58 +203,35 @@ export default function App() {
             </main>
 
             <nav className="bottom-nav">
-              <button
-                className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`}
-                onClick={() => setActiveTab('race')}
-              >
+              <button className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`} onClick={() => setActiveTab('race')}>
                 <span className="nav-icon">🏁</span>
                 <span className="nav-label">Гонка</span>
               </button>
-
-              <button
-                className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`}
-                onClick={() => setActiveTab('city')}
-              >
+              <button className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`} onClick={() => setActiveTab('city')}>
                 <span className="nav-icon">🏙️</span>
                 <span className="nav-label">Город</span>
               </button>
-
-              <button
-                className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`}
-                onClick={() => setActiveTab('garage')}
-              >
+              <button className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`} onClick={() => setActiveTab('garage')}>
                 <span className="nav-icon">🔧</span>
                 <span className="nav-label">Гараж</span>
               </button>
-
-              <button
-                className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => setActiveTab('profile')}
-              >
+              <button className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
                 <span className="nav-icon">👤</span>
                 <span className="nav-label">Профиль</span>
               </button>
             </nav>
 
+            {showAutoDaily && (
+              <DailyRewardModal onClose={() => setShowAutoDaily(false)} />
+            )}
+
             <AnimatePresence>
               {offlineEarnings > 0 && (
-                <motion.div
-                  className="offline-overlay"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <motion.div
-                    className="offline-card"
-                    initial={{ scale: 0.8, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.8, y: 20 }}
-                  >
+                <motion.div className="offline-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <motion.div className="offline-card" initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 20 }}>
                     <h2>С возвращением!</h2>
                     <p>Пока вас не было, механики заработали:</p>
-                    <div className="offline-amount">
-                      +{offlineEarnings.toLocaleString('ru-RU')} 🪙
-                    </div>
+                    <div className="offline-amount">+{offlineEarnings.toLocaleString('ru-RU')} 🪙</div>
                     <button onClick={() => setOfflineEarnings(0)}>Забрать</button>
                   </motion.div>
                 </motion.div>

@@ -21,7 +21,11 @@ export const ClanScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   if (!clanInfo) {
     return (
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 1000, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ 
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 1000, 
+        padding: '20px', paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 Отступ для Telegram
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' 
+      }}>
         <h2 style={{ color: '#fff', marginBottom: '20px' }}>🏰 Кланы</h2>
         
         <div style={{ background: '#222', padding: '20px', borderRadius: '12px', width: '100%', maxWidth: '400px', marginBottom: '20px' }}>
@@ -58,9 +62,16 @@ export const ClanScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const isLeader = clanInfo.leaderId === user?.id;
   const nextLevelStats = getClanStats(clanInfo.level + 1);
+  
+  // 👇 ПРОВЕРКА НА МАКСИМАЛЬНЫЙ УРОВЕНЬ
+  // Если nextLevelStats вернул undefined или достигнут конец массива уровней, блокируем кнопку
+  const isMaxLevel = !nextLevelStats || clanInfo.level >= CLAN_LEVELS.length;
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 1000, overflowY: 'auto', padding: '20px' }}>
+    <div style={{ 
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 1000, overflowY: 'auto', 
+      padding: '20px', paddingTop: 'calc(20px + var(--tg-safe-top, 0px))' // 👈 Отступ для Telegram
+    }}>
       <div style={{ maxWidth: '500px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ color: '#00bfff', margin: 0 }}>🏰 {clanInfo.name}</h2>
@@ -90,11 +101,25 @@ export const ClanScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         {isLeader && (
           <button 
-            onClick={async () => { if(await clanAction('upgrade')) alert('Клан улучшен!'); else alert('Не хватает денег в казне!'); }}
-            disabled={!nextLevelStats || clanInfo.balance < (nextLevelStats?.upgradeCost || 0)}
-            style={{ width: '100%', padding: '12px', background: '#ffd700', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '20px' }}
+            onClick={async () => { 
+              if (isMaxLevel) return; // 👈 Защита от клика
+              if(await clanAction('upgrade')) alert('Клан улучшен!'); 
+              else alert('Не хватает денег в казне!'); 
+            }}
+            disabled={isMaxLevel || clanInfo.balance < (nextLevelStats?.upgradeCost || 0)}
+            style={{ 
+              width: '100%', padding: '12px', 
+              background: isMaxLevel ? '#444' : '#ffd700', 
+              color: isMaxLevel ? '#888' : '#000', 
+              border: 'none', borderRadius: '6px', fontWeight: 'bold', 
+              cursor: isMaxLevel ? 'not-allowed' : 'pointer', 
+              marginBottom: '20px' 
+            }}
           >
-            УЛУЧШИТЬ ДО {clanInfo.level + 1} УР. (Цена: {nextLevelStats?.upgradeCost.toLocaleString('ru-RU') || 'MAX'} 🪙)
+            {isMaxLevel 
+              ? 'МАКСИМАЛЬНЫЙ УРОВЕНЬ' 
+              : `УЛУЧШИТЬ ДО ${clanInfo.level + 1} УР. (Цена: ${nextLevelStats?.upgradeCost?.toLocaleString('ru-RU') || 0} 🪙)`
+            }
           </button>
         )}
 

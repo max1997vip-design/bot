@@ -12,8 +12,9 @@ export const users = pgTable('users', {
   totalEarned: bigint('total_earned', { mode: 'number' }).notNull().default(0),
   starsBalance: integer('stars_balance').notNull().default(0),
   
-  activeCarId: text('active_car_id').notNull().default('audi-tt'),
-  ownedCars: jsonb('owned_cars').$type<string[]>().notNull().default(['audi-tt']),
+  // 👇 ИЗМЕНЕНО НА ВАЗ 2107
+  activeCarId: text('active_car_id').notNull().default('vaz-2107'),
+  ownedCars: jsonb('owned_cars').$type<string[]>().notNull().default(['vaz-2107']),
   
   carColor: text('car_color').notNull().default('original'), 
   level: integer('level').notNull().default(1),
@@ -111,12 +112,12 @@ export const clans = pgTable('clans', {
 export const clanMembers = pgTable('clan_members', {
   userId: bigint('user_id', { mode: 'number' }).primaryKey().references(() => users.id, { onDelete: 'cascade' }),
   clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
-  role: text('role').notNull().default('member'), // 'leader' | 'officer' | 'member'
+  role: text('role').notNull().default('member'),
   joinedAt: timestamp('joined_at').notNull().defaultNow(),
 });
 
 export const featureFlags = pgTable('feature_flags', {
-  name: text('name').primaryKey(), // 'casino', 'clans', 'workshop' и т.д.
+  name: text('name').primaryKey(),
   isEnabled: boolean('is_enabled').notNull().default(true),
 });
 

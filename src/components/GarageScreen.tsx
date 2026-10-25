@@ -104,6 +104,23 @@ export const GarageScreen: React.FC = () => {
           const sellPrice = SELL_PRICES[item.rarity];
           const isSelling = sellingId === itemId;
 
+          // 👇 СЧИТАЕМ ПРОКАЧАННЫЕ СТАТЫ ДЕТАЛИ
+          const upg = user?.partUpgrades?.[itemId] || { 
+            level: 0, goldStars: 0, redStars: 0 
+          };
+          
+          const levelMulti = 1 + (upg.level || 0) * 0.02;
+          const goldMulti = 1 + (upg.goldStars || 0) * 0.10;
+          const redMulti = 1 + (upg.redStars || 0) * 0.25;
+          const finalMulti = levelMulti * goldMulti * redMulti;
+
+          const power = Math.round(item.stats.power * finalMulti);
+          const topSpeed = Math.round(item.stats.topSpeed * finalMulti);
+          const grip = Math.round(item.stats.grip * finalMulti);
+          const handling = Math.round(item.stats.handling * finalMulti);
+
+          const hasUpgrades = upg.level > 0 || upg.goldStars > 0 || upg.redStars > 0;
+
           return (
             <motion.div
               key={itemId}
@@ -131,17 +148,38 @@ export const GarageScreen: React.FC = () => {
                 }
               }}
             >
-              <div>
+              <div style={{ flex: 1 }}>
                 <div
                   className="item-name"
                   style={{
                     color: RARITY_COLORS[item.rarity],
                     fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '5px'
                   }}
                 >
                   {item.name} {isEquipped && '✓'}
+                  
+                  {/* 👇 ПОКАЗЫВАЕМ УРОВЕНЬ И ЗВЕЗДЫ */}
+                  {hasUpgrades && (
+                    <span style={{ 
+                      fontSize: '10px', 
+                      fontWeight: 'normal',
+                      color: '#888',
+                      background: 'rgba(0,0,0,0.3)',
+                      padding: '2px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      Lv.{upg.level}
+                      {upg.goldStars > 0 && <span style={{ color: 'gold', marginLeft: '4px' }}>★{upg.goldStars}</span>}
+                      {upg.redStars > 0 && <span style={{ color: '#ff4444', marginLeft: '4px' }}>★{upg.redStars}</span>}
+                    </span>
+                  )}
                 </div>
 
+                {/* 👇 ПОКАЗЫВАЕМ ПРОКАЧАННЫЕ СТАТЫ */}
                 <div
                   className="item-stats"
                   style={{
@@ -150,21 +188,10 @@ export const GarageScreen: React.FC = () => {
                     marginTop: '4px',
                   }}
                 >
-                  {item.stats.power > 0 && (
-                    <span>+{item.stats.power} HP </span>
-                  )}
-
-                  {item.stats.topSpeed > 0 && (
-                    <span>+{item.stats.topSpeed} Vmax </span>
-                  )}
-
-                  {item.stats.grip > 0 && (
-                    <span>+{item.stats.grip} Сцеп. </span>
-                  )}
-
-                  {item.stats.handling > 0 && (
-                    <span>+{item.stats.handling} Управ. </span>
-                  )}
+                  {power > 0 && <span>+{power} HP </span>}
+                  {topSpeed > 0 && <span>+{topSpeed} Vmax </span>}
+                  {grip > 0 && <span>+{grip} Сцеп. </span>}
+                  {handling > 0 && <span>+{handling} Управ. </span>}
                 </div>
               </div>
 

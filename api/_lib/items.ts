@@ -50,7 +50,7 @@ export const RARITY_DROP_CHANCE: Record<string, number> = { common: 60, uncommon
 export function calculateStats(
   equipped: Record<string, string | null>, 
   partUpgrades: Record<string, any> = {},
-  activeCarId: string = 'audi-tt'
+  activeCarId: string = 'vaz-2107'
 ) {
   const carConfig = CARS[activeCarId] || CARS['audi-tt'];
   let base = { ...carConfig.baseStats };

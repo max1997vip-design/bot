@@ -8,6 +8,16 @@ interface Props {
 
 const REWARDS = [1000, 2500, 5000, 10000, 25000, 50000, 100000];
 
+// Вспомогательная функция: возвращает timestamp 00:00 по МСК (UTC+3)
+// offsetDays = 0 (сегодня), 1 (завтра) и т.д.
+const getMskMidnight = (offsetDays = 0) => {
+  const now = new Date();
+  const mskTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // Переводим в UTC+3
+  mskTime.setUTCHours(0, 0, 0, 0); // Ставим 00:00
+  mskTime.setUTCDate(mskTime.getUTCDate() + offsetDays); // Прибавляем дни
+  return mskTime.getTime() - 3 * 60 * 60 * 1000; // Возвращаем в UTC timestamp
+};
+
 export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
   const claimDaily = useGameStore((s) => s.claimDaily);
@@ -16,11 +26,9 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
   const streak = user?.dailyStreak || 0;
   const lastClaim = user?.lastDailyClaim ? new Date(user.lastDailyClaim) : null;
   
-  // Состояние для таймера
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [canClaim, setCanClaim] = useState<boolean>(true);
 
-  // Эффект для работы таймера
   useEffect(() => {
     const updateTimer = () => {
       if (!lastClaim) {
@@ -29,24 +37,25 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
         return;
       }
 
-      const nextTime = lastClaim.getTime() + 24 * 60 * 60 * 1000; // 24 часа
-      const left = nextTime - Date.now();
-
-      if (left <= 0) {
+      const todayMidnight = getMskMidnight(0); // Начало сегодняшнего дня (00:00 МСК)
+      
+      // Если последний клейм был до сегодняшней полуночи МСК — награда доступна
+      if (lastClaim.getTime() < todayMidnight) {
         setCanClaim(true);
         setTimeLeft(0);
       } else {
+        // Иначе показываем таймер до следующей полуночи (завтрашней)
+        const nextMidnight = getMskMidnight(1);
         setCanClaim(false);
-        setTimeLeft(left);
+        setTimeLeft(nextMidnight - Date.now());
       }
     };
 
-    updateTimer(); // Запускаем сразу
-    const interval = setInterval(updateTimer, 1000); // И каждую секунду
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, [lastClaim]);
 
-  // Форматирование времени (ЧЧ:ММ:СС)
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const h = Math.floor(totalSeconds / 3600);
@@ -65,7 +74,13 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
     setIsLoading(true);
     try {
       const success = await claimDaily();
-      if (success) playSound('coin');
+      if (success) {
+        playSound('coin');
+        // После успешного получения принудительно обновляем таймер
+        const nextMidnight = getMskMidnight(1);
+        setTimeLeft(nextMidnight - Date.now());
+        setCanClaim(false);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +90,9 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(0,0,0,0.9)', zIndex: 1000,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px'
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+      paddingTop: 'var(--tg-safe-top, 0px)', // 👈 Добавлен безопасный отступ сверху
+      paddingLeft: '20px', paddingRight: '20px', paddingBottom: '20px'
     }}>
       <div style={{ 
         background: '#1a1a1a', 
@@ -132,7 +149,6 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Таймер или кнопка */}
         {!canClaim && timeLeft > 0 && (
           <div style={{ textAlign: 'center', marginBottom: '15px' }}>
             <span style={{ color: '#aaa', fontSize: '13px' }}>Следующая награда через:</span>

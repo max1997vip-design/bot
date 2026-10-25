@@ -3,18 +3,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RacesScreen } from './RacesScreen';
 import { CarDealership } from './CarDealership'; 
-import { DailyRewardModal } from './DailyRewardModal';
-import { QuestModal } from './QuestModal';
 import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen';
 import { CasinoScreen } from './CasinoScreen';
-import { PassScreen } from './PassScreen';
 import { ClanScreen } from './ClanScreen';
 import { AdminScreen } from './AdminScreen';
 import { useGameStore } from '../store/gameStore';
 import { CaseModal } from './CaseModal';
 import { ShopModal } from './ShopModal';
-import { HistoryModal } from './HistoryModal';
 import '../styles/city.css';
 
 export const CityScreen = () => {
@@ -22,11 +18,7 @@ export const CityScreen = () => {
   const [showTopBalance, setShowTopBalance] = useState(false);
   const [topBalanceData, setTopBalanceData] = useState<any[]>([]);
   const [showDealership, setShowDealership] = useState(false);
-  const [showDaily, setShowDaily] = useState(false);
-  const [showPass, setShowPass] = useState(false);
-  const [showQuests, setShowQuests] = useState(false);
   const [showWorkshop, setShowWorkshop] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [showBusiness, setShowBusiness] = useState(false);
   const [showCasino, setShowCasino] = useState(false);
   const [showClan, setShowClan] = useState(false);
@@ -53,7 +45,7 @@ export const CityScreen = () => {
           <motion.div 
             key="city-menu" 
             className="city-hub" 
-            initial={false} // Убрана анимация появления при входе на вкладку
+            initial={false}
             animate={{ opacity: 1, y: 0 }} 
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
@@ -86,12 +78,6 @@ export const CityScreen = () => {
                 <h3>Автосалон</h3>
                 <p>Покупка новых машин</p>
               </div>
-              
-              <div className="city-card" onClick={() => setShowDaily(true)}>
-                <span className="city-icon">🎁</span>
-                <h3>Бонус</h3>
-                <p>Ежедневная награда</p>
-              </div>
 
               {features.casino !== false && (
                 <div className="city-card" onClick={() => setShowCasino(true)}>
@@ -103,34 +89,14 @@ export const CityScreen = () => {
 
               <div className="city-card" onClick={() => setActiveCase('bronze')}>
                 <div className="city-icon">📦</div>
-                  <h3>Кейсы</h3>
-                  <p>От 5.000 🪙</p>
-                </div>
-              
-              {features.pass !== false && (
-                <div className="city-card" onClick={() => setShowPass(true)} style={{ border: '1px solid #00bfff' }}>
-                  <span className="city-icon">🏁</span>
-                  <h3>Пропуск</h3>
-                  <p>Награды за неделю</p>
-                </div>
-              )}
-
-              <div className="city-card" onClick={() => setShowHistory(true)}>
-                  <span className="city-icon">📜</span>
-                  <h3>История</h3>
-                  <p>Движение средств</p>
+                <h3>Кейсы</h3>
+                <p>От 5.000 🪙</p>
               </div>
 
               <div className="city-card" onClick={() => setShowShop(true)} style={{ border: '1px solid #ffd700' }}>
-                  <span className="city-icon">🛒</span>
-                  <h3>Магазин</h3>
-                  <p>Покупка монет</p>
-              </div>
-
-              <div className="city-card" onClick={() => setShowQuests(true)}>
-                <span className="city-icon">📋</span>
-                <h3>Задания</h3>
-                <p>Квесты на сегодня</p>
+                <span className="city-icon">🛒</span>
+                <h3>Магазин</h3>
+                <p>Покупка монет</p>
               </div>
 
               {features.workshop !== false && (
@@ -177,12 +143,7 @@ export const CityScreen = () => {
 
       <AnimatePresence>
         {showTopBalance && (
-          <motion.div 
-            className="race-overlay" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-          >
+          <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div 
               className="leaderboard-modal"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -209,16 +170,12 @@ export const CityScreen = () => {
       </AnimatePresence>
 
       {showDealership && <CarDealership onClose={() => setShowDealership(false)} />}
-      {showDaily && <DailyRewardModal onClose={() => setShowDaily(false)} />}
-      {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
       {showWorkshop && <WorkshopScreen onClose={() => setShowWorkshop(false)} />}
       {showBusiness && <BusinessScreen onClose={() => setShowBusiness(false)} />}
       {showCasino && <CasinoScreen onClose={() => setShowCasino(false)} />}
-      {showPass && <PassScreen onClose={() => setShowPass(false)} />}
       {showClan && <ClanScreen onClose={() => setShowClan(false)} />} 
       {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />}
       {showShop && <ShopModal onClose={() => setShowShop(false)} />}
-      {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
       
       <CaseModal 
         isOpen={activeCase !== null} 
