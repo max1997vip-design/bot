@@ -11,12 +11,30 @@ export interface CarConfig {
     grip: number;
     handling: number;
   };
+  // 👇 ДОБАВЛЕНО: Делаем координаты фар необязательными, чтобы TS не ругался
+  leftHeadlight?: { x: string; y: string; };
+  rightHeadlight?: { x: string; y: string; };
 }
 
 export const CARS: Record<string, CarConfig> = {
   // --- СТАРЫЕ МАШИНЫ (Для совместимости со старыми сейвами) ---
-  'audi-tt': { id: 'audi-tt', name: 'Audi TT', price: 0, image: '/cars/audi-tt-front.png', baseStats: { power: 40, topSpeed: 25, grip: 20, handling: 20 } },
-  'bmw-m3': { id: 'bmw-m3', name: 'BMW M3', price: 50000, image: '/cars/placeholder.png', baseStats: { power: 90, topSpeed: 50, grip: 45, handling: 45 } },
+  'audi-tt': { 
+    id: 'audi-tt', 
+    name: 'Audi TT', 
+    price: 0, 
+    image: '/cars/audi-tt-front.png', 
+    baseStats: { power: 40, topSpeed: 25, grip: 20, handling: 20 },
+    // Если у Audi TT были точные координаты, можешь раскомментировать и вставить их сюда:
+    // leftHeadlight: { x: '25%', y: '55%' },
+    // rightHeadlight: { x: '75%', y: '55%' }
+  },
+  'bmw-m3': { 
+    id: 'bmw-m3', 
+    name: 'BMW M3', 
+    price: 50000, 
+    image: '/cars/placeholder.png', 
+    baseStats: { power: 90, topSpeed: 50, grip: 45, handling: 45 } 
+  },
   
   // --- ТИР 1: Классика и бюджет ---
   'vaz-2107': { id: 'vaz-2107', name: 'ВАЗ 2107', price: 0, image: '/cars/placeholder.png', baseStats: { power: 20, topSpeed: 15, grip: 10, handling: 10 } },

@@ -34,7 +34,7 @@ const CarClicker = memo(({
     <motion.div
       className={`race-car-container ${isRejected ? 'rejected' : ''}`}
       onPointerDown={onPointerDown}
-      style={{ ...carStyles, willChange: 'transform' }}
+      style={carStyles}
       whileTap={{ scale: 0.96 }}
     >
       <div className="race-car-wrapper" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -57,12 +57,8 @@ const CarClicker = memo(({
           onError={(e) => { e.currentTarget.style.opacity = '0'; }}
           style={{
             opacity: isPlaceholder ? 0 : 1,
-            filter: isOriginal 
-              ? 'drop-shadow(0 15px 15px rgba(0,0,0,0.6))' 
-              : 'grayscale(1) brightness(1.1) contrast(1.2) drop-shadow(0 15px 15px rgba(0,0,0,0.6))',
+            filter: isOriginal ? 'none' : 'grayscale(1) brightness(1.1) contrast(1.2)',
             transition: 'filter 0.4s ease, opacity 0.3s ease',
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
             position: 'relative', zIndex: 1
           }}
         />
@@ -154,7 +150,6 @@ export function RaceScreen() {
 
   return (
     <div className="race-screen">
-      {/* 👇 ВОТ ОНА, ОБЕРТКА СЦЕНЫ 9:16 ДЛЯ ПК */}
       <div className="race-scene">
         <div className="race-background" />
         <div className="race-background-overlay" />
@@ -210,11 +205,11 @@ export function RaceScreen() {
           onPointerDown={handlePointerDown}
         />
 
-        {/* Кнопка заданий */}
+        {/* 👇 КНОПКА ЗАДАНИЙ (bottom: 53%) */}
         <button
           onClick={() => setShowQuests(true)}
           style={{
-            position: 'absolute', bottom: '32%', left: '5%', zIndex: 100,
+            position: 'absolute', bottom: '53%', left: '5%', zIndex: 100,
             background: 'linear-gradient(135deg, #ff8c00, #ff4500)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -224,11 +219,11 @@ export function RaceScreen() {
           📋
         </button>
 
-        {/* Кнопка пропуска */}
+        {/* 👇 КНОПКА ПРОПУСКА (bottom: 63%) */}
         <button
           onClick={() => setShowPass(true)}
           style={{
-            position: 'absolute', bottom: '42%', left: '5%', zIndex: 100,
+            position: 'absolute', bottom: '63%', left: '5%', zIndex: 100,
             background: 'linear-gradient(135deg, #00bfff, #0055ff)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -238,11 +233,11 @@ export function RaceScreen() {
           🏁
         </button>
 
-        {/* Кнопка улучшений */}
+        {/* 👇 КНОПКА УЛУЧШЕНИЙ (bottom: 67%) */}
         <button
           onClick={() => setShowUpgrades(true)}
           style={{
-            position: 'absolute', bottom: '32%', right: '5%', zIndex: 100,
+            position: 'absolute', bottom: '67%', right: '5%', zIndex: 100,
             background: 'linear-gradient(135deg, #00FF41, #00bfff)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -264,7 +259,6 @@ export function RaceScreen() {
                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                 background: 'rgba(0,0,0,0.85)', zIndex: 1000,
                 display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                transform: 'translateZ(0)', isolation: 'isolate'
               }}
             >
               <motion.div

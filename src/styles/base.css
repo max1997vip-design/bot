@@ -16,13 +16,9 @@ body,
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #000;
+  background: #090A0C; /* 👈 Было #000, теперь совпадает с фоном игры */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-html {
-  height: 100%;
 }
 
 body {
@@ -40,17 +36,16 @@ button {
   position: fixed;
   inset: 0;
   width: 100%;
-  height: 100%;
-  height: 100vh; /* ВМЕСТО 100dvh, чтобы не мерцало на ПК */
+  height: 100vh;
   min-width: 0;
   min-height: 0;
   display: flex;
   justify-content: center;
   align-items: stretch;
   overflow: hidden;
-  background: #000;
+  background: #090A0C; /* 👈 И здесь тоже */
   z-index: 10;
-  transform: translateZ(0); /* Принудительное GPU-ускорение */
+  /* ❌ Убрали transform: translateZ(0); — он вызывал мерцание при старте */
 }
 
 .app-container {
@@ -60,7 +55,7 @@ button {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #111;
+  background: #090A0C; /* 👈 И здесь */
   isolation: isolate;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -144,25 +139,9 @@ button {
   color: #fff;
 }
 
-.app-error h2 {
-  color: #ff4444;
-  margin-bottom: 10px;
-}
-
-.app-error p {
-  color: #aaa;
-  margin-bottom: 20px;
-}
-
-.app-error button {
-  padding: 12px 24px;
-  background: #00ff41;
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
+.app-error h2 { color: #ff4444; margin-bottom: 10px; }
+.app-error p { color: #aaa; margin-bottom: 20px; }
+.app-error button { padding: 12px 24px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
 /* Окно награды за отсутствие */
 .offline-overlay {
@@ -174,7 +153,6 @@ button {
   justify-content: center;
   padding: 20px;
   background: rgba(0, 0, 0, 0.85);
-  transform: translateZ(0);
   isolation: isolate;
 }
 
@@ -189,42 +167,16 @@ button {
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
 }
 
-.offline-card h2 {
-  color: #ffd700;
-  margin: 0 0 10px;
-}
-
-.offline-card p {
-  color: #ccc;
-  margin-bottom: 20px;
-}
-
-.offline-amount {
-  margin-bottom: 25px;
-  color: #00ff41;
-  font-size: 32px;
-  font-weight: 700;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
-}
-
-.offline-card button {
-  width: 100%;
-  padding: 14px 40px;
-  background: #00ff41;
-  color: #000;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
+.offline-card h2 { color: #ffd700; margin: 0 0 10px; }
+.offline-card p { color: #ccc; margin-bottom: 20px; }
+.offline-amount { margin-bottom: 25px; color: #00ff41; font-size: 32px; font-weight: 700; text-shadow: 0 0 10px rgba(0, 255, 65, 0.5); }
+.offline-card button { width: 100%; padding: 14px 40px; background: #00ff41; color: #000; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
 
 /* Компактное игровое окно на ПК */
 @media (min-width: 500px) {
   .game-wrapper {
     align-items: center;
   }
-
   .app-container {
     flex: 0 0 auto;
     width: 420px;
@@ -238,7 +190,6 @@ button {
     border-radius: 20px;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
   }
-
   .main-content {
     padding-top: 0;
   }
@@ -248,32 +199,8 @@ button {
   .main-content {
     bottom: 98px;
   }
-
   .bottom-nav {
     height: 98px;
     min-height: 98px;
   }
-}
-
-button, 
-.nav-btn, 
-.city-card, 
-.race-card, 
-.inventory-item {
-  transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
-}
-
-.nav-btn {
-  transition: color 0.2s ease, transform 0.1s ease;
-}
-
-.nav-btn:active {
-  transform: scale(0.92);
-}
-
-[class*="overlay"], 
-[class*="modal-screen"], 
-[class*="fullscreen"],
-.referral-overlay {
-  padding-top: var(--tg-safe-top, 0px) !important;
 }

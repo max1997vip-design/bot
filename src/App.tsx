@@ -21,7 +21,6 @@ type FullscreenWebApp = typeof WebApp & {
   setBackgroundColor?: (color: string) => void;
 };
 
-// Та же функция для вычисления 00:00 МСК
 const getMskMidnight = (offsetDays = 0) => {
   const now = new Date();
   const mskTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
@@ -119,7 +118,6 @@ export default function App() {
             data.equipped || { engine: null, tires: null, ecu: null, suspension: null }
           );
 
-          // 👇 ПРОВЕРКА ЕЖЕДНЕВНОЙ НАГРАДЫ (по МСК)
           const lastDaily = data.user.lastDailyClaim ? new Date(data.user.lastDailyClaim).getTime() : 0;
           const todayMidnight = getMskMidnight(0);
 
@@ -181,7 +179,7 @@ export default function App() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0 }}
+                  initial={false} // 👈 Убрали initial opacity: 0, чтобы не было вспышки при загрузке
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15, ease: 'easeOut' }}
