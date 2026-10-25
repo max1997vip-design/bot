@@ -1,5 +1,4 @@
 // src/components/ReferralScreen.tsx
-
 import React from 'react';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
@@ -9,18 +8,16 @@ const BOT_NAME = 'kliker_one_bot';
 export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
   
-  // ЗАЩИТА: Если юзера еще нет в сторе (не загрузился), не рендерим компонент
   if (!user) return null;
 
   const referralEarnings = user.referralEarnings || 0;
   
-  // Теперь TypeScript точно знает, что user не null
-  const refLink = `https://t.me/${BOT_NAME}/app?startapp=ref_${user.id}`; 
+  // 👇 Убрали слэш /app перед ?startapp (если только ты не назвал Mini App "app" в BotFather)
+  const refLink = `https://t.me/${BOT_NAME}?startapp=ref_${user.id}`; 
 
   const handleCopy = () => {
     navigator.clipboard.writeText(refLink);
     WebApp.HapticFeedback?.notificationOccurred('success');
-    // Нативный алерт Telegram вместо стандартного
     WebApp.showAlert('Ссылка скопирована!');
   };
 
@@ -39,7 +36,8 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
         </div>
 
         <div className="referral-header">
-          <p>За каждого друга ты получаешь <strong className="text-green">50,000</strong> монет, а друг — <strong className="text-green">10,000</strong>!</p>
+          <p>За каждого друга ты получаешь <strong className="text-green">50,000</strong> монет и <strong className="text-green">5%</strong> от каждого его клика!</p>
+          <p style={{ fontSize: '12px', marginTop: '8px' }}>Друг получает <strong className="text-green">10,000</strong> на старт.</p>
         </div>
         
         <div className="referral-stats-card">
@@ -49,7 +47,6 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
           </div>
         </div>
 
-        {/* Блок со ссылкой (по клику копируется) */}
         <div 
           onClick={handleCopy}
           style={{ 
@@ -70,11 +67,6 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
         <button onClick={handleShare} className="referral-btn" style={{ marginTop: '16px' }}>
           Поделиться ссылкой
         </button>
-        
-        <p className="referral-hint">
-          Твой друг получит 10,000 монет на старт,<br />
-          а ты — 50,000 монет!
-        </p>
       </div>
     </div>
   );

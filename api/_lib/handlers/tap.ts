@@ -1,10 +1,11 @@
+// api/_lib/handlers/tap.ts
 import { db } from '../db.js';
 import { users, userItems } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
 import { ALL_ITEM_IDS, ITEMS, RARITY_DROP_CHANCE } from '../items.js';
 import { getOrCreateQuests } from '../quests.js';
-import { getOrCreatePass } from '../pass.js'; // <-- Импорт пропуска
+import { getOrCreatePass } from '../pass.js';
 
 export async function tapHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -16,32 +17,41 @@ export async function tapHandler(req: any, res: any) {
   if (typeof amount !== 'number' || amount <= 0 || amount > 10000) return res.status(400).json({ error: 'Invalid amount' });
 
   try {
-    // 1. Достаем юзера
     const [user] = await db.select().from(users).where(eq(users.id, telegramId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 2. Обновляем прогресс квеста на клики
+    // 👇 ПАССИВНЫЙ ДОХОД С РЕФЕРАЛОВ (5%)
+    if (user.referredBy && amount > 0) {
+      const referralBonus = Math.floor(amount * 0.05); // 5% от кликов
+      if (referralBonus > 0) {
+        await db.update(users).set({
+          balance: sql`${users.balance} + ${referralBonus}`,
+          totalEarned: sql`${users.totalEarned} + ${referralBonus}`,
+          referralEarnings: sql`${users.referralEarnings} + ${referralBonus}`
+        }).where(eq(users.id, user.referredBy));
+      }
+    }
+
+    // Обновляем прогресс квеста на клики
     const quests = getOrCreateQuests(user.dailyQuests);
     quests.progress.click_1000 = Math.min(1000, (quests.progress.click_1000 || 0) + amount);
 
-    // 3. Обновляем прогресс Гоночного пропуска (1 клик = 1 XP)
+    // Обновляем прогресс Гоночного пропуска
     const pass = getOrCreatePass(user.weeklyPass);
-    const xpMultiplier = pass.isPremium ? 3 : 1; // 👈 ПРОВЕРКА НА ПРЕМИУМ
+    const xpMultiplier = pass.isPremium ? 3 : 1;
     pass.xp += amount * xpMultiplier;
 
-
-    // 4. Обновляем баланс, квесты и пропуск
+    // Обновляем баланс, квесты и пропуск
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
       totalEarned: sql`${users.totalEarned} + ${amount}`,
       lastOnlineAt: new Date(),
       dailyQuests: quests,
-      weeklyPass: pass // <-- Сохраняем обновленный пропуск
+      weeklyPass: pass
     }).where(eq(users.id, telegramId)).returning();
 
     let droppedItem = null;
     
-    // 5% шанс выпадения предмета за пачку кликов (раз в секунду)
     if (Math.random() < 0.05) {
       const roll = Math.random() * 100;
       let selectedRarity = 'common';
@@ -65,7 +75,7 @@ export async function tapHandler(req: any, res: any) {
       newTotalEarned: updatedUser.totalEarned,
       droppedItem,
       quests,
-      pass: updatedUser.weeklyPass // <-- Отдаем на фронт (на всякий случай)
+      pass: updatedUser.weeklyPass
     });
   } catch (error) {
     console.error('Tap error:', error);

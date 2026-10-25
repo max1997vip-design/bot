@@ -31,14 +31,17 @@ const CarClicker = memo(({
   const isPlaceholder = !activeCar.image || activeCar.image.includes('placeholder');
 
   return (
-    <motion.div
+    <div
       className={`race-car-container ${isRejected ? 'rejected' : ''}`}
       onPointerDown={onPointerDown}
       style={carStyles}
-      whileTap={{ scale: 0.96 }}
     >
-      <div className="race-car-wrapper" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        
+      {/* 👇 motion.div теперь только для анимации нажатия, чтобы не сбивать позиционирование */}
+      <motion.div
+        whileTap={{ scale: 0.96 }}
+        className="race-car-wrapper"
+        style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
         {/* Иконка-заглушка */}
         <span style={{ 
           fontSize: '120px', position: 'absolute', zIndex: 0,
@@ -65,11 +68,11 @@ const CarClicker = memo(({
         {!isOriginal && !isPlaceholder && (
           <div className="race-color-overlay" style={{ backgroundColor: activeColorHex }} />
         )}
-      </div>
+      </motion.div>
       
       <div className={`headlight-glow ${isFlashing ? 'flash' : ''}`} />
       <div className={`headlight-halo ${isFlashing ? 'flash' : ''}`} />
-    </motion.div>
+    </div>
   );
 });
 
@@ -205,7 +208,7 @@ export function RaceScreen() {
           onPointerDown={handlePointerDown}
         />
 
-        {/* 👇 КНОПКА ЗАДАНИЙ (bottom: 53%) */}
+        {/* Кнопка заданий */}
         <button
           onClick={() => setShowQuests(true)}
           style={{
@@ -219,7 +222,7 @@ export function RaceScreen() {
           📋
         </button>
 
-        {/* 👇 КНОПКА ПРОПУСКА (bottom: 63%) */}
+        {/* Кнопка пропуска */}
         <button
           onClick={() => setShowPass(true)}
           style={{
@@ -233,7 +236,7 @@ export function RaceScreen() {
           🏁
         </button>
 
-        {/* 👇 КНОПКА УЛУЧШЕНИЙ (bottom: 67%) */}
+        {/* Кнопка улучшений */}
         <button
           onClick={() => setShowUpgrades(true)}
           style={{

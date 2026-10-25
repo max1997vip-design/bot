@@ -3,18 +3,17 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #090a0c; /* Черный фон по бокам, если экран шире 9:16 */
+  background-color: #090a0c;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 👇 Новый контейнер сцены, как в гараже */
 .race-scene {
   position: relative;
   flex: 0 0 auto;
   height: 100%;
-  aspect-ratio: 9 / 16; /* Фиксируем пропорции */
+  aspect-ratio: 9 / 16;
   max-height: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -26,13 +25,12 @@
   position: absolute;
   inset: 0;
   background-image: url('/images/bg-night-city.jpg');
-  background-size: 100% 100%; /* Теперь безопасно, так как сцена 9:16 */
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0; 
 }
 
-/* Затемняющий градиент */
 .race-background-overlay {
   position: absolute;
   inset: 0;
@@ -53,7 +51,7 @@
   align-items: center;
   gap: 8px;
   z-index: 2;
-  position: absolute; /* Привязываем к верху сцены */
+  position: absolute;
   top: calc(30px + var(--tg-safe-top, 0px));
   width: 100%;
   max-width: 280px;
@@ -61,7 +59,6 @@
   transform: translateX(-50%);
 }
 
-/* HUD над машиной */
 .race-hud {
   display: flex;
   align-items: baseline;
@@ -81,16 +78,6 @@
   letter-spacing: 0.5px;
 }
 
-.race-hud-mult {
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.55);
-  padding: 2px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-}
-
-/* Обертка полоски уровня */
 .race-level-bar-wrapper {
   width: 100%;
   display: flex;
@@ -112,7 +99,6 @@
   color: var(--accent);
 }
 
-/* Сама полоска */
 .race-xp-bar {
   width: 100%;
   height: 4px;
@@ -132,7 +118,7 @@
 /* --- КОНТЕЙНЕР МАШИНЫ --- */
 .race-car-container {
   position: absolute;
-  bottom: 14%; /* Одинаково везде */
+  bottom: 14%;
   left: 50%;
   transform: translateX(-50%);
   display: inline-block;
@@ -142,13 +128,9 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   z-index: 2;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 }
 
-.race-car-container:active {
-  transform: translateX(-50%) scale(0.985);
-}
+/* 👇 УДАЛЕНО: .race-car-container:active — так как анимацией занимается Framer Motion */
 
 .race-car-container.rejected {
   animation: car-reject 160ms ease-out;
@@ -172,7 +154,6 @@
   transform-origin: bottom center; 
 }
 
-/* Слой 1: Свечение фар */
 .headlight-glow {
   position: absolute;
   inset: 0;
@@ -180,14 +161,12 @@
   opacity: 0;
   transition: opacity 70ms ease-out;
   background:
-    radial-gradient(ellipse 8% 6% at var(--left-hl-x) var(--left-hl-y), rgba(255, 250, 220, 1) 0%, rgba(255, 235, 160, 0.7) 40%, rgba(255, 220, 120, 0) 85%),
-    radial-gradient(ellipse 8% 6% at var(--right-hl-x) var(--right-hl-y), rgba(255, 250, 220, 1) 0%, rgba(255, 235, 160, 0.7) 40%, rgba(255, 220, 120, 0) 85%);
-  mix-blend-mode: screen;
+    radial-gradient(ellipse 8% 6% at var(--left-hl-x) var(--left-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%),
+    radial-gradient(ellipse 8% 6% at var(--right-hl-x) var(--right-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%);
 }
 
 .headlight-glow.flash { opacity: 1; }
 
-/* Слой 2: Ореол фар */
 .headlight-halo {
   position: absolute;
   inset: 0;
@@ -195,14 +174,12 @@
   opacity: 0;
   transition: opacity 90ms ease-out;
   background:
-    radial-gradient(ellipse 16% 14% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, rgba(255, 230, 140, 0) 70%),
-    radial-gradient(ellipse 16% 14% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, rgba(255, 230, 140, 0) 70%);
-  mix-blend-mode: screen;
+    radial-gradient(ellipse 16% 14% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 16% 14% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%);
 }
 
 .headlight-halo.flash { opacity: 1; }
 
-/* Всплывающие цифры */
 .floating-text {
   position: absolute;
   color: var(--accent);
@@ -215,7 +192,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Покраска машины на экране Гонки --- */
 .race-car-wrapper {
   position: relative;
   width: 100%;
@@ -224,8 +200,6 @@
   align-items: center;
   justify-content: center;
   isolation: isolate;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 .car-color-overlay,

@@ -1,5 +1,6 @@
+// api/_lib/handlers/sync.ts
 import { db } from '../db.js';
-import { users, userItems, equippedItems, featureFlags } from '../schema.js'; // <-- Добавлен featureFlags
+import { users, userItems, equippedItems, featureFlags } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
 
@@ -22,6 +23,7 @@ export async function syncHandler(req: any, res: any) {
 
     if (isNewUser) {
       let referredById: number | null = null;
+      // 👇 Проверяем реф-код (startapp=ref_ID)
       if (startParam && startParam.startsWith('ref_')) {
         const parsedId = parseInt(startParam.replace('ref_', ''), 10);
         if (parsedId && parsedId !== telegramUser.id) {
@@ -29,6 +31,7 @@ export async function syncHandler(req: any, res: any) {
           if (referrer) {
             referredById = referrer.id;
             bonusCoins = REFEREE_REWARD;
+            // Начисляем бонус пригласившему
             await db.update(users).set({
               balance: sql`${users.balance} + ${REFERRER_REWARD}`,
               totalEarned: sql`${users.totalEarned} + ${REFERRER_REWARD}`,
@@ -37,6 +40,7 @@ export async function syncHandler(req: any, res: any) {
           }
         }
       }
+      
       const [createdUser] = await db.insert(users).values({
         id: telegramUser.id,
         username: telegramUser.username || null,
@@ -46,8 +50,8 @@ export async function syncHandler(req: any, res: any) {
         balance: bonusCoins,
         totalEarned: bonusCoins,
         referredBy: referredById,
-        activeCarId: 'audi-tt',
-        ownedCars: ['audi-tt'],
+        activeCarId: 'vaz-2107', // 👈 ИСПРАВЛЕНО НА ВАЗ 2107
+        ownedCars: ['vaz-2107'], // 👈 ИСПРАВЛЕНО
       }).returning();
       user = createdUser;
     } else {
@@ -93,12 +97,12 @@ export async function syncHandler(req: any, res: any) {
         balance: user!.balance ?? 0, 
         totalEarned: user!.totalEarned ?? 0, 
         referralEarnings: user!.referralEarnings ?? 0,
-        ownedCars: user!.ownedCars ?? ['audi-tt'],
-        activeCarId: user!.activeCarId ?? 'audi-tt',
+        ownedCars: user!.ownedCars ?? ['vaz-2107'], // 👈 ИСПРАВЛЕНО
+        activeCarId: user!.activeCarId ?? 'vaz-2107', // 👈 ИСПРАВЛЕНО
         clickLevel: user!.clickLevel ?? 1,
         offlineLevel: user!.offlineLevel ?? 1,
-        isAdmin: user!.isAdmin ?? false, // <-- Явно передаем статус админа
-        features: features               // <-- Кладем флаги ВНУТРЬ user
+        isAdmin: user!.isAdmin ?? false,
+        features: features
       },
       offlineEarnings,
       inventory: inventory.map(i => i.itemId),
