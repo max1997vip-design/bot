@@ -23,13 +23,46 @@ const CASE_ITEMS: Record<string, any> = {
   star_premium: { name: 'Звездный', price: 50, icon: '⭐', currency: 'stars' }
 };
 
+// 👇 ВИЗУАЛЬНЫЕ ПУЛЫ (добавлено много монет, чтобы рулетка мелькала ими)
 const CASE_ITEMS_POOL = {
-  hourly: ['engine_2', 'tires_2', 'coins_10000', 'ecu_2'],
-  silver: ['engine_2', 'tires_2', 'coins_5000', 'ecu_1'],
-  gold: ['engine_3', 'ecu_3', 'susp_3', 'coins_25000'],
-  platinum: ['engine_4', 'tires_4', 'susp_4', 'coins_100000'],
-  diamond: ['engine_4', 'engine_5', 'tires_5', 'coins_500000'],
-  star_premium: ['engine_5', 'tires_5', 'ecu_5', 'coins_5000000'],
+  hourly: [
+    'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 
+    'engine_2', 'engine_2', 
+    'tires_2', 
+    'ecu_2'
+  ],
+  silver: [
+    'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000',
+    'engine_2', 'engine_2',
+    'tires_2',
+    'ecu_1'
+  ],
+  gold: [
+    'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000',
+    'engine_3', 'engine_3',
+    'ecu_3',
+    'susp_3'
+  ],
+  platinum: [
+    'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000',
+    'engine_4',
+    'tires_4',
+    'susp_4'
+  ],
+  diamond: [
+    'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000',
+    'engine_4',
+    'engine_5',
+    'tires_5',
+    'susp_5'
+  ],
+  star_premium: [
+    'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000',
+    'engine_5', 'engine_5', 'engine_5',
+    'tires_5',
+    'ecu_5',
+    'susp_5'
+  ],
 };
 
 export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseModalProps) {
@@ -235,8 +268,6 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
              caseConfig.currency === 'stars' ? `Открыть за ${caseConfig.price} ⭐` :
              `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} 🪙`}
           </button>
-
-          {/* 👇 Кнопка рекламы за +5000 удалена */}
 
         </div>
       </motion.div>

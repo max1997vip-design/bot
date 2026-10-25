@@ -11,34 +11,63 @@ const CASES = {
     currency: 'ad',
     cooldownMs: 60 * 60 * 1000, 
     items: [
-      { id: 'engine_2', weight: 50 }, { id: 'tires_2', weight: 30 }, 
-      { id: 'coins_10000', weight: 15 }, { id: 'ecu_2', weight: 5 }
+      { id: 'coins_10000', weight: 70 }, // 70% монеты
+      { id: 'engine_2', weight: 20 },    // 20% движок
+      { id: 'tires_2', weight: 8 },      // 8% шины
+      { id: 'ecu_2', weight: 2 }         // 2% мозги
     ] 
   },
   silver: { 
     price: 25000, 
     currency: 'coins',
-    items: [{ id: 'engine_2', weight: 50 }, { id: 'tires_2', weight: 30 }, { id: 'ecu_1', weight: 15 }, { id: 'coins_5000', weight: 5 }] 
+    items: [
+      { id: 'coins_5000', weight: 75 },  // 75% монеты (частичный возврат)
+      { id: 'engine_2', weight: 15 },    // 15%
+      { id: 'tires_2', weight: 8 },      // 8%
+      { id: 'ecu_1', weight: 2 }         // 2%
+    ] 
   },
   gold: { 
     price: 100000, 
     currency: 'coins',
-    items: [{ id: 'engine_3', weight: 40 }, { id: 'ecu_3', weight: 30 }, { id: 'susp_3', weight: 20 }, { id: 'coins_25000', weight: 10 }] // 👈 susp_3
+    items: [
+      { id: 'coins_25000', weight: 80 }, // 80% монеты
+      { id: 'engine_3', weight: 12 },    // 12%
+      { id: 'ecu_3', weight: 6 },        // 6%
+      { id: 'susp_3', weight: 2 }        // 2%
+    ] 
   },
   platinum: { 
     price: 500000, 
     currency: 'coins',
-    items: [{ id: 'engine_4', weight: 40 }, { id: 'tires_4', weight: 30 }, { id: 'susp_4', weight: 20 }, { id: 'coins_100000', weight: 10 }] // 👈 susp_4
+    items: [
+      { id: 'coins_100000', weight: 85 }, // 85% монеты
+      { id: 'engine_4', weight: 10 },     // 10%
+      { id: 'tires_4', weight: 4 },       // 4%
+      { id: 'susp_4', weight: 1 }         // 1%
+    ] 
   },
   diamond: { 
     price: 2000000, 
     currency: 'coins',
-    items: [{ id: 'engine_4', weight: 20 }, { id: 'engine_5', weight: 5 }, { id: 'tires_5', weight: 5 }, { id: 'coins_500000', weight: 70 }] 
+    items: [
+      { id: 'coins_500000', weight: 88 }, // 88% монеты
+      { id: 'engine_4', weight: 6 },      // 6%
+      { id: 'engine_5', weight: 3 },      // 3% (Легендарка!)
+      { id: 'tires_5', weight: 2 },       // 2% (Легендарка!)
+      { id: 'susp_5', weight: 1 }         // 1% (Легендарка!)
+    ] 
   },
   star_premium: { 
     price: 50, 
     currency: 'stars',
-    items: [{ id: 'engine_5', weight: 40 }, { id: 'tires_5', weight: 30 }, { id: 'ecu_5', weight: 20 }, { id: 'coins_5000000', weight: 10 }] 
+    items: [
+      { id: 'coins_5000000', weight: 60 }, // 60% монеты
+      { id: 'engine_5', weight: 20 },      // 20%
+      { id: 'tires_5', weight: 10 },       // 10%
+      { id: 'ecu_5', weight: 8 },          // 8%
+      { id: 'susp_5', weight: 2 }          // 2%
+    ] 
   }
 };
 
@@ -74,6 +103,7 @@ export async function openCaseHandler(req: any, res: any) {
       newBalance -= selectedCase.price;
     }
 
+    // Логика рандомайзера (работает без изменений, просто веса другие)
     const totalWeight = selectedCase.items.reduce((acc, item) => acc + item.weight, 0);
     let random = Math.random() * totalWeight;
     let wonItemId = selectedCase.items[0].id;
