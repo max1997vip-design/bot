@@ -1,30 +1,32 @@
 // src/components/ProfileScreen.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { ReferralScreen } from './ReferralScreen';
 import { HistoryModal } from './HistoryModal';
-import { AchievementsScreen } from './AchievementsScreen'; // 👈 Импорт экрана достижений
+import { AchievementsScreen } from './AchievementsScreen';
 
-// Формула уровня
 const calcLevelInfo = (xp: number) => {
   const level = Math.floor(Math.sqrt(xp / 50)) + 1;
   const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
   const xpNextLevel = Math.pow(level, 2) * 50;
-  const progress = Math.min(
-    100,
-    ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100
-  );
+  const progress = Math.min(100, ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100);
   return { level, xpCurrentLevel, xpNextLevel, progress };
 };
 
 export const ProfileScreen = () => {
   const user = useGameStore((state) => state.user);
+  const achievementsList = useGameStore((state) => state.achievementsList);
+  const getAchievements = useGameStore((state) => state.getAchievements);
   
-  // Состояния для открытия модалок
   const [showReferral, setShowReferral] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showAchievements, setShowAchievements] = useState(false); // 👈 Стейт для достижений
+  const [showAchievements, setShowAchievements] = useState(false);
+
+  // Загружаем достижения при открытии профиля, чтобы посчитать бейдж
+  useEffect(() => {
+    getAchievements();
+  }, [getAchievements]);
 
   if (!user) {
     return (
@@ -38,10 +40,11 @@ export const ProfileScreen = () => {
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Гонщик';
 
   const joinDate = new Date(user.createdAt).toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+    day: 'numeric', month: 'long', year: 'numeric',
   });
+
+  // 👇 Считаем, сколько достижений можно забрать прямо сейчас
+  const unclaimedCount = achievementsList.filter(a => a.isCompleted && !a.isUnlocked).length;
 
   return (
     <motion.div
@@ -49,8 +52,9 @@ export const ProfileScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
+      // 👇 Добавлен inline-style для скролла
+      style={{ overflowY: 'auto', height: '100%', paddingBottom: '100px' }}
     >
-      {/* Шапка с аватаром */}
       <div className="profile-header">
         <div className="avatar-wrapper">
           {user.photoUrl ? (
@@ -67,7 +71,6 @@ export const ProfileScreen = () => {
         {user.username && <p className="profile-username">@{user.username}</p>}
       </div>
 
-      {/* XP прогресс */}
       <div className="xp-section">
         <div className="xp-labels">
           <span className="xp-label-title">Опыт</span>
@@ -80,7 +83,6 @@ export const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* Сетка статистики */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon">💰</div>
@@ -88,12 +90,7 @@ export const ProfileScreen = () => {
           <div className="stat-label">Всего заработано</div>
         </div>
 
-        {/* Карточка баланса с открытием истории */}
-        <div 
-          className="stat-card" 
-          onClick={() => setShowHistory(true)}
-          style={{ cursor: 'pointer' }}
-        >
+        <div className="stat-card" onClick={() => setShowHistory(true)} style={{ cursor: 'pointer' }}>
           <div className="stat-icon">💵</div>
           <div className="stat-value">{user.balance.toLocaleString('ru-RU')}</div>
           <div className="stat-label">Баланс 📜</div>
@@ -114,25 +111,36 @@ export const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* 👇 КНОПКА ДОСТИЖЕНИЙ */}
+      {/* Кнопка Достижений с бейджем */}
       <button
         className="profile-referral-btn"
         onClick={() => setShowAchievements(true)}
-        style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }} // Золотая рамка для выделения
+        style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }}
       >
         <span className="profile-referral-icon">🏆</span>
-        <div className="profile-referral-text">
+        <div className="profile-referral-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
-          <span className="profile-referral-sub">Получай монеты за прогресс</span>
+          {unclaimedCount > 0 && (
+            <div style={{
+              background: '#ff4444',
+              color: '#fff',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 10px rgba(255,68,68,0.5)'
+            }}>
+              {unclaimedCount}
+            </div>
+          )}
         </div>
         <span className="profile-referral-arrow">›</span>
       </button>
 
-      {/* Кнопка: Приглашение друзей */}
-      <button
-        className="profile-referral-btn"
-        onClick={() => setShowReferral(true)}
-      >
+      <button className="profile-referral-btn" onClick={() => setShowReferral(true)}>
         <span className="profile-referral-icon">🎁</span>
         <div className="profile-referral-text">
           <span className="profile-referral-title">Пригласить друга</span>
@@ -143,23 +151,12 @@ export const ProfileScreen = () => {
         <span className="profile-referral-arrow">›</span>
       </button>
 
-      {/* Информация об аккаунте */}
       <div className="profile-info-card">
-        <div className="info-row">
-          <span className="info-label">Telegram ID</span>
-          <span className="info-value">{user.id}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Дата регистрации</span>
-          <span className="info-value">{joinDate}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Статус</span>
-          <span className="info-value status-active">● Активен</span>
-        </div>
+        <div className="info-row"><span className="info-label">Telegram ID</span><span className="info-value">{user.id}</span></div>
+        <div className="info-row"><span className="info-label">Дата регистрации</span><span className="info-value">{joinDate}</span></div>
+        <div className="info-row"><span className="info-label">Статус</span><span className="info-value status-active">● Активен</span></div>
       </div>
 
-      {/* Модалки */}
       {showReferral && <ReferralScreen onClose={() => setShowReferral(false)} />}
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
       {showAchievements && <AchievementsScreen onClose={() => setShowAchievements(false)} />}

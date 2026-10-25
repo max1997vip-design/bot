@@ -36,13 +36,11 @@ const CarClicker = memo(({
       onPointerDown={onPointerDown}
       style={carStyles}
     >
-      {/* 👇 motion.div теперь только для анимации нажатия, чтобы не сбивать позиционирование */}
       <motion.div
         whileTap={{ scale: 0.96 }}
         className="race-car-wrapper"
         style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
-        {/* Иконка-заглушка */}
         <span style={{ 
           fontSize: '120px', position: 'absolute', zIndex: 0,
           opacity: isPlaceholder ? 1 : 0, transition: 'opacity 0.3s ease'
@@ -208,7 +206,7 @@ export function RaceScreen() {
           onPointerDown={handlePointerDown}
         />
 
-        {/* Кнопка заданий */}
+        {/* Слева: Задания и Пропуск */}
         <button
           onClick={() => setShowQuests(true)}
           style={{
@@ -222,11 +220,10 @@ export function RaceScreen() {
           📋
         </button>
 
-        {/* Кнопка пропуска */}
         <button
           onClick={() => setShowPass(true)}
           style={{
-            position: 'absolute', bottom: '67%', left: '5%', zIndex: 100,
+            position: 'absolute', bottom: '63%', left: '5%', zIndex: 100,
             background: 'linear-gradient(135deg, #00bfff, #0055ff)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -236,11 +233,11 @@ export function RaceScreen() {
           🏁
         </button>
 
-        {/* Кнопка улучшений */}
+        {/* Справа: Улучшения (теперь на одной линии с заданиями) */}
         <button
           onClick={() => setShowUpgrades(true)}
           style={{
-            position: 'absolute', bottom: '67%', right: '5%', zIndex: 100,
+            position: 'absolute', bottom: '53%', right: '5%', zIndex: 100,
             background: 'linear-gradient(135deg, #00FF41, #00bfff)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -309,4 +306,4 @@ export function RaceScreen() {
       </div>
     </div>
   );
-}
+};

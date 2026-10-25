@@ -196,3 +196,23 @@
   color: var(--accent);
   text-shadow: 0 0 10px var(--accent-glow);
 }
+
+.profile-screen {
+  padding: 24px;
+  padding-top: calc(40px + var(--tg-safe-top, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  
+  /* 👇 Включаем скролл */
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 100px; /* Отступ, чтобы последняя карточка не прилипала к меню */
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
