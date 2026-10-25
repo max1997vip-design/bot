@@ -1,22 +1,49 @@
 // api/_lib/handlers/openCase.ts
 import { db } from '../db.js';
-import { users, userItems } from '../schema.js'; // 👈 ДОБАВИЛИ userItems
+import { users, userItems } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { logTransaction } from '../logger.js';
 import { eq } from 'drizzle-orm';
 
 const CASES = {
+  hourly: { 
+    price: 0, // Бесплатно, но за рекламу
+    currency: 'ad',
+    cooldownMs: 60 * 60 * 1000, // 1 час
+    items: [
+      { id: 'engine_2', weight: 50 }, { id: 'tires_2', weight: 30 }, 
+      { id: 'coins_10000', weight: 15 }, { id: 'ecu_2', weight: 5 }
+    ] 
+  },
   bronze: { 
     price: 5000, 
+    currency: 'coins',
     items: [{ id: 'engine_1', weight: 60 }, { id: 'tires_1', weight: 30 }, { id: 'coins_1000', weight: 10 }] 
   },
   silver: { 
     price: 25000, 
+    currency: 'coins',
     items: [{ id: 'engine_2', weight: 50 }, { id: 'tires_2', weight: 30 }, { id: 'ecu_1', weight: 15 }, { id: 'coins_5000', weight: 5 }] 
   },
   gold: { 
     price: 100000, 
+    currency: 'coins',
     items: [{ id: 'engine_3', weight: 40 }, { id: 'ecu_3', weight: 30 }, { id: 'suspension_3', weight: 20 }, { id: 'coins_25000', weight: 10 }] 
+  },
+  platinum: { 
+    price: 500000, 
+    currency: 'coins',
+    items: [{ id: 'engine_4', weight: 40 }, { id: 'tires_4', weight: 30 }, { id: 'suspension_4', weight: 20 }, { id: 'coins_100000', weight: 10 }] 
+  },
+  diamond: { 
+    price: 2000000, 
+    currency: 'coins',
+    items: [{ id: 'engine_4', weight: 20 }, { id: 'engine_5', weight: 5 }, { id: 'tires_5', weight: 5 }, { id: 'coins_500000', weight: 70 }] 
+  },
+  star_premium: { 
+    price: 50, // 50 Stars
+    currency: 'stars',
+    items: [{ id: 'engine_5', weight: 40 }, { id: 'tires_5', weight: 30 }, { id: 'ecu_5', weight: 20 }, { id: 'coins_5000000', weight: 10 }] 
   }
 };
 
@@ -24,78 +51,82 @@ export async function openCaseHandler(req: any, res: any) {
   try {
     const { initData, caseType } = req.body;
     
-    // 1. Авторизация
     const valid = validateInitData(initData, process.env.BOT_TOKEN!);
     if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    // 2. Проверка кейса
     const selectedCase = CASES[caseType as keyof typeof CASES];
-    if (!selectedCase) {
-      return res.status(400).json({ error: 'Неверный тип кейса' });
-    }
+    if (!selectedCase) return res.status(400).json({ error: 'Неверный тип кейса' });
 
-    // 3. Получаем юзера
     const [user] = await db.select().from(users).where(eq(users.id, valid.user.id));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 4. Проверяем баланс
-    if (user.balance < selectedCase.price) {
-      return res.status(400).json({ error: 'Недостаточно монет' });
+    let newBalance = user.balance;
+    let newStars = user.starsBalance;
+    let updateData: any = {};
+
+    // 👇 ЛОГИКА ДЛЯ РЕКЛАМНОГО КЕЙСА
+    if (selectedCase.currency === 'ad') {
+      const lastAd = user.lastAdCaseAt ? new Date(user.lastAdCaseAt).getTime() : 0;
+      if (Date.now() - lastAd < (selectedCase as any).cooldownMs) {
+        return res.status(400).json({ error: 'Бесплатный кейс еще не готов. Ждите.' });
+      }
+      updateData.lastAdCaseAt = new Date();
+    } 
+    // 👇 ЛОГИКА ДЛЯ КЕЙСА ЗА ЗВЕЗДЫ
+    else if (selectedCase.currency === 'stars') {
+      if (user.starsBalance < selectedCase.price) {
+        return res.status(400).json({ error: 'Недостаточно звезд' });
+      }
+      newStars -= selectedCase.price;
+      updateData.starsBalance = newStars;
+    } 
+    // 👇 ЛОГИКА ДЛЯ КЕЙСОВ ЗА МОНЕТЫ
+    else {
+      if (user.balance < selectedCase.price) {
+        return res.status(400).json({ error: 'Недостаточно монет' });
+      }
+      newBalance -= selectedCase.price;
     }
 
-    // 5. Рандомайзер
+    // Рандомайзер
     const totalWeight = selectedCase.items.reduce((acc, item) => acc + item.weight, 0);
     let random = Math.random() * totalWeight;
     let wonItemId = selectedCase.items[0].id;
     
     for (const item of selectedCase.items) {
-      if (random < item.weight) {
-        wonItemId = item.id;
-        break;
-      }
+      if (random < item.weight) { wonItemId = item.id; break; }
       random -= item.weight;
     }
 
-    // 6. Считаем новый баланс
-    let newBalance = user.balance - selectedCase.price;
     const isCoins = wonItemId.startsWith('coins_');
-
     if (isCoins) {
       const amount = parseInt(wonItemId.split('_')[1]);
       newBalance += amount;
     }
 
-        // 7. Обновляем БД (без транзакции, чтобы избежать ошибок на Vercel)
-    await db.update(users)
-      .set({ balance: newBalance })
-      .where(eq(users.id, user.id));
+    updateData.balance = newBalance;
+    
+    await db.update(users).set(updateData).where(eq(users.id, user.id));
 
-    // Если выпал предмет, сохраняем его в userItems
     if (!isCoins) {
-      await db.insert(userItems).values({
-        userId: user.id,
-        itemId: wonItemId
-      });
+      await db.insert(userItems).values({ userId: user.id, itemId: wonItemId });
     }
 
-        // 1. Логируем списание за открытие кейса
-    await logTransaction(user.id, -selectedCase.price, 'case_open', `Открытие ${caseType} кейса`);
-
-    // 2. Если выпали монеты, логируем их начисление отдельно
+    // Логирование
+    if (selectedCase.currency === 'coins') {
+      await logTransaction(user.id, -selectedCase.price, 'case_open', `Открытие ${caseType} кейса`);
+    }
     if (isCoins) {
       const amount = parseInt(wonItemId.split('_')[1]);
-      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе: ${amount.toLocaleString('ru-RU')} монет`);
+      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе`);
     }
 
-
-    // 8. Отдаем ответ на фронтенд
     return res.json({
       success: true,
-      wonItem: { 
-        id: wonItemId, 
-        rarity: wonItemId.includes('_3') ? 'legendary' : 'common' 
-      },
-      newBalance: newBalance
+      wonItem: { id: wonItemId, rarity: wonItemId.includes('_5') ? 'legendary' : wonItemId.includes('_4') ? 'epic' : 'common' },
+      newBalance,
+      newStars,
+      lastAdCaseAt: updateData.lastAdCaseAt || user.lastAdCaseAt
     });
 
   } catch (e) {

@@ -33,6 +33,7 @@ export const users = pgTable('users', {
   
   dailyStreak: integer('daily_streak').notNull().default(0),
   lastDailyClaim: timestamp('last_daily_claim', { withTimezone: true }),
+  lastAdCaseAt: timestamp('last_ad_case_at', { withTimezone: true }),
   
   dailyQuests: jsonb('daily_quests').$type<any>(),
   

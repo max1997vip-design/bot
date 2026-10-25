@@ -26,6 +26,7 @@ export interface UserData {
   offlineLevel?: number;
   dailyStreak?: number;
   lastDailyClaim?: string | null;
+  lastAdCaseAt?: string | null; // 👈 ДОБАВЛЕНО ПОЛЕ ДЛЯ КЕЙСА
   businesses?: Record<string, { level: number; lastCollected: number }>;
   partUpgrades?: Record<string, PartUpgrade>;
   features?: Record<string, boolean>;
@@ -69,7 +70,8 @@ interface GameState {
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
-  openCase: (caseType: string) => Promise<{ success: boolean; wonItem?: any }>;
+  // 👇 ОБНОВЛЕН ТИП (добавлен error)
+  openCase: (caseType: string) => Promise<{ success: boolean; wonItem?: any; error?: string }>;
   clanInfo: any | null;
   clanMembers: any[];
   fetchClan: () => Promise<void>;
@@ -125,21 +127,30 @@ export const useGameStore = create<GameState>((set, get) => ({
   openCase: async (caseType) => {
     const initData = window.Telegram?.WebApp?.initData || '';
     try {
-    const res = await fetch('/api/game?action=openCase', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData, caseType }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      set((s) => ({
-        balance: data.newBalance,
-        user: s.user ? { ...s.user, balance: data.newBalance } : null,
-        inventory: data.wonItem.id.startsWith('coins_') ? s.inventory : [...s.inventory, data.wonItem.id] 
-      }));
-      return { success: true, wonItem: data.wonItem };
+      const res = await fetch('/api/game?action=openCase', {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, caseType }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { 
+            ...s.user, 
+            balance: data.newBalance, 
+            starsBalance: data.newStars ?? s.user.starsBalance,
+            lastAdCaseAt: data.lastAdCaseAt ?? s.user.lastAdCaseAt
+          } : null,
+          inventory: data.wonItem.id.startsWith('coins_') ? s.inventory : [...s.inventory, data.wonItem.id] 
+        }));
+        return { success: true, wonItem: data.wonItem };
+      }
+      return { success: false, error: data.error };
+    } catch (e) {
+      return { success: false, error: 'Ошибка сети' };
     }
-    return { success: false };
-    } catch (e) { return { success: false }; }
   },
 
   fetchHistory: async () => {
