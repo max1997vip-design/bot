@@ -11,62 +11,74 @@ const CASES = {
     currency: 'ad',
     cooldownMs: 60 * 60 * 1000, 
     items: [
-      { id: 'coins_10000', weight: 70 }, // 70% монеты
-      { id: 'engine_2', weight: 20 },    // 20% движок
-      { id: 'tires_2', weight: 8 },      // 8% шины
-      { id: 'ecu_2', weight: 2 }         // 2% мозги
+      { id: 'coins_5000', weight: 25 },   // Мелкий возврат
+      { id: 'coins_10000', weight: 25 },  // Норм
+      { id: 'coins_20000', weight: 15 },  // Джекпот монет
+      { id: 'engine_2', weight: 15 },
+      { id: 'tires_2', weight: 10 },
+      { id: 'ecu_2', weight: 10 }
     ] 
   },
   silver: { 
     price: 25000, 
     currency: 'coins',
     items: [
-      { id: 'coins_5000', weight: 75 },  // 75% монеты (частичный возврат)
-      { id: 'engine_2', weight: 15 },    // 15%
-      { id: 'tires_2', weight: 8 },      // 8%
-      { id: 'ecu_1', weight: 2 }         // 2%
+      { id: 'coins_10000', weight: 25 },
+      { id: 'coins_25000', weight: 25 },
+      { id: 'coins_40000', weight: 15 },
+      { id: 'engine_2', weight: 15 },
+      { id: 'tires_2', weight: 10 },
+      { id: 'ecu_1', weight: 10 }
     ] 
   },
   gold: { 
     price: 100000, 
     currency: 'coins',
     items: [
-      { id: 'coins_25000', weight: 80 }, // 80% монеты
-      { id: 'engine_3', weight: 12 },    // 12%
-      { id: 'ecu_3', weight: 6 },        // 6%
-      { id: 'susp_3', weight: 2 }        // 2%
+      { id: 'coins_50000', weight: 25 },
+      { id: 'coins_100000', weight: 25 },
+      { id: 'coins_150000', weight: 15 },
+      { id: 'engine_3', weight: 15 },
+      { id: 'ecu_3', weight: 10 },
+      { id: 'susp_3', weight: 10 }
     ] 
   },
   platinum: { 
     price: 500000, 
     currency: 'coins',
     items: [
-      { id: 'coins_100000', weight: 85 }, // 85% монеты
-      { id: 'engine_4', weight: 10 },     // 10%
-      { id: 'tires_4', weight: 4 },       // 4%
-      { id: 'susp_4', weight: 1 }         // 1%
+      { id: 'coins_250000', weight: 25 },
+      { id: 'coins_500000', weight: 25 },
+      { id: 'coins_750000', weight: 15 },
+      { id: 'engine_4', weight: 15 },
+      { id: 'tires_4', weight: 10 },
+      { id: 'susp_4', weight: 10 }
     ] 
   },
   diamond: { 
     price: 2000000, 
     currency: 'coins',
     items: [
-      { id: 'coins_500000', weight: 88 }, // 88% монеты
-      { id: 'engine_4', weight: 6 },      // 6%
-      { id: 'engine_5', weight: 3 },      // 3% (Легендарка!)
-      { id: 'tires_5', weight: 2 },       // 2% (Легендарка!)
-      { id: 'susp_5', weight: 1 }         // 1% (Легендарка!)
+      { id: 'coins_1000000', weight: 25 },
+      { id: 'coins_2000000', weight: 25 },
+      { id: 'coins_3000000', weight: 15 },
+      { id: 'engine_4', weight: 12 },
+      { id: 'engine_5', weight: 10 }, // Легендарка!
+      { id: 'tires_5', weight: 8 },   // Легендарка!
+      { id: 'susp_5', weight: 5 }     // Легендарка!
     ] 
   },
   star_premium: { 
     price: 50, 
     currency: 'stars',
     items: [
-      { id: 'coins_5000000', weight: 60 }, // 60% монеты
-      { id: 'engine_5', weight: 20 },      // 20%
-      { id: 'tires_5', weight: 10 },       // 10%
-      { id: 'ecu_5', weight: 8 },          // 8%
-      { id: 'susp_5', weight: 2 }          // 2%
+      { id: 'coins_2000000', weight: 25 },
+      { id: 'coins_5000000', weight: 25 },
+      { id: 'coins_10000000', weight: 15 },
+      { id: 'engine_5', weight: 15 },
+      { id: 'tires_5', weight: 10 },
+      { id: 'ecu_5', weight: 6 },
+      { id: 'susp_5', weight: 4 }
     ] 
   }
 };
@@ -103,7 +115,6 @@ export async function openCaseHandler(req: any, res: any) {
       newBalance -= selectedCase.price;
     }
 
-    // Логика рандомайзера (работает без изменений, просто веса другие)
     const totalWeight = selectedCase.items.reduce((acc, item) => acc + item.weight, 0);
     let random = Math.random() * totalWeight;
     let wonItemId = selectedCase.items[0].id;
@@ -132,7 +143,7 @@ export async function openCaseHandler(req: any, res: any) {
     }
     if (isCoins) {
       const amount = parseInt(wonItemId.split('_')[1]);
-      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе`);
+      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе: ${amount.toLocaleString('ru-RU')} монет`);
     }
 
     return res.json({

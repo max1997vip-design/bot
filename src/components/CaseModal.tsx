@@ -23,46 +23,57 @@ const CASE_ITEMS: Record<string, any> = {
   star_premium: { name: 'Звездный', price: 50, icon: '⭐', currency: 'stars' }
 };
 
-// 👇 ВИЗУАЛЬНЫЕ ПУЛЫ (добавлено много монет, чтобы рулетка мелькала ими)
 const CASE_ITEMS_POOL = {
   hourly: [
-    'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 
-    'engine_2', 'engine_2', 
-    'tires_2', 
-    'ecu_2'
+    'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000',
+    'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000',
+    'coins_20000', 'coins_20000', 'coins_20000',
+    'engine_2', 'engine_2', 'engine_2',
+    'tires_2', 'tires_2',
+    'ecu_2', 'ecu_2'
   ],
   silver: [
-    'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000',
-    'engine_2', 'engine_2',
-    'tires_2',
-    'ecu_1'
+    'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000',
+    'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000',
+    'coins_40000', 'coins_40000', 'coins_40000',
+    'engine_2', 'engine_2', 'engine_2',
+    'tires_2', 'tires_2',
+    'ecu_1', 'ecu_1'
   ],
   gold: [
-    'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000',
-    'engine_3', 'engine_3',
-    'ecu_3',
-    'susp_3'
+    'coins_50000', 'coins_50000', 'coins_50000', 'coins_50000', 'coins_50000',
+    'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000',
+    'coins_150000', 'coins_150000', 'coins_150000',
+    'engine_3', 'engine_3', 'engine_3',
+    'ecu_3', 'ecu_3',
+    'susp_3', 'susp_3'
   ],
   platinum: [
-    'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000',
-    'engine_4',
-    'tires_4',
-    'susp_4'
+    'coins_250000', 'coins_250000', 'coins_250000', 'coins_250000', 'coins_250000',
+    'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000',
+    'coins_750000', 'coins_750000', 'coins_750000',
+    'engine_4', 'engine_4', 'engine_4',
+    'tires_4', 'tires_4',
+    'susp_4', 'susp_4'
   ],
   diamond: [
-    'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000',
-    'engine_4',
-    'engine_5',
-    'tires_5',
+    'coins_1000000', 'coins_1000000', 'coins_1000000', 'coins_1000000', 'coins_1000000',
+    'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000',
+    'coins_3000000', 'coins_3000000', 'coins_3000000',
+    'engine_4', 'engine_4', 'engine_4',
+    'engine_5', 'engine_5', 
+    'tires_5', 'tires_5',
     'susp_5'
   ],
   star_premium: [
-    'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000',
+    'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000',
+    'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000',
+    'coins_10000000', 'coins_10000000', 'coins_10000000',
     'engine_5', 'engine_5', 'engine_5',
-    'tires_5',
+    'tires_5', 'tires_5',
     'ecu_5',
     'susp_5'
-  ],
+  ]
 };
 
 export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseModalProps) {
@@ -75,6 +86,11 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const [targetX, setTargetX] = useState(0);
   
   const reelRef = useRef<HTMLDivElement>(null);
+  // 👇 Ref для актуального состояния (чтобы избежать проблем с замыканием в onReward)
+  const stateRef = useRef({ isWatchingAd, pendingAdOpen, activeCase });
+  useEffect(() => {
+    stateRef.current = { isWatchingAd, pendingAdOpen, activeCase };
+  }, [isWatchingAd, pendingAdOpen, activeCase]);
 
   const balance = useGameStore((s) => s.balance);
   const user = useGameStore((s) => s.user);
@@ -100,50 +116,20 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
     return `${m}м ${s}с`;
   };
 
-  const showAd = useAdsgram({
-    blockId: '55486', 
-    onReward: async () => {
-      setIsWatchingAd(false);
-      if (pendingAdOpen) {
-        setPendingAdOpen(false);
-        processOpenCase(); 
-      }
-    },
-    onError: (err) => {
-      setIsWatchingAd(false);
-      setPendingAdOpen(false);
-      WebApp.showAlert("Реклама не была просмотрена до конца. Попробуйте позже.");
-    },
-  });
-
-  const getItemData = (id: string) => {
-    if (id.startsWith('coins_')) {
-      const amount = id.split('_')[1];
-      return { name: `${Number(amount).toLocaleString('ru-RU')} монет`, icon: '🪙', rarity: 'common' };
-    }
-    const item = (ITEMS as any)[id];
-    
-    let icon = '📦';
-    if (item?.slot === 'engine') icon = '⚙️';
-    else if (item?.slot === 'tires') icon = '🛞';
-    else if (item?.slot === 'ecu') icon = '💻';
-    else if (item?.slot === 'suspension') icon = '🧲';
-
-    return { name: item?.name || 'Неизвестный предмет', icon, rarity: item?.rarity || 'common' };
-  };
-
-  const processOpenCase = async () => {
+  // 👇 Выносим логику открытия в отдельную функцию, чтобы вызывать её из рекламы
+  const executeCaseOpening = async (caseTypeToOpen: string) => {
     setIsOpening(true);
     setWonItem(null);
     setReelItems([]); 
     playSound('click');
 
     try {
-      const res = await openCase(activeCase);
+      const res = await openCase(caseTypeToOpen);
       
       if (res.success && res.wonItem) {
+        const pool = CASE_ITEMS_POOL[caseTypeToOpen as keyof typeof CASE_ITEMS_POOL];
         const newReel = Array.from({ length: 50 }, () => 
-          itemsPool[Math.floor(Math.random() * itemsPool.length)]
+          pool[Math.floor(Math.random() * pool.length)]
         );
         newReel[45] = res.wonItem.id;
         
@@ -171,6 +157,41 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
     }
   };
 
+  const showAd = useAdsgram({
+    blockId: '55486', 
+    onReward: async () => {
+      // 👇 Сбрасываем статус рекламы и принудительно открываем кейс
+      setIsWatchingAd(false);
+      setPendingAdOpen(false);
+      
+      // Небольшая задержка, чтобы UI успел обновиться перед началом анимации
+      setTimeout(() => {
+        executeCaseOpening(stateRef.current.activeCase);
+      }, 100);
+    },
+    onError: (err) => {
+      setIsWatchingAd(false);
+      setPendingAdOpen(false);
+      WebApp.showAlert("Реклама не была просмотрена до конца. Попробуйте позже.");
+    },
+  });
+
+  const getItemData = (id: string) => {
+    if (id.startsWith('coins_')) {
+      const amount = id.split('_')[1];
+      return { name: `${Number(amount).toLocaleString('ru-RU')} монет`, icon: '🪙', rarity: 'common' };
+    }
+    const item = (ITEMS as any)[id];
+    
+    let icon = '📦';
+    if (item?.slot === 'engine') icon = '⚙️';
+    else if (item?.slot === 'tires') icon = '🛞';
+    else if (item?.slot === 'ecu') icon = '💻';
+    else if (item?.slot === 'suspension') icon = '🧲';
+
+    return { name: item?.name || 'Неизвестный предмет', icon, rarity: item?.rarity || 'common' };
+  };
+
   const handleOpenClick = () => {
     if (isOpening || isWatchingAd) return;
     if (caseConfig.currency === 'ad') {
@@ -179,7 +200,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
       setIsWatchingAd(true);
       showAd();
     } else {
-      processOpenCase();
+      executeCaseOpening(activeCase);
     }
   };
 
