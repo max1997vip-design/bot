@@ -7,6 +7,7 @@ import { useGameStore } from '../store/gameStore';
 import { UpgradeType, PAINT_COLORS } from '../config/garage';
 import { ITEMS, RARITY_COLORS, SELL_PRICES } from '../config/items';
 import { CARS } from '../config/cars';
+import { TintedCarImage } from './TintedCarImage';
 import '../styles/garage.css';
 
 export const GarageScreen: React.FC = () => {
@@ -58,8 +59,6 @@ export const GarageScreen: React.FC = () => {
 
   const activeColorHex =
     PAINT_COLORS.find((color) => color.id === carColor)?.hex || 'transparent';
-
-  const isOriginal = carColor === 'original';
 
   const renderUpgradeSection = (slot: string) => {
     const slotItems = inventory.filter((id) => ITEMS[id]?.slot === slot);
@@ -307,23 +306,17 @@ export const GarageScreen: React.FC = () => {
           <div className="car-tooltip">Двигатель</div>
 
           <div className="car-image-wrapper">
-            <img
-              src={activeCar.image}
-              alt={activeCar.name}
+            <TintedCarImage
+              imageUrl={activeCar.image}
+              colorHex={activeColorHex}
               className="garage-car-img"
               style={{
-                filter: isOriginal
-                  ? 'drop-shadow(0 15px 15px rgba(0,0,0,0.6))'
-                  : 'grayscale(1) brightness(1.1) contrast(1.2) drop-shadow(0 15px 15px rgba(0,0,0,0.6))',
+                filter: 'none',
+                width: '100%',
+                height: 'auto',
+                display: 'block',
               }}
             />
-
-            {!isOriginal && (
-              <div
-                className="car-color-overlay"
-                style={{ backgroundColor: activeColorHex }}
-              />
-            )}
           </div>
         </div>
 

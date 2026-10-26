@@ -25,7 +25,6 @@ export const CityScreen = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showShop, setShowShop] = useState(false);
   
-  // 👇 ТЕПЕРЬ ПО УМОЛЧАНИЮ 'hourly'
   const [activeCase, setActiveCase] = useState<string | null>(null);
 
   const user = useGameStore((s) => s.user);
@@ -89,7 +88,6 @@ export const CityScreen = () => {
                 </div>
               )}
 
-              {/* 👇 ИЗМЕНЕНО НА 'hourly' */}
               <div className="city-card" onClick={() => setActiveCase('hourly')}>
                 <div className="city-icon">📦</div>
                 <h3>Кейсы</h3>

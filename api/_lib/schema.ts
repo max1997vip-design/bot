@@ -103,19 +103,26 @@ export const achievements = pgTable('achievements', {
   unlockedAt: timestamp('unlocked_at').notNull().defaultNow(),
 }, (t) => ({ pk: primaryKey({ columns: [t.userId, t.achievementId] }) }));
 
+// api/_lib/schema.ts
+
 export const clans = pgTable('clans', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull().unique(),
   leaderId: bigint('leader_id', { mode: 'number' }).notNull(),
   balance: bigint('balance', { mode: 'number' }).notNull().default(0),
   level: integer('level').notNull().default(1),
+  description: text('description').default(''), // 👈 ДОБАВЛЕНО
+  isOpen: boolean('is_open').notNull().default(true), // 👈 ДОБАВЛЕНО (открыт для входа)
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  extraSlots: integer('extra_slots').notNull().default(0),
 });
 
 export const clanMembers = pgTable('clan_members', {
   userId: bigint('user_id', { mode: 'number' }).primaryKey().references(() => users.id, { onDelete: 'cascade' }),
   clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
-  role: text('role').notNull().default('member'),
+  role: text('role').notNull().default('member'), // 'leader' | 'officer' | 'member'
+  contribution: bigint('contribution', { mode: 'number' }).notNull().default(0), // 👈 ДОБАВЛЕНО
+  bossDamage: integer('boss_damage').notNull().default(0),
   joinedAt: timestamp('joined_at').notNull().defaultNow(),
 });
 
@@ -131,6 +138,22 @@ export const transactions = pgTable('transactions', {
   type: text('type').notNull(),
   description: text('description').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const clanMessages = pgTable('clan_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const clanBosses = pgTable('clan_bosses', {
+  clanId: uuid('clan_id').primaryKey().references(() => clans.id, { onDelete: 'cascade' }),
+  level: integer('level').notNull().default(1),
+  currentHp: bigint('current_hp', { mode: 'number' }).notNull(),
+  maxHp: bigint('max_hp', { mode: 'number' }).notNull(),
+  lastDefeatedAt: timestamp('last_defeated_at').defaultNow(),
 });
 
 export type User = typeof users.$inferSelect;

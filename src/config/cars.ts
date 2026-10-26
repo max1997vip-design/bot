@@ -37,20 +37,20 @@ export const CARS: Record<string, CarConfig> = {
   },
   
   // --- ТИР 1: Классика и бюджет ---
-  'vaz-2107': { id: 'vaz-2107', name: 'ВАЗ 2107', price: 0, image: '/cars/placeholder.png', baseStats: { power: 20, topSpeed: 15, grip: 10, handling: 10 } },
-  'moskvich': { id: 'moskvich', name: 'Москвич 412', price: 5000, image: '/cars/placeholder.png', baseStats: { power: 30, topSpeed: 20, grip: 15, handling: 15 } },
-  'priora': { id: 'priora', name: 'Lada Priora', price: 15000, image: '/cars/placeholder.png', baseStats: { power: 50, topSpeed: 30, grip: 25, handling: 25 } },
-  'vesta': { id: 'vesta', name: 'Lada Vesta Sport', price: 40000, image: '/cars/placeholder.png', baseStats: { power: 80, topSpeed: 45, grip: 40, handling: 40 } },
+  'vaz-2107': { id: 'vaz-2107', name: 'ВАЗ 2107', price: 0, image: '/cars/vaz-2107.png', baseStats: { power: 20, topSpeed: 15, grip: 10, handling: 10 } },
+  'moskvich': { id: 'moskvich', name: 'Москвич 412', price: 5000, image: '/cars/moskvich.png', baseStats: { power: 30, topSpeed: 20, grip: 15, handling: 15 } },
+  'priora': { id: 'priora', name: 'Lada Priora', price: 15000, image: '/cars/priora.png', baseStats: { power: 50, topSpeed: 30, grip: 25, handling: 25 } },
+  'vesta': { id: 'vesta', name: 'Lada Vesta Sport', price: 40000, image: '/cars/vesta.png', baseStats: { power: 80, topSpeed: 45, grip: 40, handling: 40 } },
 
   // --- ТИР 2: Японская и европейская классика ---
-  'civic': { id: 'civic', name: 'Honda Civic Type R', price: 100000, image: '/cars/placeholder.png', baseStats: { power: 150, topSpeed: 80, grip: 70, handling: 80 } },
-  'rx7': { id: 'rx7', name: 'Mazda RX-7', price: 250000, image: '/cars/placeholder.png', baseStats: { power: 200, topSpeed: 110, grip: 90, handling: 100 } },
-  'supra': { id: 'supra', name: 'Toyota Supra MK4', price: 500000, image: '/cars/placeholder.png', baseStats: { power: 300, topSpeed: 150, grip: 120, handling: 130 } },
-  'skyline': { id: 'skyline', name: 'Nissan Skyline R34', price: 850000, image: '/cars/placeholder.png', baseStats: { power: 380, topSpeed: 180, grip: 150, handling: 160 } },
+  'civic': { id: 'civic', name: 'Honda Civic Type R', price: 100000, image: '/cars/civic.png', baseStats: { power: 150, topSpeed: 80, grip: 70, handling: 80 } },
+  'rx7': { id: 'rx7', name: 'Mazda RX-7', price: 250000, image: '/cars/rx7.png', baseStats: { power: 200, topSpeed: 110, grip: 90, handling: 100 } },
+  'supra': { id: 'supra', name: 'Toyota Supra MK4', price: 500000, image: '/cars/supra.png', baseStats: { power: 300, topSpeed: 150, grip: 120, handling: 130 } },
+  'skyline': { id: 'skyline', name: 'Nissan Skyline R34', price: 850000, image: '/cars/skyline.png', baseStats: { power: 380, topSpeed: 180, grip: 150, handling: 160 } },
 
   // --- ТИР 3: Масл-кары и спорт ---
-  'mustang': { id: 'mustang', name: 'Ford Mustang GT', price: 2000000, image: '/cars/placeholder.png', baseStats: { power: 500, topSpeed: 220, grip: 180, handling: 190 } },
-  'camaro': { id: 'camaro', name: 'Chevrolet Camaro SS', price: 3500000, image: '/cars/placeholder.png', baseStats: { power: 600, topSpeed: 250, grip: 210, handling: 220 } },
+  'mustang': { id: 'mustang', name: 'Ford Mustang GT', price: 2000000, image: '/cars/mustang.png', baseStats: { power: 500, topSpeed: 220, grip: 180, handling: 190 } },
+  'camaro': { id: 'camaro', name: 'Chevrolet Camaro SS', price: 3500000, image: '/cars/camaro.png', baseStats: { power: 600, topSpeed: 250, grip: 210, handling: 220 } },
   'm3gtr': { id: 'm3gtr', name: 'BMW M3 GTR', price: 6000000, image: '/cars/placeholder.png', baseStats: { power: 750, topSpeed: 300, grip: 260, handling: 280 } },
   'rs6': { id: 'rs6', name: 'Audi RS6', price: 10000000, image: '/cars/placeholder.png', baseStats: { power: 900, topSpeed: 350, grip: 300, handling: 320 } },
 

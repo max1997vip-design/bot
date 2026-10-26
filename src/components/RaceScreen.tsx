@@ -8,6 +8,7 @@ import WebApp from '@twa-dev/sdk';
 import { playSound } from '../utils/sound';
 import { QuestModal } from './QuestModal';
 import { PassScreen } from './PassScreen';
+import { TintedCarImage } from './TintedCarImage';
 
 const FLASH_DURATION_MS = 110;
 
@@ -27,7 +28,6 @@ const CarClicker = memo(({
   onPointerDown 
 }: any) => {
   const activeColorHex = PAINT_COLORS.find((c: any) => c.id === carColor)?.hex || 'transparent';
-  const isOriginal = carColor === 'original';
   const isPlaceholder = !activeCar.image || activeCar.image.includes('placeholder');
 
   return (
@@ -48,23 +48,17 @@ const CarClicker = memo(({
           🏎️
         </span>
 
-        <img
-          src={activeCar.image}
-          alt={activeCar.name}
-          className="race-car-image"
-          draggable={false}
-          loading="eager"
-          decoding="sync"
-          onError={(e) => { e.currentTarget.style.opacity = '0'; }}
-          style={{
-            opacity: isPlaceholder ? 0 : 1,
-            filter: isOriginal ? 'none' : 'grayscale(1) brightness(1.1) contrast(1.2)',
-            transition: 'filter 0.4s ease, opacity 0.3s ease',
-            position: 'relative', zIndex: 1
-          }}
-        />
-        {!isOriginal && !isPlaceholder && (
-          <div className="race-color-overlay" style={{ backgroundColor: activeColorHex }} />
+        {!isPlaceholder && (
+          <TintedCarImage
+            imageUrl={activeCar.image}
+            colorHex={activeColorHex}
+            className="race-car-image"
+            style={{
+              filter: 'none',
+              transition: 'opacity 0.3s ease',
+              position: 'relative', zIndex: 1
+            }}
+          />
         )}
       </motion.div>
       
@@ -206,7 +200,6 @@ export function RaceScreen() {
           onPointerDown={handlePointerDown}
         />
 
-        {/* Слева: Задания и Пропуск */}
         <button
           onClick={() => setShowQuests(true)}
           style={{
@@ -233,7 +226,6 @@ export function RaceScreen() {
           🏁
         </button>
 
-        {/* Справа: Улучшения (теперь на одной линии с заданиями) */}
         <button
           onClick={() => setShowUpgrades(true)}
           style={{

@@ -10,10 +10,26 @@ const REFEREE_REWARD = 10000;
 export async function syncHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const { initData, startParam } = req.body;
-  const validatedData = validateInitData(initData, process.env.BOT_TOKEN!);
-  if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const telegramUser = validatedData.user;
+  // 👇 ВНЕДРЯЕМ DEV BYPASS 👇
+  let telegramUser;
+
+  // Проверяем, что мы не на проде и фронт прислал наш флаг
+  if (process.env.NODE_ENV !== 'production' && initData === 'DEV_BYPASS') {
+    telegramUser = { 
+      id: 123456789, 
+      username: 'dev_user', 
+      first_name: 'Dev', 
+      last_name: 'User', 
+      photo_url: null 
+    };
+  } else {
+    // Твоя стандартная проверка
+    const validatedData = validateInitData(initData, process.env.BOT_TOKEN!);
+    if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
+    telegramUser = validatedData.user;
+  }
+  // 👆 КОНЕЦ DEV BYPASS 👆
 
   try {
     let user = await db.query.users.findFirst({ where: eq(users.id, telegramUser.id) });
@@ -50,8 +66,8 @@ export async function syncHandler(req: any, res: any) {
         balance: bonusCoins,
         totalEarned: bonusCoins,
         referredBy: referredById,
-        activeCarId: 'vaz-2107', // 👈 ИСПРАВЛЕНО НА ВАЗ 2107
-        ownedCars: ['vaz-2107'], // 👈 ИСПРАВЛЕНО
+        activeCarId: 'vaz-2107', 
+        ownedCars: ['vaz-2107'], 
       }).returning();
       user = createdUser;
     } else {
@@ -97,8 +113,8 @@ export async function syncHandler(req: any, res: any) {
         balance: user!.balance ?? 0, 
         totalEarned: user!.totalEarned ?? 0, 
         referralEarnings: user!.referralEarnings ?? 0,
-        ownedCars: user!.ownedCars ?? ['vaz-2107'], // 👈 ИСПРАВЛЕНО
-        activeCarId: user!.activeCarId ?? 'vaz-2107', // 👈 ИСПРАВЛЕНО
+        ownedCars: user!.ownedCars ?? ['vaz-2107'], 
+        activeCarId: user!.activeCarId ?? 'vaz-2107', 
         clickLevel: user!.clickLevel ?? 1,
         offlineLevel: user!.offlineLevel ?? 1,
         isAdmin: user!.isAdmin ?? false,

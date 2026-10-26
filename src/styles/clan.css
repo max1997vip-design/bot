@@ -1,0 +1,229 @@
+/* src/styles/clan.css */
+.clan-screen-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top, rgba(10, 20, 35, 0.95) 0%, rgba(5, 7, 10, 0.98) 100%); 
+  backdrop-filter: blur(10px); z-index: 1000;
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 15px; padding-top: calc(20px + var(--tg-safe-top, 0px)); 
+  overflow: hidden;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.clan-container {
+  width: 100%; max-width: 500px;
+  background: rgba(15, 22, 35, 0.6); 
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 191, 255, 0.2); border-radius: 24px;
+  padding: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+/* Шапка */
+.clan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.clan-title-wrap { display: flex; align-items: center; gap: 8px; }
+.clan-badge { font-size: 22px; filter: drop-shadow(0 0 8px rgba(0,191,255,0.6)); }
+.clan-header h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; color: #fff; text-shadow: 0 0 10px rgba(0,191,255,0.3); }
+.clan-level-badge { background: rgba(0, 191, 255, 0.15); border: 1px solid #00bfff; color: #00bfff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(0,191,255,0.2); line-height: 1; }
+.btn-close { background: rgba(255,255,255,0.05); border: none; color: #8892b0; width: 32px; height: 32px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-close:hover { background: rgba(255, 0, 85, 0.15); color: #ff0055; }
+
+/* Табы */
+.clan-tabs { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0; flex-shrink: 0; }
+.clan-tabs button { background: transparent; border: none; color: #5c6a80; padding: 10px 5px; font-size: 13px; font-weight: 700; text-transform: uppercase; cursor: pointer; position: relative; transition: 0.3s; font-family: inherit; letter-spacing: 1px; }
+.clan-tabs button:hover { color: #fff; }
+.clan-tabs button.active { color: #00bfff; text-shadow: 0 0 12px rgba(0,191,255,0.5); }
+.clan-tabs button.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #00bfff; box-shadow: 0 0 15px #00bfff; border-radius: 2px 2px 0 0; }
+
+/* Главная / Участники */
+.clan-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.clan-stat-box { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+.clan-stat-box.full-width { grid-column: span 2; }
+.treasury-box { border-color: rgba(255, 215, 0, 0.25); background: linear-gradient(180deg, rgba(255, 215, 0, 0.08), rgba(0,0,0,0)); box-shadow: inset 0 0 30px rgba(255, 215, 0, 0.05); }
+.stat-label { font-size: 11px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px; }
+.stat-value { font-size: 26px; font-weight: 700; color: #fff; line-height: 1; }
+.stat-value.gold { color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.4); font-size: 28px; }
+.stat-max { font-size: 16px; color: #5c6a80; font-weight: 600; }
+.currency-icon { font-size: 22px; color: #ffd700; margin-left: 4px; }
+.upgrade-section { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 215, 0, 0.15); padding: 16px; border-radius: 16px; margin-bottom: 15px; }
+.upgrade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.upgrade-title { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+.upgrade-cost { color: #8892b0; font-weight: 700; font-size: 14px; transition: 0.3s; }
+.upgrade-cost.can-afford { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+.upgrade-progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.upgrade-progress-bar { flex: 1; height: 6px; background: rgba(0,0,0,0.6); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+.upgrade-progress-fill { height: 100%; background: linear-gradient(90deg, #ffd700, #ff8c00); box-shadow: 0 0 12px rgba(255,215,0,0.6); border-radius: 3px; }
+.upgrade-progress-text { font-size: 12px; font-weight: 700; color: #ffd700; min-width: 30px; text-align: right; }
+.upgrade-bonus { color: #00ff41; font-size: 12px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
+.bonus-icon { font-size: 14px; }
+.btn-neon-gold, .btn-neon-green, .btn-neon-cyan, .btn-neon-red { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; font-family: inherit; }
+.btn-neon-gold { background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.15)); border: 1px solid #ffd700; color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.1); }
+.btn-neon-gold:hover:not(.disabled) { background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 140, 0, 0.25)); box-shadow: 0 0 25px rgba(255,215,0,0.3); }
+.btn-neon-gold.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); box-shadow: none; }
+.btn-neon-cyan { background: rgba(0, 191, 255, 0.1); border: 1px solid #00bfff; color: #00bfff; }
+.btn-neon-cyan:hover:not(.disabled) { background: rgba(0, 191, 255, 0.2); }
+.btn-neon-cyan.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
+.btn-neon-green { background: rgba(0, 255, 65, 0.1); border: 1px solid #00ff41; color: #00ff41; }
+.btn-neon-green:hover:not(:disabled) { background: rgba(0, 255, 65, 0.2); box-shadow: 0 0 20px rgba(0,255,65,0.3); }
+.btn-neon-red { background: rgba(255, 0, 85, 0.1); border: 1px solid #ff0055; color: #ff0055; }
+.full-width { width: 100%; }
+.clan-donate-box { background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+.clan-donate-box h4 { margin: 0 0 12px 0; color: #8892b0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.quick-donate { display: flex; gap: 8px; margin-bottom: 12px; }
+.quick-donate button { flex: 1; padding: 8px 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: inherit; font-size: 12px; transition: 0.2s; }
+.quick-donate button:hover { background: rgba(0, 191, 255, 0.15); border-color: #00bfff; color: #00bfff; }
+.donate-inputs { display: flex; gap: 10px; }
+.clan-input { flex: 1; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 16px; font-family: inherit; font-weight: 700; transition: 0.2s; }
+.clan-input:focus { outline: none; border-color: #00bfff; box-shadow: 0 0 10px rgba(0,191,255,0.2); }
+.donate-inputs button { width: auto; padding: 0 20px; white-space: nowrap; }
+.members-list { display: flex; flex-direction: column; gap: 8px; }
+.member-row { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
+.member-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #00bfff, #0055ff); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 16px; box-shadow: 0 0 10px rgba(0,191,255,0.3); }
+.member-info { display: flex; flex-direction: column; flex: 1; }
+.member-name { color: #fff; font-weight: 600; font-size: 15px; }
+.member-donate { font-size: 12px; color: #00ff41; font-weight: 600; }
+.member-role { font-size: 10px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+.member-actions { display: flex; gap: 6px; }
+.btn-sm { padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; background: transparent; border: 1px solid currentColor; font-family: inherit; transition: 0.2s; }
+.btn-sm:hover { background: rgba(255,255,255,0.1); }
+
+/* Список кланов (поиск) */
+.clan-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; margin-bottom: 15px; }
+.clan-card h3 { font-size: 18px; font-weight: 700; text-transform: uppercase; margin-top: 0; margin-bottom: 8px; color: #fff; }
+.clan-desc { color: #8892b0; font-size: 13px; margin-bottom: 12px; font-weight: 500; }
+.clan-search-section { margin-top: 15px; }
+.clans-list { display: flex; flex-direction: column; gap: 10px; }
+.clan-search-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; gap: 10px; }
+.clan-search-row:hover { background: rgba(0, 191, 255, 0.05); border-color: rgba(0, 191, 255, 0.2); }
+.clan-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.clan-name-s { color: #fff; font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clan-members-count { color: #8892b0; font-size: 12px; font-weight: 600; }
+.clan-search-row .btn-sm { width: auto; padding: 8px 14px; white-space: nowrap; font-size: 12px; flex-shrink: 0; }
+.clan-stat-box.clickable { cursor: pointer; transition: all 0.2s ease; }
+.clan-stat-box.clickable:hover { background: rgba(0, 191, 255, 0.1); border-color: #00bfff; box-shadow: 0 0 15px rgba(0, 191, 255, 0.2); transform: translateY(-2px); }
+
+/* ЧАТ */
+.chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; margin-bottom: 15px; }
+.chat-bubble-wrap { display: flex; flex-direction: column; align-items: flex-start; max-width: 85%; }
+.chat-bubble-wrap.me { align-self: flex-end; align-items: flex-end; }
+.chat-author { font-size: 11px; color: #8892b0; margin-bottom: 4px; margin-left: 4px; font-weight: 600; }
+.chat-bubble { background: rgba(255, 255, 255, 0.08); color: #fff; padding: 10px 14px; border-radius: 14px; border-bottom-left-radius: 4px; font-size: 14px; line-height: 1.4; word-break: break-word; }
+.chat-bubble.me { background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(0, 127, 255, 0.2)); border: 1px solid rgba(0, 191, 255, 0.3); border-radius: 14px; border-bottom-right-radius: 4px; color: #fff; }
+.chat-input-area { display: flex; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+
+/* Утилиты */
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.clan-tab-content { height: 100%; overflow-y: auto; padding-bottom: 20px; }
+.unread-badge { position: absolute; top: 8px; right: -4px; width: 8px; height: 8px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 8px #ff0055; animation: pulse-badge 1.5s infinite; }
+@keyframes pulse-badge { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+
+/* 👇 БОСС (ФИНАЛЬНЫЙ ФИКС СКРОЛЛА) 👇 */
+.boss-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  overflow-y: auto; /* Включаем скролл */
+  padding-bottom: 50px; /* Место под низ */
+}
+
+.boss-arena {
+  background: radial-gradient(circle at center, #1a0b12 0%, #050508 100%);
+  border: 1px solid rgba(255, 0, 85, 0.4);
+  border-radius: 20px;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 80px rgba(255, 0, 85, 0.15), 0 10px 30px rgba(0,0,0,0.8);
+  flex-shrink: 0; /* 👈 КРИТИЧЕСКИ ВАЖНО: Запрещаем сжиматься, чтобы появлялся скролл */
+  width: 100%;
+  margin-top: 10px;
+}
+
+.boss-scanlines {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(255, 0, 85, 0.05) 50%, rgba(255, 0, 85, 0.05));
+  background-size: 100% 4px;
+  pointer-events: none; z-index: 1; opacity: 0.3;
+}
+
+.boss-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; z-index: 2; }
+.boss-title-wrap { display: flex; align-items: center; gap: 10px; }
+.boss-warning { font-size: 22px; animation: blink 1s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; text-shadow: 0 0 10px red; } 50% { opacity: 0.3; text-shadow: none; } }
+.boss-title { color: #ff0055; font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 20px rgba(255, 0, 85, 0.8); }
+.boss-level-badge { background: rgba(255, 0, 85, 0.2); border: 1px solid #ff0055; color: #ff0055; padding: 4px 12px; border-radius: 4px; font-weight: 700; font-size: 14px; box-shadow: 0 0 10px rgba(255, 0, 85, 0.5); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); }
+
+.boss-visual-container { position: relative; margin: 15px 0 35px 0; display: flex; justify-content: center; align-items: center; width: 100%; height: 180px; z-index: 2; }
+.boss-visual-container::before { content: ''; position: absolute; width: 150px; height: 150px; background: radial-gradient(circle, rgba(255, 0, 85, 0.3) 0%, transparent 70%); border-radius: 50%; animation: pulse-aura 2s infinite alternate; z-index: 0; }
+@keyframes pulse-aura { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
+.boss-tech-ring { position: absolute; border-radius: 50%; pointer-events: none; }
+.boss-tech-ring.outer { width: 180px; height: 180px; border: 2px dashed rgba(255, 0, 85, 0.5); animation: spin 12s linear infinite; }
+.boss-tech-ring.inner { width: 140px; height: 140px; border: 1px solid rgba(255, 0, 85, 0.8); border-top-color: transparent; border-bottom-color: transparent; animation: spin 6s linear infinite reverse; box-shadow: 0 0 25px rgba(255, 0, 85, 0.3); }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Картинка босса */
+.boss-avatar { font-size: 100px; filter: drop-shadow(0 0 35px rgba(255, 0, 85, 0.9)); user-select: none; z-index: 3; display: flex; justify-content: center; align-items: center; }
+.boss-avatar img.boss-img { width: 210px; height: auto; object-fit: contain; position: relative; z-index: 3; }
+.boss-shadow { position: absolute; bottom: -5px; width: 140px; height: 20px; background: radial-gradient(ellipse at center, rgba(255, 0, 85, 0.5) 0%, transparent 70%); border-radius: 50%; z-index: 1; animation: pulse-shadow 2s infinite alternate; }
+@keyframes pulse-shadow { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 1; } }
+.hit { animation: hit-anim 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes hit-anim { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+.damage-popup { position: absolute; top: 0; color: #fff; font-size: 52px; font-weight: 900; text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055, 3px 3px 0 #000; pointer-events: none; z-index: 10; -webkit-text-stroke: 2px #ff0055; }
+
+/* Искры */
+.spark { position: absolute; width: 4px; height: 4px; background: #ff0055; border-radius: 50%; box-shadow: 0 0 10px #ff0055; pointer-events: none; z-index: 1; }
+.spark.s1 { animation: float-spark 2s infinite linear; top: 20%; left: 20%; }
+.spark.s2 { animation: float-spark 2.5s infinite linear 0.5s; top: 80%; left: 80%; }
+.spark.s3 { animation: float-spark 1.8s infinite linear 1s; top: 20%; left: 80%; }
+.spark.s4 { animation: float-spark 3s infinite linear 1.5s; top: 90%; left: 30%; }
+@keyframes float-spark { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(0); opacity: 0; } }
+
+/* HP Bar */
+.boss-hp-wrap { width: 100%; margin-bottom: 25px; z-index: 2; }
+.boss-hp-bar { width: 100%; height: 28px; background: #000; border: 2px solid #333; overflow: hidden; margin-bottom: 12px; position: relative; transform: skewX(-15deg); box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 10px #000; border-radius: 4px; padding: 2px; }
+.boss-hp-markers { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(90deg, transparent 24px, #000 25px); background-size: 25px 100%; z-index: 5; pointer-events: none; }
+.boss-hp-fill { height: 100%; transition: width 0.3s ease-out, background 0.3s; position: relative; border-radius: 2px; }
+.boss-hp-gloss { position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%); }
+.pulse-danger { animation: pulse-danger 0.5s infinite; }
+@keyframes pulse-danger { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+.boss-hp-text { display: flex; justify-content: center; align-items: baseline; gap: 8px; text-shadow: 0 2px 4px #000; }
+.hp-current { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+.hp-max { font-size: 14px; font-weight: 700; color: #8892b0; }
+
+/* Статы */
+.boss-stats-grid { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; z-index: 2; }
+.boss-stat-card { background: rgba(10, 5, 8, 0.8); border: 1px solid rgba(255, 0, 85, 0.3); border-left: 4px solid #ff0055; padding: 12px 15px; display: flex; flex-direction: column; gap: 6px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+.b-stat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.b-icon { font-size: 16px; filter: drop-shadow(0 0 5px currentColor); }
+.b-stat-label { font-size: 10px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+.b-stat-value { font-size: 20px; font-weight: 800; }
+.b-stat-value.gold { color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.5); }
+.b-stat-value.green { color: #00ff41; text-shadow: 0 0 15px rgba(0,255,65,0.5); }
+
+/* Кнопка Атаки */
+.boss-attack-btn { position: relative; width: 100%; padding: 20px !important; border: none !important; background: transparent !important; cursor: pointer; z-index: 2; outline: none; }
+.boss-attack-btn .btn-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #d60045, #7a0027); transform: skewX(-15deg); border: 2px solid #ff4d88; border-radius: 6px; transition: all 0.1s; box-shadow: 0 8px 0 #4a0018, 0 15px 25px rgba(255, 0, 85, 0.4); animation: btn-pulse 2s infinite alternate; }
+@keyframes btn-pulse { 0% { box-shadow: 0 8px 0 #4a0018, 0 10px 20px rgba(255, 0, 85, 0.3); border-color: #ff4d88; } 100% { box-shadow: 0 8px 0 #4a0018, 0 20px 40px rgba(255, 0, 85, 0.7); border-color: #fff; } }
+.boss-attack-btn .btn-content { position: relative; z-index: 2; color: #fff; font-size: 24px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; font-family: 'Rajdhani', sans-serif; }
+.boss-attack-btn:hover:not(:disabled) .btn-bg { background: linear-gradient(180deg, #ff1a66, #a30036); box-shadow: 0 8px 0 #5c001e, 0 20px 40px rgba(255, 0, 85, 0.8); animation: none; transform: skewX(-15deg) scale(1.02); }
+.boss-attack-btn:active:not(:disabled) .btn-bg { transform: skewX(-15deg) translateY(8px); box-shadow: 0 0px 0 #5c001e, 0 5px 10px rgba(255, 0, 85, 0.3); }
+.boss-attack-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.boss-attack-btn:disabled .btn-bg { filter: grayscale(100%); box-shadow: none; animation: none; }
+.screen-shake { animation: screen-shake 0.2s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes screen-shake { 0% { transform: translate(0, 0); } 25% { transform: translate(-4px, 4px); } 50% { transform: translate(4px, -4px); } 75% { transform: translate(-4px, -4px); } 100% { transform: translate(0, 0); } }
+
+/* ТОП УРОНА */
+.boss-damage-list { width: 100%; margin-top: 20px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px; z-index: 2; }
+.b-damage-title { font-size: 12px; color: #ff0055; font-weight: 800; letter-spacing: 1px; margin-bottom: 10px; text-align: center; text-transform: uppercase; text-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
+.b-damage-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.02); margin-bottom: 4px; font-size: 13px; }
+.b-damage-row.is-me { background: rgba(0, 191, 255, 0.1); border: 1px solid rgba(0, 191, 255, 0.3); }
+.b-damage-rank { width: 20px; color: #8892b0; font-weight: 700; }
+.b-damage-row:nth-child(2) .b-damage-rank { color: #ffd700; }
+.b-damage-row:nth-child(3) .b-damage-rank { color: #c0c0c0; }
+.b-damage-row:nth-child(4) .b-damage-rank { color: #cd7f32; }
+.b-damage-name { flex: 1; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
+.b-damage-val { color: #00ff41; font-weight: 700; text-shadow: 0 0 5px rgba(0, 255, 65, 0.3); }

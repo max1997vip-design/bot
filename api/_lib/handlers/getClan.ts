@@ -1,3 +1,4 @@
+// api/_lib/handlers/getClan.ts
 import { db } from '../db.js';
 import { users, clans, clanMembers } from '../schema.js';
 import { validateInitData } from '../telegram.js';
@@ -24,6 +25,7 @@ export async function getClanHandler(req: any, res: any) {
     const membersList = await db.select({
       userId: clanMembers.userId,
       role: clanMembers.role,
+      contribution: clanMembers.contribution,
       firstName: users.firstName,
       username: users.username,
       balance: users.balance
@@ -32,10 +34,18 @@ export async function getClanHandler(req: any, res: any) {
       .where(eq(clanMembers.clanId, clanId));
 
     const stats = getClanStats(clan.level);
+    
+    // 👇 ИСПРАВЛЕНО: Используем clan.extraSlots и правильно считаем максимум
+    const totalMaxMembers = (stats?.maxMembers || 5) + (clan.extraSlots || 0);
 
-    return res.json({ success: true, clan: { ...clan, ...stats }, members: membersList });
+    // Возвращаем клан с обновленным maxMembers
+    return res.json({ 
+      success: true, 
+      clan: { ...clan, ...stats, maxMembers: totalMaxMembers }, 
+      members: membersList 
+    });
   } catch (e) {
-    console.error(e);
+    console.error('Get Clan error:', e);
     return res.status(500).json({ error: 'Internal error' });
   }
 }

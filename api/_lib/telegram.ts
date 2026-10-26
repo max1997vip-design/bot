@@ -1,4 +1,4 @@
-// api/lib/telegram.ts
+// api/_lib/telegram.ts
 import crypto from 'crypto';
 
 export interface TelegramUser {
@@ -24,6 +24,26 @@ export function validateInitData(
   initData: string,
   botToken: string
 ): ValidatedInitData | null {
+  
+  // 👇 БЕЗОПАСНЫЙ DEV BYPASS ДЛЯ ЛОКАЛЬНОЙ РАЗРАБОТКИ 👇
+  // Сработает, только если в .env.local явно указано ALLOW_DEV_BYPASS=true
+  if (
+    process.env.ALLOW_DEV_BYPASS === 'true' && 
+    initData === 'DEV_BYPASS'
+  ) {
+    return {
+      user: {
+        id: 123456789, // Должен совпадать с DEV_USER_ID во фронтенд-файле telegram.ts
+        first_name: 'Dev',
+        last_name: 'User',
+        username: 'dev_user',
+      },
+      authDate: Math.floor(Date.now() / 1000),
+      hash: 'dev_bypass_hash',
+    };
+  }
+  // 👆 КОНЕЦ DEV BYPASS 👆
+
   if (!initData || !botToken) return null;
 
   try {

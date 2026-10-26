@@ -18,7 +18,8 @@ export async function joinClanHandler(req: any, res: any) {
 
     const membersCount = await db.select().from(clanMembers).where(eq(clanMembers.clanId, clan.id));
     const stats = getClanStats(clan.level);
-    if (membersCount.length >= stats.maxMembers) return res.status(400).json({ error: 'Клан переполнен' });
+    const totalMaxMembers = (stats?.maxMembers || 5) + (clan.extraSlots || 0);
+    if (membersCount.length >= totalMaxMembers) return res.status(400).json({ error: 'Клан переполнен' });
 
     await db.insert(clanMembers).values({ userId: valid.user.id, clanId: clan.id, role: 'member' });
 

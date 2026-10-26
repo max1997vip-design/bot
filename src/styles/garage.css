@@ -233,26 +233,7 @@
   isolation: isolate;
 }
 
-.car-color-overlay,
-.race-color-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  mix-blend-mode: color;
-  pointer-events: none;
-  z-index: 2;
-  opacity: 0.85;
-  -webkit-mask-image: url('/cars/audi-tt-front.png');
-  mask-image: url('/cars/audi-tt-front.png');
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-}
+/* 👇 УДАЛЕНЫ .car-color-overlay и .race-color-overlay (теперь используется Canvas) */
 
 /* --- Палитра цветов --- */
 .paint-desc {

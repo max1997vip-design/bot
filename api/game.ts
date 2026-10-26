@@ -32,10 +32,26 @@ import { getHistoryHandler } from './_lib/handlers/getHistory.js';
 import { buyPremiumHandler } from './_lib/handlers/buyPremium.js';
 import { getAchievementsHandler } from './_lib/handlers/getAchievements.js';
 import { claimAchievementHandler } from './_lib/handlers/claimAchievement.js';
+import { getClansHandler } from './_lib/handlers/getClans.js';
+import { getClanMessagesHandler, sendClanMessageHandler } from './_lib/handlers/clanChat.js';
+import { getClanBossHandler, attackClanBossHandler } from './_lib/handlers/clanBoss.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
   const action = Array.isArray(rawAction) ? rawAction[0] : rawAction;
+
+  // 👇 DEV BYPASS ДЛЯ ЛОКАЛЬНОЙ РАЗРАБОТКИ 👇
+  // Если мы локально и фронт прислал наш флаг, подменяем данные
+  if (process.env.NODE_ENV !== 'production' && req.body?.initData === 'DEV_BYPASS') {
+    // Подменяем initData на фейковый валидный токен или прямо в req.body
+    // Если твои хендлеры используют библиотеку типа @telegram-apps/init-data-node
+    // тебе нужно будет сгенерировать валидную строку. 
+    // Но самый простой путь - передать флаг дальше, если хендлеры его понимают.
+    
+    // ВРЕМЕННО: Подменяем telegramId (если хендлеры читают req.user)
+    // В идеале тебе нужно добавить в свойство req.user фейкового юзера.
+    req.user = { id: 123456789, first_name: 'Dev' }; 
+  }
 
   switch (action) {
     case 'sync': return syncHandler(req, res);
@@ -71,10 +87,12 @@ export default async function handler(req: any, res: any) {
     case 'getHistory': return getHistoryHandler(req, res);
     case 'getAchievements': return getAchievementsHandler(req, res);
     case 'claimAchievement': return claimAchievementHandler(req, res);
-    
-    // 👇 ИСПРАВЛЕНИЕ: Теперь это case, а не if
     case 'buyPremium': return buyPremiumHandler(req, res);
-
+    case 'getClans': return getClansHandler(req, res);
+    case 'getClanMessages': return getClanMessagesHandler(req, res);
+    case 'sendClanMessage': return sendClanMessageHandler(req, res);
+    case 'getClanBoss': return getClanBossHandler(req, res);
+    case 'attackClanBoss': return attackClanBossHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

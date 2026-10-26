@@ -9,6 +9,8 @@ import { DailyRewardModal } from './components/DailyRewardModal';
 import { CARS } from './config/cars';
 import WebApp from '@twa-dev/sdk';
 import { motion, AnimatePresence } from 'framer-motion';
+import './styles/clan.css';
+import { getInitData } from './lib/telegram'; 
 
 type Tab = 'race' | 'city' | 'garage' | 'profile';
 
@@ -97,7 +99,8 @@ export default function App() {
       const startTime = Date.now();
 
       try {
-        const initData = webApp.initData || '';
+        // 👇 ИСПОЛЬЗУЕМ ХЕЛПЕР
+        const initData = getInitData(); 
         const startParam = webApp.initDataUnsafe?.start_param || '';
 
         const res = await fetch('/api/game?action=sync', {
@@ -190,7 +193,7 @@ export default function App() {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    overflow: 'hidden', // 👈 ВАЖНО: не даем контенту вылезти за пределы
+                    overflow: 'hidden',
                   }}
                 >
                   {activeTab === 'race' && <RaceScreen />}

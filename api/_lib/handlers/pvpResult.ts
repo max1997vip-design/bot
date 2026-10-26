@@ -1,9 +1,9 @@
 import { db } from '../db.js';
-import { users } from '../schema.js';
+import { users, clans, clanMembers } from '../schema.js'; // 👈 Добавили таблицы кланов
 import { validateInitData } from '../telegram.js';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm'; // 👈 Добавили and
 import { getOrCreateQuests } from '../quests.js';
-import { getOrCreatePass } from '../pass.js'; // <-- Импорт пропуска
+import { getOrCreatePass } from '../pass.js';
 
 export async function pvpResultHandler(req: any, res: any) {
   const { initData, won, ratingDelta, coinsDelta } = req.body;
@@ -31,6 +31,29 @@ export async function pvpResultHandler(req: any, res: any) {
       pass.xp += 50;
     }
 
+    // 👇 ЛОГИКА КЛАНОВОГО НАЛОГА (10% от выигрыша) 👇
+    let clanTax = 0;
+    if (safeCoins > 0) {
+      const memberRecord = await db.select().from(clanMembers).where(eq(clanMembers.userId, userId));
+      if (memberRecord.length > 0) {
+        const clanId = memberRecord[0].clanId;
+        clanTax = Math.floor(safeCoins * 0.10); // Берем 10%
+
+        if (clanTax > 0) {
+          // Начисляем в казну клана
+          await db.update(clans)
+            .set({ balance: sql`${clans.balance} + ${clanTax}` })
+            .where(eq(clans.id, clanId));
+          
+          // Записываем вклад игроку
+          await db.update(clanMembers)
+            .set({ contribution: sql`${clanMembers.contribution} + ${clanTax}` })
+            .where(and(eq(clanMembers.userId, userId), eq(clanMembers.clanId, clanId)));
+        }
+      }
+    }
+    // 👆 КОНЕЦ ЛОГИКИ КЛАНА 👆
+
     const [updated] = await db
       .update(users)
       .set({
@@ -38,7 +61,7 @@ export async function pvpResultHandler(req: any, res: any) {
         balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
         totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
         dailyQuests: quests,
-        weeklyPass: pass // <-- Сохраняем обновленный пропуск
+        weeklyPass: pass 
       })
       .where(eq(users.id, userId))
       .returning();
@@ -50,7 +73,8 @@ export async function pvpResultHandler(req: any, res: any) {
       newBalance: updated.balance,
       newRating: updated.rating,
       quests,
-      pass: updated.weeklyPass // <-- Отдаем на фронт
+      pass: updated.weeklyPass,
+      clanTax // Возвращаем сумму налога на фронт (можешь вывести в уведомлении)
     });
   } catch (error) {
     console.error('[pvpResult]', error);

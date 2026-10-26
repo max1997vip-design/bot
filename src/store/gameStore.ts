@@ -1,6 +1,7 @@
 // src/store/gameStore.ts
 import { create } from 'zustand';
 import { calculateStats, ITEMS, SELL_PRICES } from '../config/items';
+import { getInitData } from '../lib/telegram';
 
 declare global {
   interface Window {
@@ -26,7 +27,7 @@ export interface UserData {
   offlineLevel?: number;
   dailyStreak?: number;
   lastDailyClaim?: string | null;
-  lastAdCaseAt?: string | null; // 👈 ДОБАВЛЕНО ПОЛЕ ДЛЯ КЕЙСА
+  lastAdCaseAt?: string | null;
   businesses?: Record<string, { level: number; lastCollected: number }>;
   partUpgrades?: Record<string, PartUpgrade>;
   features?: Record<string, boolean>;
@@ -53,6 +54,16 @@ interface GameState {
   lastDroppedItem: any | null;
   history: any[];
   achievementsList: any[];
+  
+  // 👇 ПРАВИЛЬНЫЕ ТИПЫ ДЛЯ КЛАНА 👇
+  clanInfo: any | null;
+  clanMembers: any[];
+  clansList: any[];
+  clanMessages: any[];
+  hasUnreadClanMessages: boolean;
+  lastReadClanMessageId: string | null;
+  clanBoss: any | null;
+  bossDamageStats: any[];
 
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
@@ -63,23 +74,28 @@ interface GameState {
   adminGetData: () => Promise<{ flags: any[], users: any[] } | null>;
   adminAction: (action: string, payload: any) => Promise<boolean>;
   playCoinFlip: (betAmount: number, choice: 'heads' | 'tails') => Promise<{ success: boolean; isWin?: boolean; result?: string; payout?: number; error?: string }>;
-
+  
+  fetchClans: () => Promise<void>;
+  fetchClanMessages: () => Promise<void>;
+  sendClanMessage: (message: string) => Promise<boolean>;
+  markClanChatAsRead: () => void;  
+  
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
   syncTaps: () => Promise<void>;
   setCarColor: (color: string) => void;
   equipItem: (slot: string, itemId: string) => Promise<boolean>;
   setLastDroppedItem: (item: any) => void;
-  // 👇 ОБНОВЛЕН ТИП (добавлен error)
   openCase: (caseType: string) => Promise<{ success: boolean; wonItem?: any; error?: string }>;
-  clanInfo: any | null;
-  clanMembers: any[];
+  
   fetchClan: () => Promise<void>;
   createClan: (name: string) => Promise<boolean>;
   fetchHistory: () => Promise<void>;
   joinClan: (clanName: string) => Promise<boolean>;
-  clanAction: (action: 'donate' | 'upgrade', amount?: number) => Promise<boolean>;
-
+  clanAction: (action: string, amount?: number, targetId?: number, role?: string) => Promise<boolean>;
+  fetchClanBoss: () => Promise<void>;
+  attackClanBoss: () => Promise<{ success: boolean; damage?: number; isDefeated?: boolean; reward?: number; playerCoins?: number }>;
+  
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
   reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
@@ -104,8 +120,17 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastDroppedItem: null,
   history: [],
   achievementsList: [],
+  
+  // 👇 НАЧАЛЬНЫЕ ЗНАЧЕНИЯ КЛАНА 👇
   clanInfo: null,
   clanMembers: [],
+  clansList: [],
+  clanMessages: [],
+  hasUnreadClanMessages: false,
+  lastReadClanMessageId: null,
+  clanBoss: null,
+  bossDamageStats: [],
+  // 👆 ----------------------- 👆
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
@@ -125,7 +150,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   openCase: async (caseType) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=openCase', {
         method: 'POST', 
@@ -154,7 +179,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   fetchHistory: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=getHistory', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -166,7 +191,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   fetchClan: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=getClan', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -177,8 +202,65 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch {}
   },
 
+  fetchClans: async () => {
+    const initData = getInitData(); 
+    try {
+      const res = await fetch('/api/game?action=getClans', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) set({ clansList: data.clans });
+    } catch (e) { console.error(e); }
+  },
+
+  fetchClanMessages: async () => {
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=getClanMessages', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((state) => {
+          const msgs = data.messages;
+          const newestMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
+          
+          const isNew = newestMsg && newestMsg.id !== state.lastReadClanMessageId;
+          
+          return {
+            clanMessages: msgs,
+            hasUnreadClanMessages: isNew ? true : state.hasUnreadClanMessages
+          };
+        });
+      }
+    } catch (e) { console.error(e); }
+  },
+
+  markClanChatAsRead: () => {
+    const msgs = get().clanMessages;
+    const newest = msgs.length > 0 ? msgs[msgs.length - 1] : null;
+    set({ 
+      hasUnreadClanMessages: false, 
+      lastReadClanMessageId: newest ? newest.id : null 
+    });
+  },
+
+  sendClanMessage: async (message) => {
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=sendClanMessage', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, message }),
+      });
+      const data = await res.json();
+      return data.success;
+    } catch { return false; }
+  },
+
   adminGetData: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -191,7 +273,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   adminAction: async (action, payload) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -203,7 +285,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   createClan: async (name) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=createClan', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -220,7 +302,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   joinClan: async (clanName) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=joinClan', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -235,12 +317,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch { return false; }
   },
 
-  clanAction: async (action, amount = 0) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+  clanAction: async (action, amount = 0, targetId, role) => {
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=clanAction', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, action, amount }),
+        body: JSON.stringify({ initData, action, amount, targetId, role }),
       });
       const data = await res.json();
       if (data.success) {
@@ -254,8 +336,44 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch { return false; }
   },
 
+  fetchClanBoss: async () => {
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=getClanBoss', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) set({ clanBoss: data.boss, bossDamageStats: data.damageStats }); 
+    } catch (e) { console.error(e); }
+  },
+
+  attackClanBoss: async () => {
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=attackClanBoss', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((state) => ({
+          clanBoss: state.clanBoss ? { ...state.clanBoss, currentHp: data.newHp } : null,
+          balance: data.newBalance,
+          user: state.user ? { ...state.user, balance: data.newBalance } : null
+        }));
+        if (data.isDefeated) {
+          get().fetchClanBoss();
+          get().fetchClan();
+        }
+        return { success: true, damage: data.damage, isDefeated: data.isDefeated, reward: data.reward, playerCoins: data.playerCoins };
+      }
+      return { success: false };
+    } catch { return { success: false }; }
+  },
+
   buyBusiness: async (businessId) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=buyBusiness', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -274,7 +392,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   playCoinFlip: async (betAmount, choice) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=flipCoin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -295,7 +413,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   upgradeBusiness: async (businessId) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=upgradeBusiness', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -314,7 +432,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   collectIncome: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=collectIncome', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -333,7 +451,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   upgradePart: async (itemId, type) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=upgradePart', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -352,7 +470,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   getPass: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=getPass', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -366,7 +484,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   claimPassReward: async (level: number, track: 'free' | 'premium') => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimPassReward', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -385,7 +503,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   buyPremiumPass: async (): Promise<{ success: boolean; error?: string }> => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=buyPremium', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -406,7 +524,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   claimUpgrade: async (itemId) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimUpgrade', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -422,7 +540,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   craftItem: async (itemId) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=craftItem', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -452,7 +570,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const tapsToSend = unsyncedTaps;
     set({ unsyncedTaps: 0, isSyncing: true });
     try {
-      const initData = window.Telegram?.WebApp?.initData || '';
+      const initData = getInitData();
       const res = await fetch('/api/game?action=tap', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData, amount: tapsToSend }),
@@ -477,7 +595,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setLastDroppedItem: (item) => set({ lastDroppedItem: item }),
 
   equipItem: async (slot: string, itemId: string) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=equip', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -525,7 +643,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const prevCarId = user.activeCarId;
     set({ user: { ...user, activeCarId: carId } });
     try {
-      const initData = window.Telegram?.WebApp?.initData || '';
+      const initData = getInitData();
       const res = await fetch('/api/game?action=switchCar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData, carId }),
@@ -547,7 +665,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: { ...user, balance: Math.max(0, user.balance + coinsDelta), rating: Math.max(0, user.rating + ratingDelta) }
     });
     try {
-      const initData = window.Telegram?.WebApp?.initData || '';
+      const initData = getInitData();
       const res = await fetch('/api/game?action=pvpResult', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ initData, won, ratingDelta, coinsDelta }),
@@ -570,7 +688,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { user } = get();
     if (!user) return false;
     if (user.balance < price) return false;
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=buyCar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -589,7 +707,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   upgradeClicker: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=upgradeClicker', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -606,7 +724,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   getAchievements: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=getAchievements', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -618,7 +736,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   claimAchievement: async (id) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimAchievement', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -638,7 +756,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   
   upgradeOffline: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=upgradeOffline', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -667,7 +785,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     newInventory.splice(index, 1); 
     const newBalance = state.balance + price;
     set({ balance: newBalance, inventory: newInventory, user: { ...user, balance: newBalance } });
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=sellItem', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -684,7 +802,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   claimDaily: async () => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimDaily', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -703,7 +821,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   claimQuest: async (questId) => {
-    const initData = window.Telegram?.WebApp?.initData || '';
+    const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimQuest', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
