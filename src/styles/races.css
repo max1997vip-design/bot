@@ -4,7 +4,8 @@
 .races-screen { 
   position: absolute; 
   inset: 0; 
-  overflow: hidden; 
+  overflow-y: auto; /* Разрешаем скролл для ПК */
+  overflow-x: hidden;
   background: 
     radial-gradient(circle at 50% 0%, #101524 0%, #050608 100%),
     repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px);
@@ -12,6 +13,7 @@
   flex-direction: column; 
   padding: 16px 20px; 
   padding-top: calc(16px + var(--tg-safe-top, 0px)); 
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); 
   z-index: 10;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -38,11 +40,9 @@
   display: flex; 
   flex-direction: column; 
   gap: 16px; 
-  overflow-y: auto; 
-  overflow-x: hidden; 
-  padding-bottom: 20px; 
   flex: 1;
   min-height: 0;
+  padding-bottom: 20px; 
 }
 .race-hub-heading h1 { 
   margin: 0 0 6px 0; 
@@ -65,7 +65,6 @@
   width: 100%;
   cursor: pointer;
   border-radius: 14px;
-  overflow: hidden;
   transition: filter 0.2s ease;
 }
 .league-badge-button:hover {
@@ -79,35 +78,53 @@
   flex-shrink: 0;
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
 }
-.league-badge-top { display: flex; flex-direction: column; gap: 2px; }
-.league-badge-icon { font-size: 24px; }
-.league-badge-info { display: flex; flex-direction: column; }
-.league-badge-name { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; }
-.league-badge-points { font-size: 11px; color: #00e5ff; font-weight: 700; }
-.league-badge-progress { display: none; }
+.league-badge-icon { 
+  font-size: 24px; 
+  flex-shrink: 0; 
+}
+.league-badge-info { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start;
+  text-align: left;
+}
+.league-badge-name { 
+  font-size: 14px; 
+  font-weight: 900; 
+  color: #fff; 
+  text-transform: uppercase; 
+}
+.league-badge-points { 
+  font-size: 11px; 
+  color: #00e5ff; 
+  font-weight: 700; 
+}
 
 /* Главная карточка "Быстрая гонка" */
 .race-mode-primary { 
   position: relative;
-  overflow: hidden;
   display: flex; 
   flex-direction: column; 
   align-items: flex-start; 
   background: linear-gradient(135deg, #141a2e 0%, #050608 100%); 
   border: 1px solid rgba(0, 229, 255, 0.3); 
   border-radius: 20px; 
-  padding: 28px 24px; 
+  padding: 24px 20px; 
   cursor: pointer; 
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
   text-align: left; 
   width: 100%; 
   color: #fff;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-sizing: border-box;
+  z-index: 1;
 }
 .race-mode-primary:hover { 
   border-color: #00e5ff; 
@@ -116,13 +133,21 @@
 }
 .race-mode-bg-glow {
   position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+.race-mode-bg-glow::after {
+  content: '';
+  position: absolute;
   top: -50px;
   right: -50px;
   width: 180px;
   height: 180px;
   background: radial-gradient(circle, rgba(0, 229, 255, 0.2) 0%, transparent 70%);
   border-radius: 50%;
-  pointer-events: none;
 }
 .race-mode-primary .race-icon { 
   font-size: 44px; 
@@ -160,6 +185,8 @@
   align-items: center;
   gap: 8px;
   transition: transform 0.2s;
+  white-space: nowrap;
+  margin-top: auto;
 }
 .race-mode-action::after {
   content: '→';
@@ -382,7 +409,7 @@
   position: absolute; bottom: 2px; width: 120px; height: 60px; 
   display: flex; justify-content: center; align-items: flex-end; 
   z-index: 10; will-change: transform; 
-  transition: none !important; /* ВАЖНО: убрали transition для плавности */
+  transform: translateZ(0); /* Аппаратное ускорение */
 }
 
 .race-car::before {
@@ -448,7 +475,7 @@
 .race-stage.is-racing .speed-line:nth-child(4) { top: 80%; animation-delay: 0.15s; }
 .race-stage.is-racing .speed-line:nth-child(5) { top: 90%; animation-delay: 0.02s; }
 
-@keyframes speedLine { 0% { transform: translateX(100vw); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateX(-100px); opacity: 0; } }
+@keyframes speedLine { 0% { transform: translate3d(100vw, 0, 0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translate3d(-100px, 0, 0); opacity: 0; } }
 
 .speed-lines-container.is-max .speed-line { background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.8), transparent); }
 
@@ -484,7 +511,7 @@
 .progress-row { display: flex; align-items: center; gap: 10px; }
 .progress-label { color: #666; font-size: 10px; font-weight: 900; width: 50px; text-transform: uppercase; letter-spacing: 1px; }
 .progress-track { flex: 1; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 3px; transition: width 0.05s linear; /* Ускорили transition для плавности */ }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.05s linear; }
 .progress-fill.green { background: #00e5ff; box-shadow: 0 0 10px #00e5ff; }
 .progress-fill.red { background: #ff3333; box-shadow: 0 0 10px #ff3333; }
 
