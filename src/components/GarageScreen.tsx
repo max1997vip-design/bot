@@ -248,7 +248,7 @@ export const GarageScreen: React.FC = () => {
         <div
           style={{
             position: 'absolute',
-            top: '16%',
+            top: '21%',
             left: '10%',
             width: '80%',
             background: 'rgba(0,0,0,0.75)',

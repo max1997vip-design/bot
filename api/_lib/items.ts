@@ -1,5 +1,4 @@
-// src/config/items.ts
-import { CARS } from './cars';
+// api/lib/items.ts
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type ItemSlot = 'engine' | 'tires' | 'suspension' | 'ecu';
@@ -50,84 +49,6 @@ export const ALL_ITEM_IDS = Object.keys(ITEMS);
 export const RARITY_DROP_CHANCE: Record<string, number> = {
   common: 60, uncommon: 25, rare: 10, epic: 4, legendary: 1,
 };
-
-// Константы капов и множителей (легко менять под баланс)
-const MAX_POWER = 1800;      // потолок мощности, л.с.
-const MAX_TOP_SPEED = 500;   // потолок скорости, км/ч
-const MAX_POWER_BONUS = 1.5; // макс. +150% к мощности от прокачки
-const MAX_SPEED_BONUS = 1.0; // макс. +100% к скорости от прокачки
-const MIN_ACCEL = 1.2;       // минимальное время разгона 0-100, сек
-
-/**
- * Убывающая отдача:
- *  raw=1 → 0.5   (прибавка 50%)
- *  raw=2 → 0.75  (прибавка 75%)
- *  raw=3 → 0.875 (прибавка 87.5%)
- *  raw=5 → 0.969 (прибавка 96.9%)
- *  Никогда не превысит 1.0.
- */
-const diminishing = (raw: number) => 1 - Math.pow(2, -raw);
-
-export function calculateStats(
-  equipped: Record<string, string | null>, 
-  partUpgrades: Record<string, any> = {},
-  activeCarId: string = 'vaz-2107'
-) {
-  const carConfig = CARS[activeCarId] || CARS['vaz-2107'];
-  const perf = carConfig.performance;
-
-  // 1. Собираем "сырые" проценты от надетых деталей
-  let rawPowerPct = 0;
-  let rawSpeedPct = 0;
-  let rawGripFlat = 0;
-  let rawAccelPct = 0;
-
-  Object.values(equipped).forEach((itemId) => {
-    if (!itemId || !ITEMS[itemId]) return;
-    const item = ITEMS[itemId];
-    const upg = partUpgrades[itemId] || { level: 0, goldStars: 0, redStars: 0 };
-
-    const levelMulti = 1 + (upg.level || 0) * 0.02;
-    const goldMulti = 1 + (upg.goldStars || 0) * 0.10;
-    const redMulti = 1 + (upg.redStars || 0) * 0.25;
-    const finalMulti = levelMulti * goldMulti * redMulti;
-
-    rawPowerPct += (item.stats.power / 100) * finalMulti;
-    rawSpeedPct += (item.stats.topSpeed / 100) * finalMulti;
-    rawGripFlat += (item.stats.grip / 100) * finalMulti * 50;
-    rawAccelPct += ((item.stats.grip + item.stats.handling) / 100) * finalMulti;
-  });
-
-  // 2. Применяем убывающую отдачу
-  const powerMultiplier = 1 + diminishing(rawPowerPct) * MAX_POWER_BONUS;
-  const speedMultiplier = 1 + diminishing(rawSpeedPct) * MAX_SPEED_BONUS;
-
-  let totalPower = perf.power * powerMultiplier;
-  let totalTopSpeed = perf.topSpeed * speedMultiplier;
-  let totalGrip = Math.min(100, perf.grip + rawGripFlat);
-
-  // 3. Разгон: бонус от grip+handling, но не быстрее MIN_ACCEL
-  const accelBonus = Math.min(0.6, diminishing(rawAccelPct) * 0.6);
-  let totalAccel = Math.max(MIN_ACCEL, perf.accel * (1 - accelBonus));
-
-  // 4. Жёсткие капы
-  totalPower = Math.min(totalPower, MAX_POWER);
-  totalTopSpeed = Math.min(totalTopSpeed, MAX_TOP_SPEED);
-
-  // 5. Сводный рейтинг (для сортировки в гараже)
-  const rating = Math.round(
-    totalPower * 0.3 + totalTopSpeed * 2 + (10 - totalAccel) * 50 + totalGrip * 3
-  );
-
-  return {
-    power: Math.round(totalPower),
-    topSpeed: Math.round(totalTopSpeed),
-    grip: Math.round(totalGrip),
-    handling: Math.round(totalGrip * 1.05),
-    accel: Math.round(totalAccel * 100) / 100,
-    rating,
-  };
-}
 
 export const SELL_PRICES: Record<ItemRarity, number> = {
   common: 100, uncommon: 500, rare: 2500, epic: 15000, legendary: 75000,
