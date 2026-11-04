@@ -20,7 +20,6 @@ export const RacesScreen = () => {
   const [racePhase, setRacePhase] = useState<RacePhase>('idle');
   const [leaguePointsEarned, setLeaguePointsEarned] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [currentSpeed, setCurrentSpeed] = useState(0); 
 
   // Рефы для прямого доступа к DOM
   const raceStageRef = useRef<HTMLDivElement>(null);
@@ -28,7 +27,11 @@ export const RacesScreen = () => {
   const opponentCarRef = useRef<HTMLDivElement>(null);
   const playerProgressRef = useRef<HTMLDivElement>(null);
   const opponentProgressRef = useRef<HTMLDivElement>(null);
-  const speedTextRef = useRef<HTMLSpanElement>(null);
+  
+  // ДВА РАЗНЫХ РЕФА ДЛЯ СКОРОСТИ (HUD и Спидометр)
+  const hudSpeedTextRef = useRef<HTMLSpanElement>(null);
+  const speedometerValueRef = useRef<HTMLSpanElement>(null);
+  
   const speedometerFillRef = useRef<SVGCircleElement>(null);
   const speedLinesContainerRef = useRef<HTMLDivElement>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
@@ -51,7 +54,8 @@ export const RacesScreen = () => {
       if (opponentCarRef.current) opponentCarRef.current.style.transform = 'translate3d(0px, 0, 0)';
       if (playerProgressRef.current) playerProgressRef.current.style.width = '0%';
       if (opponentProgressRef.current) opponentProgressRef.current.style.width = '0%';
-      if (speedTextRef.current) speedTextRef.current.textContent = '0';
+      if (hudSpeedTextRef.current) hudSpeedTextRef.current.textContent = '0';
+      if (speedometerValueRef.current) speedometerValueRef.current.textContent = '0';
       if (speedometerFillRef.current) speedometerFillRef.current.style.strokeDashoffset = '283';
       
       // Сброс классов NOS
@@ -67,7 +71,6 @@ export const RacesScreen = () => {
     setView('racing');
     setRacePhase('racing');
     setLeaguePointsEarned(0);
-    setCurrentSpeed(0);
 
     setTimeout(() => {
       const result = simulateRacePhysics(playerPhysics, opponentPhysics, 'Turbo Rider');
@@ -111,9 +114,10 @@ export const RacesScreen = () => {
       if (playerProgressRef.current) playerProgressRef.current.style.width = `${Math.min(100, (playerX / maxDistance) * 100)}%`;
       if (opponentProgressRef.current) opponentProgressRef.current.style.width = `${Math.min(100, (opponentX / maxDistance) * 100)}%`;
 
-      // ИСПОЛЬЗУЕМ textContent ВМЕСТО innerText ДЛЯ ПРОИЗВОДИТЕЛЬНОСТИ
+      // ОБНОВЛЕНИЕ СКОРОСТИ В HUD И СПИДОМЕТРЕ (разные рефы)
       const currentSpd = Math.round(playerPhysics.topSpeed * progress);
-      if (speedTextRef.current) speedTextRef.current.textContent = currentSpd.toString();
+      if (hudSpeedTextRef.current) hudSpeedTextRef.current.textContent = currentSpd.toString();
+      if (speedometerValueRef.current) speedometerValueRef.current.textContent = currentSpd.toString();
       
       if (speedometerFillRef.current) {
         const offset = 283 - (283 * (currentSpd / (playerPhysics.topSpeed || 1)));
@@ -266,7 +270,7 @@ export const RacesScreen = () => {
 
             <div className="race-track-hud">
               <span>NEON SPRINT · 1/4 МИЛИ</span>
-              <strong><span ref={speedTextRef}>0</span> км/ч</strong>
+              <strong><span ref={hudSpeedTextRef}>0</span> км/ч</strong>
             </div>
 
             <div className="race-lane lane-one">
@@ -330,7 +334,7 @@ export const RacesScreen = () => {
                 />
               </svg>
               <div className="speedometer-content">
-                <span className="speedometer-value" ref={speedTextRef}>{currentSpeed}</span>
+                <span className="speedometer-value" ref={speedometerValueRef}>0</span>
                 <span className="speedometer-unit">км/ч</span>
               </div>
             </div>
