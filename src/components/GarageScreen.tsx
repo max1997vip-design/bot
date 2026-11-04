@@ -229,47 +229,26 @@ export const GarageScreen: React.FC = () => {
       <div className="garage-scene">
         <div className="garage-bg" />
 
-        {/* Кнопка смены машины */}
+        {/* --- Кнопка смены машины --- */}
         {ownedCars.length > 1 && (
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowCarSelector(true)}
-            className="garage-car-switch-btn"
-          >
-            <span>🚗</span>
-            <span>{activeCar.name}</span>
-            <span style={{ color: '#00e5ff', marginLeft: '4px' }}>▼</span>
-          </motion.button>
+          <div className="garage-car-switch-wrapper">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCarSelector(true)}
+              className="garage-car-switch-btn"
+            >
+              <span>🚗</span>
+              <span>{activeCar.name}</span>
+              <span style={{ color: '#00e5ff', marginLeft: '4px' }}>▼</span>
+            </motion.button>
+          </div>
         )}
 
-        {/* Машина — клик открывает двигатель */}
-        <div
-          className="garage-car-container"
-          style={{
-            top: '38%',
-            left: '25%',
-            width: '52%',
-            position: 'absolute',
-            zIndex: 10,
-          }}
-          onClick={() => handleUpgradeClick('engine')}
-        >
-          <div className="car-tooltip">Двигатель</div>
-          <div className="car-image-wrapper">
-            <TintedCarImage
-              imageUrl={activeCar.image}
-              colorHex={activeColorHex}
-              className="garage-car-img"
-              style={{ filter: 'none', width: '100%', height: 'auto', display: 'block' }}
-            />
-          </div>
-        </div>
-
-        {/* Плашка характеристик */}
+        {/* --- Плашка характеристик (перенесена на top 16%) --- */}
         <div
           style={{
             position: 'absolute',
-            top: '62%',
+            top: '16%',
             left: '10%',
             width: '80%',
             background: 'rgba(0,0,0,0.75)',
@@ -297,7 +276,30 @@ export const GarageScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Шины, подвеска, ECU */}
+        {/* --- Машина --- */}
+        <div
+          className="garage-car-container"
+          style={{
+            top: '38%',
+            left: '25%',
+            width: '52%',
+            position: 'absolute',
+            zIndex: 10,
+          }}
+          onClick={() => handleUpgradeClick('engine')}
+        >
+          <div className="car-tooltip">Двигатель</div>
+          <div className="car-image-wrapper">
+            <TintedCarImage
+              imageUrl={activeCar.image}
+              colorHex={activeColorHex}
+              className="garage-car-img"
+              style={{ filter: 'none', width: '100%', height: 'auto', display: 'block' }}
+            />
+          </div>
+        </div>
+
+        {/* --- Шины, подвеска, ECU --- */}
         <motion.img
           src="/images/tires.png"
           alt="Шины"
