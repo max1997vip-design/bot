@@ -1,5 +1,5 @@
 // src/components/RacesScreen.tsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playSound } from '../utils/sound';
 import { CARS } from '../config/cars';
@@ -17,16 +17,20 @@ export const RacesScreen = () => {
   
   const [view, setView] = useState<'menu' | 'racing' | 'result'>('menu');
   const [raceResult, setRaceResult] = useState<any>(null);
-  const [raceProgress, setRaceProgress] = useState({ player: 0, opponent: 0 });
-  const [progressPercent, setProgressPercent] = useState({ player: 0, opponent: 0 });
-  const [currentSpeed, setCurrentSpeed] = useState(0);
   const [racePhase, setRacePhase] = useState<RacePhase>('idle');
-  const [showSkidMarks, setShowSkidMarks] = useState(false);
   const [isMaxSpeed, setIsMaxSpeed] = useState(false);
   const [leaguePointsEarned, setLeaguePointsEarned] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState(0); // Оставим для спидометра
 
+  // Рефы для прямого доступа к DOM
   const raceStageRef = useRef<HTMLDivElement>(null);
+  const playerCarRef = useRef<HTMLDivElement>(null);
+  const opponentCarRef = useRef<HTMLDivElement>(null);
+  const playerProgressRef = useRef<HTMLDivElement>(null);
+  const opponentProgressRef = useRef<HTMLDivElement>(null);
+  const speedTextRef = useRef<HTMLSpanElement>(null);
+  const speedometerFillRef = useRef<SVGCircleElement>(null);
 
   const activeCarId = user?.activeCarId || 'vaz-2107';
   const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
@@ -36,47 +40,43 @@ export const RacesScreen = () => {
   
   const playerCarImage = `/cars/side/${activeCarId}.png`;
 
-  const playerPhysics: CarPhysics = {
-    power: 719,
-    topSpeed: 719, 
-    accel: 6.5,
-    grip: 100,
-    handling: 100,
-  };
+  const playerPhysics: CarPhysics = { power: 719, topSpeed: 719, accel: 6.5, grip: 100, handling: 100 };
+  const opponentPhysics: CarPhysics = { power: 656, topSpeed: 656, accel: 6.2, grip: 95, handling: 95 };
 
-  const opponentPhysics: CarPhysics = {
-    power: 656,
-    topSpeed: 656,
-    accel: 6.2,
-    grip: 95,
-    handling: 95,
-  };
+  // Сброс при входе в меню
+  useEffect(() => {
+    if (view === 'menu') {
+      if (playerCarRef.current) playerCarRef.current.style.transform = 'translateX(0px)';
+      if (opponentCarRef.current) opponentCarRef.current.style.transform = 'translateX(0px)';
+      if (playerProgressRef.current) playerProgressRef.current.style.width = '0%';
+      if (opponentProgressRef.current) opponentProgressRef.current.style.width = '0%';
+      if (speedTextRef.current) speedTextRef.current.innerText = '0';
+      if (speedometerFillRef.current) speedometerFillRef.current.style.strokeDashoffset = '283';
+    }
+  }, [view]);
 
   const handleStartRace = () => {
     playSound('click');
     setView('racing');
     setRacePhase('racing');
-    setRaceProgress({ player: 0, opponent: 0 });
-    setProgressPercent({ player: 0, opponent: 0 });
-    setCurrentSpeed(0);
-    setShowSkidMarks(false);
     setIsMaxSpeed(false);
     setLeaguePointsEarned(0);
+    setCurrentSpeed(0);
 
     setTimeout(() => {
       const result = simulateRacePhysics(playerPhysics, opponentPhysics, 'Turbo Rider');
       setRaceResult(result);
-      animateRace(result.ticks, result); 
+      startAnimation(result.ticks, result); 
     }, 1000);
   };
 
-  const animateRace = (ticks: any[], result: any) => {
+  const startAnimation = (ticks: any[], result: any) => {
     const duration = 4500;
     const startTime = performance.now();
     
     const stageWidth = raceStageRef.current?.clientWidth || 320;
-    const carWidth = 110;
-    const finishOffset = 36;
+    const carWidth = 120;
+    const finishOffset = 60;
     
     const maxDistance = Math.max(180, stageWidth - carWidth - finishOffset);
     const isPlayerWinner = result.winner === 'player';
@@ -96,15 +96,20 @@ export const RacesScreen = () => {
       const playerX = eased * playerTarget;
       const opponentX = eased * opponentTarget;
       
-      setRaceProgress({ player: playerX, opponent: opponentX });
-      setProgressPercent({
-        player: Math.min(100, (playerX / maxDistance) * 100),
-        opponent: Math.min(100, (opponentX / maxDistance) * 100)
-      });
+      // ПРЯМОЕ ОБНОВЛЕНИЕ DOM (БЕЗ REACT STATE) - ИДЕАЛЬНО ПЛАВНО
+      if (playerCarRef.current) playerCarRef.current.style.transform = `translateX(${playerX}px)`;
+      if (opponentCarRef.current) opponentCarRef.current.style.transform = `translateX(${opponentX}px)`;
+      if (playerProgressRef.current) playerProgressRef.current.style.width = `${Math.min(100, (playerX / maxDistance) * 100)}%`;
+      if (opponentProgressRef.current) opponentProgressRef.current.style.width = `${Math.min(100, (opponentX / maxDistance) * 100)}%`;
 
       const currentSpd = Math.round(playerPhysics.topSpeed * progress);
-      setCurrentSpeed(currentSpd);
-      
+      if (speedTextRef.current) speedTextRef.current.innerText = currentSpd.toString();
+      if (speedometerFillRef.current) {
+        const offset = 283 - (283 * (currentSpd / (playerPhysics.topSpeed || 1)));
+        speedometerFillRef.current.style.strokeDashoffset = offset.toString();
+      }
+
+      // Включение NOS (React обновляется только 2 раза за гонку)
       if (progress > 0.7 && progress < 0.95 && !isMaxSpeed) {
         setIsMaxSpeed(true);
       } else if ((progress <= 0.7 || progress >= 0.95) && isMaxSpeed) {
@@ -115,7 +120,6 @@ export const RacesScreen = () => {
         requestAnimationFrame(animate);
       } else {
         setRacePhase('finish');
-        setShowSkidMarks(true);
         setIsMaxSpeed(false);
         
         const pointsDelta = isPlayerWinner ? league.winPoints : league.losePoints;
@@ -124,10 +128,7 @@ export const RacesScreen = () => {
 
         setTimeout(() => {
           setView('result');
-          setCurrentSpeed(playerPhysics.topSpeed);
-          
           if (result.winner === 'player') playSound('win');
-          
           reportPvpResult({
             won: result.winner === 'player',
             ratingDelta: result.winner === 'player' ? 15 : -10,
@@ -142,12 +143,7 @@ export const RacesScreen = () => {
 
   const handleBackToMenu = () => {
     setView('menu');
-    setRaceProgress({ player: 0, opponent: 0 });
-    setProgressPercent({ player: 0, opponent: 0 });
-    setCurrentSpeed(0);
     setRacePhase('idle');
-    setShowSkidMarks(false);
-    setLeaguePointsEarned(0);
   };
 
   const fakeLeaderboard = [
@@ -248,24 +244,17 @@ export const RacesScreen = () => {
 
             <div className="race-track-hud">
               <span>NEON SPRINT · 1/4 МИЛИ</span>
-              <strong id="race-speed-readout">{currentSpeed} км/ч</strong>
+              <strong><span ref={speedTextRef}>0</span> км/ч</strong>
             </div>
-
-            {showSkidMarks && (
-              <div className="skid-marks">
-                <span style={{ left: `${(raceProgress.player / (raceStageRef.current?.clientWidth || 320)) * 100}%` }}></span>
-                <span style={{ left: `${(raceProgress.opponent / (raceStageRef.current?.clientWidth || 320)) * 100}%` }}></span>
-              </div>
-            )}
 
             <div className="race-lane lane-one">
               <div className="lane-label">ВЫ <span>{playerPhysics.topSpeed}</span></div>
               <div className="road-marks-inner"></div>
               <div className="finish-line-inner"></div>
               <div 
+                ref={playerCarRef}
                 className={`race-car ${isMaxSpeed ? 'max-speed-glow' : ''}`} 
                 id="my-race-car"
-                style={{ transform: `translateX(${raceProgress.player}px)` }}
               >
                 <img 
                   className="paintable-car paint-gloss" 
@@ -281,9 +270,9 @@ export const RacesScreen = () => {
                 <div className="road-marks-inner"></div>
                 <div className="finish-line-inner"></div>
                 <div 
+                 ref={opponentCarRef}
                  className={`race-car enemy-car-sprite ${isMaxSpeed ? 'max-speed-glow' : ''}`} 
                  id="enemy-race-car"
-                 style={{ transform: `translateX(${raceProgress.opponent}px)` }}
               >
                 <img 
                  src="/cars/side/vaz-2107.png" 
@@ -310,18 +299,16 @@ export const RacesScreen = () => {
               <svg className="speedometer-svg" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" className="speedometer-track" />
                 <circle 
+                  ref={speedometerFillRef}
                   cx="50" 
                   cy="50" 
                   r="45" 
                   className="speedometer-fill" 
-                  style={{ 
-                    strokeDasharray: 283, 
-                    strokeDashoffset: 283 - (283 * (currentSpeed / (playerPhysics.topSpeed || 1))) 
-                  }} 
+                  style={{ strokeDasharray: 283, strokeDashoffset: 283 }} 
                 />
               </svg>
               <div className="speedometer-content">
-                <span className="speedometer-value">{currentSpeed}</span>
+                <span className="speedometer-value" ref={speedTextRef}>{currentSpeed}</span>
                 <span className="speedometer-unit">км/ч</span>
               </div>
             </div>
@@ -333,13 +320,13 @@ export const RacesScreen = () => {
             <div className="progress-row">
               <span className="progress-label">ВЫ</span>
               <div className="progress-track">
-                <div className="progress-fill green" style={{ width: `${progressPercent.player}%` }} />
+                <div ref={playerProgressRef} className="progress-fill green" style={{ width: '0%' }} />
               </div>
             </div>
             <div className="progress-row">
               <span className="progress-label">СОПЕРНИК</span>
               <div className="progress-track">
-                <div className="progress-fill red" style={{ width: `${progressPercent.opponent}%` }} />
+                <div ref={opponentProgressRef} className="progress-fill red" style={{ width: '0%' }} />
               </div>
             </div>
           </div>
@@ -356,9 +343,7 @@ export const RacesScreen = () => {
             <div className="league-result">
               <span className="league-result-icon">{league.icon}</span>
               <span className="league-result-label">{league.name}</span>
-              <span 
-                className={`league-result-points ${leaguePointsEarned >= 0 ? 'positive' : 'negative'}`}
-              >
+              <span className={`league-result-points ${leaguePointsEarned >= 0 ? 'positive' : 'negative'}`}>
                 {leaguePointsEarned >= 0 ? '+' : ''}{leaguePointsEarned} очков
               </span>
             </div>
