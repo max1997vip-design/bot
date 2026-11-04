@@ -31,6 +31,7 @@ export interface UserData {
   businesses?: Record<string, { level: number; lastCollected: number }>;
   partUpgrades?: Record<string, PartUpgrade>;
   features?: Record<string, boolean>;
+  leaguePoints?: number;
   weeklyPass?: { 
     weekId: number; 
     xp: number; 
@@ -110,6 +111,7 @@ interface GameState {
   claimAchievement: (id: string) => Promise<boolean>;
   claimPassReward: (level: number, track: 'free' | 'premium') => Promise<boolean>;
   buyPremiumPass: () => Promise<{ success: boolean; error?: string }>;
+  addLeaguePoints: (points: number) => Promise<void>;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -213,6 +215,29 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (data.success) set({ clansList: data.clans });
     } catch (e) { console.error(e); }
   },
+
+  addLeaguePoints: async (points: number) => {
+  const { user } = get();
+  if (!user) return;
+
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=addLeaguePoints', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, points }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set((s) => ({
+        user: s.user ? { ...s.user, leaguePoints: data.newLeaguePoints } : null,
+      }));
+    }
+  } catch (e) {
+    console.error('[addLeaguePoints]', e);
+  }
+},
+
 
   fetchClanMessages: async () => {
     const initData = getInitData();

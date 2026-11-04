@@ -1,181 +1,416 @@
 // src/components/RacesScreen.tsx
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playSound } from '../utils/sound';
+import { CARS } from '../config/cars';
+import { simulateRacePhysics, CarPhysics } from '../utils/raceEngine';
+import { LeagueBadge } from './LeagueBadge';
+import { getLeagueByPoints, getNextLeague } from '../config/leagues';
 import '../styles/races.css';
 
-// 👇 Экспорт именованный (с const), чтобы CityScreen мог его импортировать
+type RacePhase = 'idle' | 'racing' | 'finish';
+
 export const RacesScreen = () => {
-  const startBotRace = useGameStore((s) => s.startBotRace);
-  const reportPvpResult = useGameStore((s) => s.reportPvpResult);
   const user = useGameStore((s) => s.user);
-
-  const [status, setStatus] = useState<'idle' | 'racing' | 'result'>('idle');
-  const [raceData, setRaceData] = useState<any>(null);
+  const reportPvpResult = useGameStore((s) => s.reportPvpResult);
+  const addLeaguePoints = useGameStore((s) => s.addLeaguePoints);
+  
+  const [view, setView] = useState<'menu' | 'racing' | 'result'>('menu');
+  const [raceResult, setRaceResult] = useState<any>(null);
+  const [raceProgress, setRaceProgress] = useState({ player: 0, opponent: 0 });
+  const [progressPercent, setProgressPercent] = useState({ player: 0, opponent: 0 });
+  const [currentSpeed, setCurrentSpeed] = useState(0);
+  const [racePhase, setRacePhase] = useState<RacePhase>('idle');
+  const [showSkidMarks, setShowSkidMarks] = useState(false);
+  const [isMaxSpeed, setIsMaxSpeed] = useState(false);
+  const [leaguePointsEarned, setLeaguePointsEarned] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
 
-  const handleStartBotRace = async () => {
-    if (status !== 'idle') return;
-    setStatus('racing');
-    setRaceData(null);
+  const raceStageRef = useRef<HTMLDivElement>(null);
 
-    try {
-      const res = await startBotRace();
-      await new Promise(resolve => setTimeout(resolve, 3500));
+  const activeCarId = user?.activeCarId || 'vaz-2107';
+  const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
+  const leaguePoints = user?.leaguePoints ?? 0;
+  const league = getLeagueByPoints(leaguePoints);
+  const nextLeague = getNextLeague(league.id);
+  
+  const playerCarImage = `/cars/side/${activeCarId}.png`;
 
-      if (res.success && res.result) {
-        setRaceData(res.result);
-        setStatus('result');
+  const playerPhysics: CarPhysics = {
+    power: 719,
+    topSpeed: 719, 
+    accel: 6.5,
+    grip: 100,
+    handling: 100,
+  };
 
-        if (res.result.winner === 'player') {
-          playSound('win');
-        }
+  const opponentPhysics: CarPhysics = {
+    power: 656,
+    topSpeed: 656,
+    accel: 6.2,
+    grip: 95,
+    handling: 95,
+  };
 
-        reportPvpResult({
-          won: res.result.winner === 'player',
-          ratingDelta: res.result.ratingChange,
-          coinsDelta: res.result.reward
-        });
-      } else {
-        setStatus('idle');
+  const handleStartRace = () => {
+    playSound('click');
+    setView('racing');
+    setRacePhase('racing');
+    setRaceProgress({ player: 0, opponent: 0 });
+    setProgressPercent({ player: 0, opponent: 0 });
+    setCurrentSpeed(0);
+    setShowSkidMarks(false);
+    setIsMaxSpeed(false);
+    setLeaguePointsEarned(0);
+
+    setTimeout(() => {
+      const result = simulateRacePhysics(playerPhysics, opponentPhysics, 'Turbo Rider');
+      setRaceResult(result);
+      animateRace(result.ticks, result); 
+    }, 1000);
+  };
+
+  const animateRace = (ticks: any[], result: any) => {
+    const duration = 4500;
+    const startTime = performance.now();
+    
+    const stageWidth = raceStageRef.current?.clientWidth || 320;
+    const carWidth = 110;
+    const finishOffset = 36;
+    
+    const maxDistance = Math.max(180, stageWidth - carWidth - finishOffset);
+    const isPlayerWinner = result.winner === 'player';
+    
+    const relativeGap = Math.abs(ticks[0].playerDist - ticks[0].opponentDist) / Math.max(1, ticks[0].playerDist, ticks[0].opponentDist);
+    const finishGap = Math.min(92, 52 + relativeGap * 260);
+    const loserDistance = Math.max(150, maxDistance - finishGap);
+    
+    const playerTarget = isPlayerWinner ? maxDistance : loserDistance;
+    const opponentTarget = isPlayerWinner ? loserDistance : maxDistance;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 2.4);
+      
+      const playerX = eased * playerTarget;
+      const opponentX = eased * opponentTarget;
+      
+      setRaceProgress({ player: playerX, opponent: opponentX });
+      setProgressPercent({
+        player: Math.min(100, (playerX / maxDistance) * 100),
+        opponent: Math.min(100, (opponentX / maxDistance) * 100)
+      });
+
+      const currentSpd = Math.round(playerPhysics.topSpeed * progress);
+      setCurrentSpeed(currentSpd);
+      
+      if (progress > 0.7 && progress < 0.95 && !isMaxSpeed) {
+        setIsMaxSpeed(true);
+      } else if ((progress <= 0.7 || progress >= 0.95) && isMaxSpeed) {
+        setIsMaxSpeed(false);
       }
-    } catch (e) {
-      console.error(e);
-      setStatus('idle');
-    }
-  };
 
-  const fetchLeaderboard = async () => {
-    setShowLeaderboard(true);
-    try {
-      const res = await fetch(`/api/game?action=leaderboard&type=rating`);
-      const data = await res.json();
-      if (data.success) setLeaderboardData(data.players);
-    } catch (e) { console.error(e); }
-  };
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setRacePhase('finish');
+        setShowSkidMarks(true);
+        setIsMaxSpeed(false);
+        
+        const pointsDelta = isPlayerWinner ? league.winPoints : league.losePoints;
+        setLeaguePointsEarned(pointsDelta);
+        addLeaguePoints(pointsDelta);
 
-  const getBarDurations = () => {
-    if (!raceData) return { player: 3.5, opponent: 3.5 };
-    const minTime = Math.min(raceData.playerTime, raceData.opponentTime);
-    return {
-      player: (raceData.playerTime / minTime) * 3.5,
-      opponent: (raceData.opponentTime / minTime) * 3.5
+        setTimeout(() => {
+          setView('result');
+          setCurrentSpeed(playerPhysics.topSpeed);
+          
+          if (result.winner === 'player') playSound('win');
+          
+          reportPvpResult({
+            won: result.winner === 'player',
+            ratingDelta: result.winner === 'player' ? 15 : -10,
+            coinsDelta: result.winner === 'player' ? 3000 : 0
+          });
+        }, 400);
+      }
     };
+
+    requestAnimationFrame(animate);
   };
-  const durations = getBarDurations();
+
+  const handleBackToMenu = () => {
+    setView('menu');
+    setRaceProgress({ player: 0, opponent: 0 });
+    setProgressPercent({ player: 0, opponent: 0 });
+    setCurrentSpeed(0);
+    setRacePhase('idle');
+    setShowSkidMarks(false);
+    setLeaguePointsEarned(0);
+  };
+
+  const fakeLeaderboard = [
+    { id: 1, name: 'Turbo Rider', points: 1540, isMe: false },
+    { id: 2, name: 'Dev (Вы)', points: leaguePoints, isMe: true },
+    { id: 3, name: 'Neon Racer', points: 1200, isMe: false },
+    { id: 4, name: 'NightRider', points: 980, isMe: false },
+  ].sort((a, b) => b.points - a.points);
 
   return (
     <div className="races-screen">
-      <div className="races-header" style={{ position: 'relative' }}>
+      <div className="races-header">
         <h2>ТРЕК</h2>
-        <button className="top-rating-btn" onClick={fetchLeaderboard}>🏆</button>
       </div>
 
-      <div className="race-modes">
-        <div
-          className={`race-card ${status !== 'idle' ? 'disabled' : ''}`}
-          onClick={handleStartBotRace}
-          style={{ cursor: status === 'idle' ? 'pointer' : 'not-allowed', opacity: status === 'idle' ? 1 : 0.5 }}
-        >
-          <div className="race-icon">🤖</div>
-          <h3>Тренировка с ботом</h3>
-          <p>+1 рейтинг за победу</p>
+      {view === 'menu' && (
+        <div className="race-hub">
+          <div className="race-hub-heading">
+            <h1>Гонки</h1>
+            <p>Выберите формат и выходите на старт</p>
+          </div>
+
+          <button className="league-badge-button" onClick={() => setShowLeaderboard(true)}>
+             <LeagueBadge />
+          </button>
+
+          <button className="race-mode-primary" onClick={handleStartRace}>
+            <div className="race-mode-bg-glow"></div>
+            <span className="race-icon">🏁</span>
+            <div className="race-mode-info">
+              <strong>Быстрая гонка</strong>
+              <small>Подбор по скорости: {playerPhysics.topSpeed} км/ч</small>
+            </div>
+            <span className="race-mode-action">Начать заезд</span>
+          </button>
+
+          <div className="race-extra-modes">
+            <div className="race-extra-card">
+              <span className="extra-icon">🏆</span>
+              <div>
+                <strong>Турнир</strong>
+                <small>Скоро</small>
+              </div>
+            </div>
+            <div className="race-extra-card">
+              <span className="extra-icon">⏳</span>
+              <div>
+                <strong>На время</strong>
+                <small>Скоро</small>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      <AnimatePresence>
-        {(status === 'racing' || status === 'result') && (
-          <motion.div
-            className="race-overlay"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(0,0,0,0.85)', zIndex: 1000,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transform: 'translateZ(0)', isolation: 'isolate'
-            }}
+      {view === 'racing' && (
+        <div className="premium-race-container">
+          <LeagueBadge />
+
+          <div className="online-versus-card">
+            <article className="racer-profile">
+              <div className="racer-avatar">
+                <img src={user?.photoUrl || ''} alt="" referrerPolicy="no-referrer" draggable="false" />
+              </div>
+              <div className="racer-meta">
+                <small>Вы</small>
+                <strong>{user?.firstName || 'Игрок'}</strong>
+                <span>{activeCar.name}</span>
+                <em>PX · {playerPhysics.topSpeed} км/ч</em>
+              </div>
+            </article>
+
+            <div className="versus-badge">VS</div>
+
+            <article className="racer-profile enemy-profile found">
+              <div className="racer-avatar enemy"><span>PX</span></div>
+              <div className="racer-meta">
+                <small>Соперник</small>
+                <strong>Turbo Rider</strong>
+                <span>Solivane Apex PX</span>
+                <em>PX · {opponentPhysics.topSpeed} км/ч</em>
+              </div>
+            </article>
+          </div>
+
+          <div 
+            ref={raceStageRef}
+            className={`race-stage ${racePhase === 'racing' ? 'is-racing' : ''} ${racePhase === 'finish' ? 'is-finishing' : ''}`} 
+            id="race-stage"
           >
-            {status === 'racing' && (
-              <motion.div
-                className="simulation-container"
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              >
-                <h3 className="sim-title">Заезд 1000м...</h3>
-                <div className="sim-track">
-                  <span className="sim-label">Соперник</span>
-                  <div className="sim-bar-bg">
-                    <motion.div className="sim-bar-fill opponent" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: durations.opponent, ease: 'linear' }} style={{ width: '100%' }}>
-                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🏎️</span>
-                    </motion.div>
-                  </div>
-                </div>
-                <div className="sim-track">
-                  <span className="sim-label">Вы</span>
-                  <div className="sim-bar-bg">
-                    <motion.div className="sim-bar-fill player" initial={{ scaleX: 0, transformOrigin: 'left' }} animate={{ scaleX: 1 }} transition={{ duration: durations.player, ease: 'linear' }} style={{ width: '100%' }}>
-                      <span className="car-icon" style={{ position: 'absolute', right: 0 }}>🚗</span>
-                    </motion.div>
-                  </div>
-                </div>
-              </motion.div>
+            <div className="race-sky">
+              <div className="race-sun"></div>
+              <div className="race-city"></div>
+            </div>
+            
+            <div className="race-horizon"></div>
+            <div className="race-road-bg"></div>
+
+            <div className="race-track-hud">
+              <span>NEON SPRINT · 1/4 МИЛИ</span>
+              <strong id="race-speed-readout">{currentSpeed} км/ч</strong>
+            </div>
+
+            {showSkidMarks && (
+              <div className="skid-marks">
+                <span style={{ left: `${(raceProgress.player / (raceStageRef.current?.clientWidth || 320)) * 100}%` }}></span>
+                <span style={{ left: `${(raceProgress.opponent / (raceStageRef.current?.clientWidth || 320)) * 100}%` }}></span>
+              </div>
             )}
 
-            {status === 'result' && raceData && (
-              <motion.div
-                className="race-result-modal"
-                initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: 'spring', damping: 20 }}
+            <div className="race-lane lane-one">
+              <div className="lane-label">ВЫ <span>{playerPhysics.topSpeed}</span></div>
+              <div className="road-marks-inner"></div>
+              <div className="finish-line-inner"></div>
+              <div 
+                className={`race-car ${isMaxSpeed ? 'max-speed-glow' : ''}`} 
+                id="my-race-car"
+                style={{ transform: `translateX(${raceProgress.player}px)` }}
               >
-                <h2 className={raceData.winner === 'player' ? 'win-text' : 'lose-text'}>
-                  {raceData.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
-                </h2>
-                {raceData.ratingChange !== undefined && (
-                  <p style={{ color: raceData.ratingChange > 0 ? '#00FF41' : '#ff4444', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px' }}>
-                    Рейтинг: {raceData.ratingChange > 0 ? '+' : ''}{raceData.ratingChange}
-                  </p>
-                )}
-                <div className="race-log">
-                  {raceData.log.map((line: string, i: number) => <p key={i}>{line}</p>)}
-                </div>
-                <button className="race-close-btn" onClick={() => setStatus('idle')}>Закрыть</button>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <img 
+                  className="paintable-car paint-gloss" 
+                  src={playerCarImage} 
+                  alt={activeCar.name}
+                  onError={(e) => { e.currentTarget.src = '/cars/side/vaz-2107.png'; }}
+                />
+              </div>
+            </div>
 
-      <AnimatePresence>
-        {showLeaderboard && (
-          <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div
-              className="leaderboard-modal"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            >
-              <div className="lb-header">
-                <h3>Топ Рейтинга</h3>
-                <button className="close-btn" onClick={() => setShowLeaderboard(false)}>✕</button>
+            <div className="race-lane lane-two">
+                <div className="lane-label">TURBO RIDER <span>{opponentPhysics.topSpeed}</span></div>
+                <div className="road-marks-inner"></div>
+                <div className="finish-line-inner"></div>
+                <div 
+                 className={`race-car enemy-car-sprite ${isMaxSpeed ? 'max-speed-glow' : ''}`} 
+                 id="enemy-race-car"
+                 style={{ transform: `translateX(${raceProgress.opponent}px)` }}
+              >
+                <img 
+                 src="/cars/side/vaz-2107.png" 
+                 alt="Соперник" 
+                 className="enemy-img"
+                />
               </div>
-              <div className="lb-list">
-                {leaderboardData.map((p, i) => (
-                  <div key={p.id} className={`lb-row ${p.id === user?.id ? 'me' : ''}`}>
-                    <span className="lb-rank">{i + 1}</span>
-                    <span className="lb-name">{p.firstName || 'Гонщик'}</span>
-                    <span className="lb-value">{p.rating} 🏁</span>
-                  </div>
-                ))}
+            </div>
+
+            <div className="race-side-barrier left"></div>
+            <div className="race-side-barrier right"></div>
+
+            <div className={`speed-lines-container ${isMaxSpeed ? 'is-max' : ''}`}>
+              <div className="speed-line"></div>
+              <div className="speed-line"></div>
+              <div className="speed-line"></div>
+              <div className="speed-line"></div>
+              <div className="speed-line"></div>
+            </div>
+            
+            <div className={`race-vignette ${isMaxSpeed ? 'is-max' : ''}`}></div>
+
+            <div className={`speedometer ${isMaxSpeed ? 'is-max' : ''}`}>
+              <svg className="speedometer-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" className="speedometer-track" />
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  className="speedometer-fill" 
+                  style={{ 
+                    strokeDasharray: 283, 
+                    strokeDashoffset: 283 - (283 * (currentSpeed / (playerPhysics.topSpeed || 1))) 
+                  }} 
+                />
+              </svg>
+              <div className="speedometer-content">
+                <span className="speedometer-value">{currentSpeed}</span>
+                <span className="speedometer-unit">км/ч</span>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+
+            <div className="race-guardrail"></div>
+          </div>
+
+          <div className="bottom-progress-bars">
+            <div className="progress-row">
+              <span className="progress-label">ВЫ</span>
+              <div className="progress-track">
+                <div className="progress-fill green" style={{ width: `${progressPercent.player}%` }} />
+              </div>
+            </div>
+            <div className="progress-row">
+              <span className="progress-label">СОПЕРНИК</span>
+              <div className="progress-track">
+                <div className="progress-fill red" style={{ width: `${progressPercent.opponent}%` }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view === 'result' && raceResult && (
+        <div className="race-result-modal">
+          <div className="race-result-content">
+            <h2 className={raceResult.winner === 'player' ? 'win-text' : 'lose-text'}>
+              {raceResult.winner === 'player' ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}
+            </h2>
+
+            <div className="league-result">
+              <span className="league-result-icon">{league.icon}</span>
+              <span className="league-result-label">{league.name}</span>
+              <span 
+                className={`league-result-points ${leaguePointsEarned >= 0 ? 'positive' : 'negative'}`}
+              >
+                {leaguePointsEarned >= 0 ? '+' : ''}{leaguePointsEarned} очков
+              </span>
+            </div>
+
+            {nextLeague && leaguePointsEarned > 0 && (
+              <div className="league-next-hint">
+                До {nextLeague.name}: {Math.max(0, nextLeague.minPoints - (leaguePoints + leaguePointsEarned))} очков
+              </div>
+            )}
+
+            <div className="race-log">
+              {Array.isArray(raceResult.log) ? (
+                raceResult.log.map((line: any, i: number) => (
+                  <p key={i}>{typeof line === 'string' ? line : JSON.stringify(line)}</p>
+                ))
+              ) : (
+                <p>Гонка завершена!</p>
+              )}
+            </div>
+            
+            <button className="race-close-btn" onClick={handleBackToMenu}>
+              В МЕНЮ
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showLeaderboard && (
+        <div className="leaderboard-modal">
+          <div className="leaderboard-content">
+            <div className="leaderboard-header">
+              <span className="leaderboard-icon">{league.icon}</span>
+              <h2>{league.name} Лига</h2>
+              <p>Топ игроков ранга</p>
+            </div>
+            
+            <div className="leaderboard-list">
+              {fakeLeaderboard.map((player, idx) => (
+                <div key={player.id} className={`leaderboard-row ${player.isMe ? 'is-me' : ''}`}>
+                  <span className="leaderboard-place">{idx + 1}</span>
+                  <span className="leaderboard-name">{player.name}</span>
+                  <span className="leaderboard-points">{player.points} очк.</span>
+                </div>
+              ))}
+            </div>
+
+            <button className="leaderboard-close-btn" onClick={() => setShowLeaderboard(false)}>
+              ЗАКРЫТЬ
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

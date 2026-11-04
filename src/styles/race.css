@@ -114,15 +114,18 @@
   transition: width 0.3s ease-out;
 }
 
-/* --- КОНТЕЙНЕР МАШИНЫ --- */
+/* --- КОНТЕЙНЕР МАШИНЫ (ИСПРАВЛЕН) --- */
 .race-car-container {
   position: absolute;
-  bottom: 14%;
+  bottom: 10%;
   left: 50%;
   transform: translateX(-50%);
-  display: inline-block;
-  width: 85%;
-  max-width: 450px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 90%; 
+  max-width: 350px; /* 👈 Ограничили ширину */
+  max-height: 45%; /* 👈 Ограничили высоту */
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -143,12 +146,14 @@
 
 .race-car-image {
   display: block;
-  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
+  object-fit: contain; /* 👈 Вписываем без искажений */
   pointer-events: none;
   -webkit-user-drag: none;
-  transform: scaleY(1.05); 
-  transform-origin: bottom center; 
+  /* Убрал transform: scaleY(1.05), так как 3/4 машины не нужно растягивать */
 }
 
 /* 👇 ИСПРАВЛЕНО: Увеличены радиусы эллипсов, чтобы свечение не сужалось на 9:16 */

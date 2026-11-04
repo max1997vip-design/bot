@@ -18,8 +18,12 @@ export const TintedCarImage: React.FC<TintedCarImageProps> = ({ imageUrl, colorH
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    
+    // 👇 ДОБАВЛЕНО: { willReadFrequently: true } убирает предупреждение в консоли 👇
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
+
+    setIsLoaded(false); // Сбрасываем состояние при смене картинки/цвета
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -48,15 +52,13 @@ export const TintedCarImage: React.FC<TintedCarImageProps> = ({ imageUrl, colorH
         const pb = data[i + 2];
         const brightness = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
 
-        // 👇 МАГИЯ ТОНИРОВАНИЯ (сохранение бликов и теней)
+        // МАГИЯ ТОНИРОВАНИЯ (сохранение бликов и теней)
         if (brightness < 0.5) {
-          // Тени и темные участки (от черного до нашего цвета)
           const factor = brightness * 2;
           data[i] = r * factor;
           data[i + 1] = g * factor;
           data[i + 2] = b * factor;
         } else {
-          // Блики и светлые участки (от нашего цвета до белого)
           const factor = (brightness - 0.5) * 2;
           data[i] = r + (255 - r) * factor;
           data[i + 1] = g + (255 - g) * factor;

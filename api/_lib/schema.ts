@@ -11,6 +11,7 @@ export const users = pgTable('users', {
   balance: bigint('balance', { mode: 'number' }).notNull().default(0),
   totalEarned: bigint('total_earned', { mode: 'number' }).notNull().default(0),
   starsBalance: integer('stars_balance').notNull().default(0),
+  leaguePoints: integer('league_points').default(0).notNull(),
   
   // 👇 ИЗМЕНЕНО НА ВАЗ 2107
   activeCarId: text('active_car_id').notNull().default('vaz-2107'),
