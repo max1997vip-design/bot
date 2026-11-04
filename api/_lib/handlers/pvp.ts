@@ -43,7 +43,6 @@ export async function pvpHandler(req: any, res: any) {
       opponentId = opp.id;
       opponentName = opp.firstName || 'Гонщик';
       
-      // Для соперника берем его статистику с клиента (если передана) или рандом
       if (playerStats.opponentStats) {
         opponentStats = playerStats.opponentStats;
       } else {
@@ -99,14 +98,35 @@ export async function pvpHandler(req: any, res: any) {
       }
     }
 
-    // Сохраняем результат
-    await db.update(users).set({ balance: newBalance, rating: newRating }).where(eq(users.id, telegramId));
+    // 👇 СОХРАНЯЕМ РЕЗУЛЬТАТ И ОБНОВЛЯЕМ СТАТИСТИКУ ГОНОК
+    const statsUpdate = winner === 'player'
+      ? {
+          balance: newBalance,
+          rating: newRating,
+          totalRaces: sql`${users.totalRaces} + 1`,
+          totalWins: sql`${users.totalWins} + 1`,
+        }
+      : {
+          balance: newBalance,
+          rating: newRating,
+          totalRaces: sql`${users.totalRaces} + 1`,
+          totalLosses: sql`${users.totalLosses} + 1`,
+        };
+
+    const [updatedUser] = await db.update(users)
+      .set(statsUpdate)
+      .where(eq(users.id, telegramId))
+      .returning();
 
     return res.status(200).json({
       success: true,
       result: { winner, log, playerTime: pTime, opponentTime: oTime, ratingChange, reward },
-      newBalance,
-      newRating
+      newBalance: updatedUser.balance,
+      newRating: updatedUser.rating,
+      // 👇 Возвращаем статистику на клиент
+      totalRaces: updatedUser.totalRaces,
+      totalWins: updatedUser.totalWins,
+      totalLosses: updatedUser.totalLosses,
     });
   } catch (error) {
     console.error('PvP error:', error);

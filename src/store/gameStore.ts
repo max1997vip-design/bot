@@ -40,6 +40,12 @@ export interface UserData {
     claimedPremium?: number[]; 
   };
   isAdmin?: boolean;
+
+  // 👇 НОВЫЕ ПОЛЯ СТАТИСТИКИ
+  totalClicks?: number;
+  totalRaces?: number;
+  totalWins?: number;
+  totalLosses?: number;
 }
 
 interface GameState {
@@ -99,7 +105,6 @@ interface GameState {
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
   
-  // 👇 ТИП ОБНОВЛЕН: добавлен playerStats и результат с newBalance/newRating
   reportPvpResult: (data: { 
     won: boolean; 
     ratingDelta: number; 
@@ -141,6 +146,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
+  // 👇 ЛОКАЛЬНО ИНКРЕМЕНТИМ КЛИКИ
   tap: () => {
     const state = get(); const now = Date.now();
     const tapPower = state.user?.clickLevel || 1; 
@@ -151,7 +157,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((s) => ({
       tapCountInSecond: newTapCount, lastTapSecond: lastSecond,
       balance: s.balance + tapPower,
-      user: s.user ? { ...s.user, totalEarned: s.user.totalEarned + tapPower } : null,
+      user: s.user ? { 
+        ...s.user, 
+        totalEarned: s.user.totalEarned + tapPower,
+        totalClicks: (s.user.totalClicks || 0) + 1, // 👈 локальный инкремент
+      } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
     }));
   },
@@ -607,7 +617,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (data.success) {
         set((s) => ({
           balance: data.newBalance + s.unsyncedTaps,
-          user: s.user ? { ...s.user, totalEarned: data.newTotalEarned + s.unsyncedTaps } : null
+          user: s.user ? { 
+            ...s.user, 
+            totalEarned: data.newTotalEarned + s.unsyncedTaps,
+            totalClicks: data.totalClicks ?? s.user.totalClicks, // 👈 берём с сервера
+          } : null
         }));
         if (data.droppedItem) {
           set((s) => ({ inventory: [...s.inventory, data.droppedItem.id], lastDroppedItem: data.droppedItem }));
@@ -682,12 +696,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  // 👇 ИСПРАВЛЕННЫЙ МЕТОД С СОХРАНЕНИЕМ ПРЕДЫДУЩИХ ЗНАЧЕНИЙ
   reportPvpResult: async ({ won, ratingDelta, coinsDelta, playerStats }) => {
     const { user } = get();
     if (!user) return;
     
-    // Сохраняем предыдущие значения для отката при ошибке
     const prevBalance = user.balance;
     const prevRating = user.rating;
 
@@ -707,11 +719,14 @@ export const useGameStore = create<GameState>((set, get) => ({
         user: state.user ? { 
           ...state.user, 
           balance: data.newBalance ?? state.user.balance, 
-          rating: data.newRating ?? state.user.rating 
+          rating: data.newRating ?? state.user.rating,
+          // 👇 берём статистику гонок с сервера
+          totalRaces: data.totalRaces ?? state.user.totalRaces,
+          totalWins: data.totalWins ?? state.user.totalWins,
+          totalLosses: data.totalLosses ?? state.user.totalLosses,
         } : null
       }));
     } catch (e) {
-      // Откат при ошибке
       set((state) => ({
         balance: prevBalance,
         user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null

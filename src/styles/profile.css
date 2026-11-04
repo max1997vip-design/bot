@@ -1,214 +1,330 @@
+/* src/styles/profile.css */
+
+/* ========== БАЗА ========== */
 .profile-screen {
-  padding: 24px;
-  padding-top: calc(40px + var(--tg-safe-top));
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: 
+    radial-gradient(circle at 50% 0%, #101524 0%, #050608 100%),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  padding: 16px 20px;
+  padding-top: calc(16px + var(--tg-safe-top, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 100px);
+  z-index: 10;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Шапка профиля */
+.profile-screen::-webkit-scrollbar { width: 4px; }
+.profile-screen::-webkit-scrollbar-track { background: transparent; }
+.profile-screen::-webkit-scrollbar-thumb { background: var(--accent-glow); border-radius: 2px; }
+
+/* ========== ШАПКА (аватар + имя) ========== */
 .profile-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid var(--accent-glow);
+  border-radius: 20px;
+  padding: 24px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-header::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .avatar-wrapper {
   position: relative;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
+  z-index: 1;
 }
 
 .profile-avatar,
 .profile-avatar-placeholder {
-  width: 110px;
-  height: 110px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   border: 3px solid var(--accent);
   box-shadow: 0 0 25px var(--accent-glow);
   object-fit: cover;
+  display: block;
 }
 
 .profile-avatar-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1c23, #252832);
-  font-size: 44px;
+  background: linear-gradient(135deg, #1a2035 0%, #0a0a0a 100%);
+  font-size: 32px;
   font-weight: 900;
   color: var(--accent);
-  text-shadow: 0 0 15px var(--accent-glow);
+  font-family: Impact, Arial Black, sans-serif;
 }
 
 .level-badge {
   position: absolute;
-  bottom: -6px;
-  right: -6px;
-  background: var(--accent);
-  color: #0a0b0e;
+  bottom: -4px;
+  right: -4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dim, #0088ff));
+  color: #000;
   font-weight: 900;
-  font-size: 12px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  border: 2px solid var(--bg-base);
-  box-shadow: 0 0 15px var(--accent-glow-strong);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 2px solid #0a0a0a;
+  box-shadow: 0 0 15px var(--accent-glow-strong, var(--accent-glow));
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .profile-name {
+  color: #fff;
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 4px;
+  text-shadow: 0 0 15px var(--accent-glow);
   text-align: center;
-  letter-spacing: -0.3px;
+  z-index: 1;
 }
 
 .profile-username {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  z-index: 1;
 }
 
-/* XP Bar */
+/* ========== XP ========== */
 .xp-section {
-  background: var(--bg-surface);
-  border-radius: 16px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
 }
 
 .xp-labels {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .xp-label-title {
-  font-size: 12px;
-  font-weight: 700;
+  color: var(--text-secondary, #888);
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--text-secondary);
 }
 
 .xp-label-value {
-  font-size: 13px;
-  font-weight: 700;
   color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  font-family: monospace;
   font-variant-numeric: tabular-nums;
 }
 
 .xp-bar {
-  width: 100%;
-  height: 10px;
+  height: 8px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  border-radius: 4px;
   overflow: hidden;
-  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .xp-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-  border-radius: 10px;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 15px var(--accent-glow);
+  background: linear-gradient(90deg, var(--accent-dim, #0088ff), var(--accent));
+  border-radius: 4px;
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: width 0.4s ease;
 }
 
-/* Сетка статистики */
+/* ========== СТАТИСТИКА ========== */
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .stat-card {
-  background: var(--bg-surface);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  transition: border-color 0.3s ease, transform 0.2s ease;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 10px;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.stat-card:active {
-  transform: scale(0.98);
+.stat-card:hover {
   border-color: var(--accent-glow);
+  transform: translateY(-1px);
 }
 
-.stat-icon { 
-  font-size: 22px; 
-  margin-bottom: 4px; 
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 6px;
 }
 
 .stat-value {
-  font-size: 22px;
+  color: #fff;
+  font-size: 18px;
   font-weight: 900;
-  color: var(--text-primary);
+  font-family: Impact, Arial Black, sans-serif;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.5px;
 }
 
 .stat-label {
-  font-size: 11px;
+  color: var(--text-secondary, #666);
+  font-size: 10px;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ========== КНОПКИ-ПЕРЕХОДЫ ========== */
+.profile-referral-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid var(--accent-glow);
+  border-radius: 14px;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.profile-referral-btn:hover {
+  border-color: var(--accent);
+  transform: translateX(2px);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.profile-referral-icon {
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid var(--accent-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-referral-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-referral-title {
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.profile-referral-sub {
+  font-size: 11px;
+  color: var(--text-secondary, #888);
   font-weight: 600;
 }
 
-/* Карточка информации */
+.profile-referral-arrow {
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+/* ========== ИНФО-КАРТОЧКА ========== */
 .profile-info-card {
-  background: var(--bg-surface);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
   padding: 4px 16px;
+  margin-bottom: 14px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
+  padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.info-row:last-child { 
-  border-bottom: none; 
+.info-row:last-child {
+  border-bottom: none;
 }
 
-.info-label { 
-  font-size: 13px; 
-  color: var(--text-secondary); 
-  font-weight: 500; 
+.info-label {
+  color: var(--text-secondary, #888);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .info-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: monospace;
   font-variant-numeric: tabular-nums;
 }
 
 .status-active {
-  color: var(--accent);
-  text-shadow: 0 0 10px var(--accent-glow);
+  color: #00FF41;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
 }
 
-.profile-screen {
-  padding: 24px;
-  padding-top: calc(40px + var(--tg-safe-top, 0px));
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* Шапка профиля */
-.profile-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+/* ========== АДАПТАЦИЯ ========== */
+@media (max-width: 380px) {
+  .profile-avatar, .profile-avatar-placeholder { width: 72px; height: 72px; }
+  .profile-name { font-size: 18px; }
+  .stat-value { font-size: 16px; }
+  .level-badge { font-size: 10px; padding: 3px 8px; }
 }

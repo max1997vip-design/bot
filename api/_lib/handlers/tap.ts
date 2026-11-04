@@ -41,10 +41,11 @@ export async function tapHandler(req: any, res: any) {
     const xpMultiplier = pass.isPremium ? 3 : 1;
     pass.xp += amount * xpMultiplier;
 
-    // Обновляем баланс, квесты и пропуск
+    // Обновляем баланс, квесты, пропуск и СТАТИСТИКУ КЛИКОВ
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
       totalEarned: sql`${users.totalEarned} + ${amount}`,
+      totalClicks: sql`${users.totalClicks} + ${amount}`, // 👈 ДОБАВЛЕНО
       lastOnlineAt: new Date(),
       dailyQuests: quests,
       weeklyPass: pass
@@ -73,6 +74,7 @@ export async function tapHandler(req: any, res: any) {
       success: true,
       newBalance: updatedUser.balance,
       newTotalEarned: updatedUser.totalEarned,
+      totalClicks: updatedUser.totalClicks, // 👈 ДОБАВЛЕНО (чтобы клиент мог обновить счётчик)
       droppedItem,
       quests,
       pass: updatedUser.weeklyPass

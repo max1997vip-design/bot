@@ -28,6 +28,10 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
   lastOnlineAt: timestamp('last_online_at').notNull().defaultNow(),
+  totalClicks: integer('total_clicks').notNull().default(0),
+  totalRaces: integer('total_races').notNull().default(0),
+  totalWins: integer('total_wins').notNull().default(0),
+  totalLosses: integer('total_losses').notNull().default(0),
   
   clickLevel: integer('click_level').notNull().default(1),
   offlineLevel: integer('offline_level').notNull().default(1),
