@@ -1,11 +1,11 @@
 // src/components/GarageScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { UpgradeType, PAINT_COLORS } from '../config/garage';
-import { ITEMS, RARITY_COLORS, SELL_PRICES } from '../config/items';
+import { ITEMS, RARITY_COLORS, SELL_PRICES, calculateStats } from '../config/items';
 import { CARS } from '../config/cars';
 import { TintedCarImage } from './TintedCarImage';
 import '../styles/garage.css';
@@ -13,6 +13,7 @@ import '../styles/garage.css';
 export const GarageScreen: React.FC = () => {
   const [activeUpgrade, setActiveUpgrade] = useState<UpgradeType | null>(null);
   const [sellingId, setSellingId] = useState<string | null>(null);
+  const [showCarSelector, setShowCarSelector] = useState(false);
 
   const user = useGameStore((s) => s.user);
   const carColor = useGameStore((s) => s.carColor);
@@ -27,24 +28,47 @@ export const GarageScreen: React.FC = () => {
   const activeCar = CARS[activeCarId] || CARS['audi-tt'];
   const ownedCars = user?.ownedCars || ['audi-tt'];
 
+  // ⚡ Финальные характеристики текущей машины
+  const finalStats = useMemo(
+    () => calculateStats(equipped, user?.partUpgrades || {}, activeCarId),
+    [equipped, user?.partUpgrades, activeCarId]
+  );
+
+  // ⚡ Характеристики всех купленных машин
+  const carOptions = useMemo(() => {
+    return ownedCars
+      .map((id) => {
+        const car = CARS[id] || CARS['audi-tt'];
+        const stats = calculateStats(equipped, user?.partUpgrades || {}, id);
+        return { id, car, stats, isActive: id === activeCarId };
+      })
+      .sort((a, b) => b.stats.rating - a.stats.rating);
+  }, [ownedCars, equipped, user?.partUpgrades, activeCarId]);
+
   const handleUpgradeClick = (id: UpgradeType) => {
     setActiveUpgrade(id);
-
     try {
       WebApp.HapticFeedback?.impactOccurred('light');
-    } catch {
-      // Вибрация может быть недоступна вне Telegram.
-    }
+    } catch {}
   };
 
   const handleColorSelect = (colorId: string) => {
     setCarColor(colorId);
-
     try {
       WebApp.HapticFeedback?.impactOccurred('medium');
-    } catch {
-      // Вибрация может быть недоступна вне Telegram.
+    } catch {}
+  };
+
+  const handleSelectCar = async (carId: string) => {
+    if (carId === activeCarId) {
+      setShowCarSelector(false);
+      return;
     }
+    try {
+      WebApp.HapticFeedback?.impactOccurred('medium');
+    } catch {}
+    await switchCar(carId);
+    setShowCarSelector(false);
   };
 
   const getModalTitle = () => {
@@ -53,7 +77,6 @@ export const GarageScreen: React.FC = () => {
     if (activeUpgrade === 'ecu') return 'Прошивка (ECU)';
     if (activeUpgrade === 'suspension') return 'Подвеска';
     if (activeUpgrade === 'paint') return 'Покраска';
-
     return 'Улучшение';
   };
 
@@ -66,33 +89,17 @@ export const GarageScreen: React.FC = () => {
 
     uniqueItems.sort((a, b) => {
       const rarities = ['legendary', 'epic', 'rare', 'uncommon', 'common'];
-
-      return (
-        rarities.indexOf(ITEMS[a].rarity) -
-        rarities.indexOf(ITEMS[b].rarity)
-      );
+      return rarities.indexOf(ITEMS[a].rarity) - rarities.indexOf(ITEMS[b].rarity);
     });
 
     return (
       <div className="inventory-list">
-        <p
-          style={{
-            color: '#aaa',
-            marginBottom: '10px',
-            fontSize: '13px',
-          }}
-        >
+        <p style={{ color: '#aaa', marginBottom: '10px', fontSize: '13px' }}>
           Нажмите на предмет, чтобы надеть, или продайте за монеты:
         </p>
 
         {uniqueItems.length === 0 && (
-          <p
-            style={{
-              color: '#666',
-              textAlign: 'center',
-              padding: '20px 0',
-            }}
-          >
+          <p style={{ color: '#666', textAlign: 'center', padding: '20px 0' }}>
             Пусто. Кликайте на главном экране, чтобы выбить запчасти!
           </p>
         )}
@@ -103,11 +110,7 @@ export const GarageScreen: React.FC = () => {
           const sellPrice = SELL_PRICES[item.rarity];
           const isSelling = sellingId === itemId;
 
-          // 👇 СЧИТАЕМ ПРОКАЧАННЫЕ СТАТЫ ДЕТАЛИ
-          const upg = user?.partUpgrades?.[itemId] || { 
-            level: 0, goldStars: 0, redStars: 0 
-          };
-          
+          const upg = user?.partUpgrades?.[itemId] || { level: 0, goldStars: 0, redStars: 0 };
           const levelMulti = 1 + (upg.level || 0) * 0.02;
           const goldMulti = 1 + (upg.goldStars || 0) * 0.10;
           const redMulti = 1 + (upg.redStars || 0) * 0.25;
@@ -117,7 +120,6 @@ export const GarageScreen: React.FC = () => {
           const topSpeed = Math.round(item.stats.topSpeed * finalMulti);
           const grip = Math.round(item.stats.grip * finalMulti);
           const handling = Math.round(item.stats.handling * finalMulti);
-
           const hasUpgrades = upg.level > 0 || upg.goldStars > 0 || upg.redStars > 0;
 
           return (
@@ -128,13 +130,15 @@ export const GarageScreen: React.FC = () => {
               transition={{ delay: index * 0.05, duration: 0.2, ease: 'easeOut' }}
               className={`inventory-item ${isEquipped ? 'equipped' : ''}`}
               style={{
-                borderColor: RARITY_COLORS[item.rarity],
+                borderColor: isEquipped ? '#00e5ff' : RARITY_COLORS[item.rarity],
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '10px 15px',
                 cursor: isEquipped || isSelling ? 'default' : 'pointer',
-                background: 'rgba(255,255,255,0.02)',
+                background: isEquipped
+                  ? 'linear-gradient(90deg, rgba(0,229,255,0.08) 0%, rgba(0,229,255,0.02) 100%)'
+                  : 'rgba(255,255,255,0.02)',
                 borderRadius: '8px',
                 marginBottom: '8px',
                 borderWidth: '1px',
@@ -142,9 +146,7 @@ export const GarageScreen: React.FC = () => {
                 opacity: isSelling ? 0.5 : 1,
               }}
               onClick={() => {
-                if (!isEquipped && !isSelling) {
-                  equipItem(item.slot, itemId);
-                }
+                if (!isEquipped && !isSelling) equipItem(item.slot, itemId);
               }}
             >
               <div style={{ flex: 1 }}>
@@ -156,37 +158,29 @@ export const GarageScreen: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     flexWrap: 'wrap',
-                    gap: '5px'
+                    gap: '5px',
+                    fontSize: '14px',
                   }}
                 >
                   {item.name} {isEquipped && '✓'}
-                  
-                  {/* 👇 ПОКАЗЫВАЕМ УРОВЕНЬ И ЗВЕЗДЫ */}
                   {hasUpgrades && (
-                    <span style={{ 
-                      fontSize: '10px', 
-                      fontWeight: 'normal',
-                      color: '#888',
-                      background: 'rgba(0,0,0,0.3)',
-                      padding: '2px 6px',
-                      borderRadius: '4px'
-                    }}>
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 'normal',
+                        color: '#888',
+                        background: 'rgba(0,0,0,0.3)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                      }}
+                    >
                       Lv.{upg.level}
                       {upg.goldStars > 0 && <span style={{ color: 'gold', marginLeft: '4px' }}>★{upg.goldStars}</span>}
                       {upg.redStars > 0 && <span style={{ color: '#ff4444', marginLeft: '4px' }}>★{upg.redStars}</span>}
                     </span>
                   )}
                 </div>
-
-                {/* 👇 ПОКАЗЫВАЕМ ПРОКАЧАННЫЕ СТАТЫ */}
-                <div
-                  className="item-stats"
-                  style={{
-                    fontSize: '11px',
-                    color: '#888',
-                    marginTop: '4px',
-                  }}
-                >
+                <div className="item-stats" style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>
                   {power > 0 && <span>+{power} HP </span>}
                   {topSpeed > 0 && <span>+{topSpeed} Vmax </span>}
                   {grip > 0 && <span>+{grip} Сцеп. </span>}
@@ -198,20 +192,13 @@ export const GarageScreen: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-
                     if (isSelling) return;
-
                     setSellingId(itemId);
-
-                    sellItem(itemId).finally(() => {
-                      setSellingId(null);
-                    });
+                    sellItem(itemId).finally(() => setSellingId(null));
                   }}
                   disabled={isSelling}
                   style={{
-                    background: isSelling
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(255,68,68,0.15)',
+                    background: isSelling ? 'rgba(255,255,255,0.1)' : 'rgba(255,68,68,0.15)',
                     border: '1px solid rgba(255,68,68,0.5)',
                     color: isSelling ? '#aaa' : '#ff4444',
                     borderRadius: '6px',
@@ -226,13 +213,7 @@ export const GarageScreen: React.FC = () => {
                   {isSelling ? '...' : `💰 ${sellPrice}`}
                 </button>
               ) : (
-                <span
-                  style={{
-                    fontSize: '11px',
-                    color: '#00FF41',
-                    fontWeight: 'bold',
-                  }}
-                >
+                <span style={{ fontSize: '11px', color: '#00FF41', fontWeight: 'bold' }}>
                   Надето
                 </span>
               )}
@@ -248,50 +229,20 @@ export const GarageScreen: React.FC = () => {
       <div className="garage-scene">
         <div className="garage-bg" />
 
-        {/* Переключатель автомобилей */}
+        {/* Кнопка смены машины */}
         {ownedCars.length > 1 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 'calc(20px + var(--tg-safe-top, 0px))',
-              left: 0,
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '10px',
-              zIndex: 50,
-            }}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowCarSelector(true)}
+            className="garage-car-switch-btn"
           >
-            {ownedCars.map((id) => (
-              <motion.button
-                key={id}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => switchCar(id)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  background:
-                    id === activeCarId
-                      ? 'rgba(255,255,255,0.2)'
-                      : 'rgba(0,0,0,0.65)',
-                  border:
-                    id === activeCarId
-                      ? '2px solid #fff'
-                      : '2px solid rgba(255,255,255,0.1)',
-                  color: id === activeCarId ? '#fff' : '#888',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s, border-color 0.2s, color 0.2s',
-                }}
-              >
-                {CARS[id]?.name || id}
-              </motion.button>
-            ))}
-          </div>
+            <span>🚗</span>
+            <span>{activeCar.name}</span>
+            <span style={{ color: '#00e5ff', marginLeft: '4px' }}>▼</span>
+          </motion.button>
         )}
 
-        {/* Машина — нажатие открывает двигатель */}
+        {/* Машина — клик открывает двигатель */}
         <div
           className="garage-car-container"
           style={{
@@ -304,84 +255,214 @@ export const GarageScreen: React.FC = () => {
           onClick={() => handleUpgradeClick('engine')}
         >
           <div className="car-tooltip">Двигатель</div>
-
           <div className="car-image-wrapper">
             <TintedCarImage
               imageUrl={activeCar.image}
               colorHex={activeColorHex}
               className="garage-car-img"
-              style={{
-                filter: 'none',
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-              }}
+              style={{ filter: 'none', width: '100%', height: 'auto', display: 'block' }}
             />
           </div>
         </div>
 
-        {/* Шины */}
+        {/* Плашка характеристик */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '62%',
+            left: '10%',
+            width: '80%',
+            background: 'rgba(0,0,0,0.75)',
+            border: '1px solid rgba(0, 229, 255, 0.3)',
+            borderRadius: '12px',
+            padding: '10px 14px',
+            zIndex: 40,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '11px',
+            color: '#aaa',
+            fontFamily: 'monospace',
+            backdropFilter: 'blur(8px)',
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span>🚀 {finalStats.topSpeed} км/ч</span>
+            <span>⚡ {Number(finalStats.accel ?? 0).toFixed(1)} с</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'right' }}>
+            <span>💪 {finalStats.power} л.с.</span>
+            <span>⭐ Рейтинг: {finalStats.rating}</span>
+          </div>
+        </div>
+
+        {/* Шины, подвеска, ECU */}
         <motion.img
           src="/images/tires.png"
           alt="Шины"
           className="interactive-object"
-          style={{
-            top: '41%',
-            left: '0%',
-            width: '18%',
-          }}
+          style={{ top: '41%', left: '0%', width: '18%' }}
           animate={{ scale: [1, 1.03, 1] }}
-          transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'easeInOut',
-          }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('tires')}
         />
-
-        {/* Стойка с подвеской */}
         <motion.img
           src="/images/suspension.png"
           alt="Подвеска"
           className="interactive-object"
-          style={{
-            top: '33%',
-            left: '76%',
-            width: '25%',
-          }}
+          style={{ top: '33%', left: '76%', width: '25%' }}
           animate={{ scale: [1, 1.03, 1] }}
-          transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'easeInOut',
-          }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('suspension')}
         />
-
-        {/* Компьютер — прошивка ECU */}
         <motion.img
           src="/images/computer.png"
           alt="Прошивка (ECU)"
           className="interactive-object"
-          style={{
-            top: '74%',
-            left: '6%',
-            width: '32%',
-          }}
+          style={{ top: '74%', left: '6%', width: '32%' }}
           animate={{ scale: [1, 1.03, 1] }}
-          transition={{
-            repeat: Infinity,
-            duration: 2,
-            ease: 'easeInOut',
-          }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
           whileTap={{ scale: 1.15 }}
           onClick={() => handleUpgradeClick('ecu')}
         />
       </div>
 
-      {/* Модальное окно вне сцены — не масштабируется вместе с гаражом */}
+      {/* ============================================ */}
+      {/* МОДАЛКА ВЫБОРА МАШИНЫ                        */}
+      {/* ============================================ */}
+      <AnimatePresence>
+        {showCarSelector && (
+          <motion.div
+            className="garage-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowCarSelector(false)}
+          >
+            <motion.div
+              className="garage-modal-content"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="garage-modal-header">
+                <h2>Выбор машины</h2>
+                <button className="close-btn" onClick={() => setShowCarSelector(false)}>
+                  ✕
+                </button>
+              </div>
+
+              <div className="garage-modal-body">
+                <p style={{ color: '#888', fontSize: '12px', marginBottom: '12px', textAlign: 'center' }}>
+                  Куплено машин: {ownedCars.length}
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {carOptions.map((opt) => {
+                    const diffSpeed = opt.stats.topSpeed - finalStats.topSpeed;
+                    const diffPower = opt.stats.power - finalStats.power;
+                    const diffRating = opt.stats.rating - finalStats.rating;
+
+                    return (
+                      <motion.div
+                        key={opt.id}
+                        whileTap={{ scale: opt.isActive ? 1 : 0.98 }}
+                        onClick={() => handleSelectCar(opt.id)}
+                        className={`car-option-card ${opt.isActive ? 'active' : ''}`}
+                        style={{
+                          background: opt.isActive
+                            ? 'linear-gradient(135deg, rgba(0,229,255,0.15), rgba(0,136,255,0.05))'
+                            : 'rgba(255,255,255,0.03)',
+                          border: opt.isActive
+                            ? '2px solid #00e5ff'
+                            : '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '14px',
+                          padding: '12px 14px',
+                          cursor: opt.isActive ? 'default' : 'pointer',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <div>
+                            <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '15px' }}>
+                              {opt.car.name}
+                            </div>
+                            {opt.isActive && (
+                              <div style={{ color: '#00e5ff', fontSize: '10px', marginTop: '2px', fontWeight: 'bold', letterSpacing: '1px' }}>
+                                ✓ ВЫБРАНА
+                              </div>
+                            )}
+                          </div>
+                          <div style={{
+                            color: opt.isActive ? '#00e5ff' : '#aaa',
+                            fontSize: '13px',
+                            fontWeight: 'bold',
+                            fontFamily: 'monospace',
+                          }}>
+                            ⭐ {opt.stats.rating}
+                          </div>
+                        </div>
+
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '4px 12px',
+                          fontSize: '11px',
+                          color: '#aaa',
+                          fontFamily: 'monospace',
+                        }}>
+                          <span>🚀 {opt.stats.topSpeed} км/ч</span>
+                          <span>💪 {opt.stats.power} л.с.</span>
+                          <span>⚡ {Number(opt.stats.accel).toFixed(1)} с</span>
+                          <span>🛞 {opt.stats.grip}</span>
+                        </div>
+
+                        {!opt.isActive && (diffSpeed !== 0 || diffPower !== 0 || diffRating !== 0) && (
+                          <div style={{
+                            marginTop: '8px',
+                            paddingTop: '8px',
+                            borderTop: '1px dashed rgba(255,255,255,0.1)',
+                            fontSize: '10px',
+                            display: 'flex',
+                            gap: '10px',
+                            flexWrap: 'wrap',
+                          }}>
+                            {diffSpeed !== 0 && (
+                              <span style={{ color: diffSpeed > 0 ? '#00FF41' : '#ff4444' }}>
+                                {diffSpeed > 0 ? '▲' : '▼'} {Math.abs(diffSpeed)} км/ч
+                              </span>
+                            )}
+                            {diffPower !== 0 && (
+                              <span style={{ color: diffPower > 0 ? '#00FF41' : '#ff4444' }}>
+                                {diffPower > 0 ? '▲' : '▼'} {Math.abs(diffPower)} л.с.
+                              </span>
+                            )}
+                            {diffRating !== 0 && (
+                              <span style={{ color: diffRating > 0 ? '#00FF41' : '#ff4444' }}>
+                                ⭐ {diffRating > 0 ? '+' : ''}{diffRating}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================ */}
+      {/* МОДАЛКА ПРОКАЧКИ / ПОКРАСКИ                  */}
+      {/* ============================================ */}
       <AnimatePresence>
         {activeUpgrade && (
           <motion.div
@@ -396,21 +477,12 @@ export const GarageScreen: React.FC = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{
-                type: 'spring',
-                damping: 30,
-                stiffness: 300,
-                mass: 0.8,
-              }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300, mass: 0.8 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="garage-modal-header">
                 <h2>{getModalTitle()}</h2>
-
-                <button
-                  className="close-btn"
-                  onClick={() => setActiveUpgrade(null)}
-                >
+                <button className="close-btn" onClick={() => setActiveUpgrade(null)}>
                   ✕
                 </button>
               </div>
@@ -418,30 +490,21 @@ export const GarageScreen: React.FC = () => {
               <div className="garage-modal-body">
                 {activeUpgrade === 'paint' && (
                   <div className="paint-section">
-                    <p className="paint-desc">
-                      Выберите цвет кузова:
-                    </p>
-
+                    <p className="paint-desc">Выберите цвет кузова:</p>
                     <div className="color-grid">
                       {PAINT_COLORS.map((color) => (
                         <motion.button
                           key={color.id}
                           whileTap={{ scale: 0.95 }}
-                          className={`color-btn ${
-                            carColor === color.id ? 'active' : ''
-                          }`}
+                          className={`color-btn ${carColor === color.id ? 'active' : ''}`}
                           onClick={() => handleColorSelect(color.id)}
                         >
                           <div
                             className="color-swatch"
                             style={{
-                              backgroundColor:
-                                color.hex === 'transparent'
-                                  ? '#888'
-                                  : color.hex,
+                              backgroundColor: color.hex === 'transparent' ? '#888' : color.hex,
                             }}
                           />
-
                           <span>{color.label}</span>
                         </motion.button>
                       ))}
@@ -449,9 +512,8 @@ export const GarageScreen: React.FC = () => {
                   </div>
                 )}
 
-                {['engine', 'tires', 'suspension', 'ecu'].includes(
-                  activeUpgrade
-                ) && renderUpgradeSection(activeUpgrade)}
+                {['engine', 'tires', 'suspension', 'ecu'].includes(activeUpgrade) &&
+                  renderUpgradeSection(activeUpgrade)}
               </div>
             </motion.div>
           </motion.div>

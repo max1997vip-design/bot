@@ -1,17 +1,21 @@
 // src/components/RacesScreen.tsx
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { playSound } from '../utils/sound';
 import { CARS } from '../config/cars';
 import { simulateRacePhysics, CarPhysics } from '../utils/raceEngine';
+import { getFinalCarStats } from '../utils/carStats';
 import { LeagueBadge } from './LeagueBadge';
 import { getLeagueByPoints, getNextLeague } from '../config/leagues';
 import '../styles/races.css';
 
 type RacePhase = 'idle' | 'racing' | 'finish';
 
+const OPPONENT_NAMES = ['Turbo Rider', 'Neon Racer', 'NightRider', 'DriftKing', 'RoadRunner'];
+
 export const RacesScreen = () => {
   const user = useGameStore((s) => s.user);
+  const equipped = useGameStore((s) => s.equipped);
   const reportPvpResult = useGameStore((s) => s.reportPvpResult);
   const addLeaguePoints = useGameStore((s) => s.addLeaguePoints);
   
@@ -21,33 +25,67 @@ export const RacesScreen = () => {
   const [leaguePointsEarned, setLeaguePointsEarned] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  // Рефы для прямого доступа к DOM
   const raceStageRef = useRef<HTMLDivElement>(null);
   const playerCarRef = useRef<HTMLDivElement>(null);
   const opponentCarRef = useRef<HTMLDivElement>(null);
   const playerProgressRef = useRef<HTMLDivElement>(null);
   const opponentProgressRef = useRef<HTMLDivElement>(null);
-  
-  // ДВА РАЗНЫХ РЕФА ДЛЯ СКОРОСТИ (HUD и Спидометр)
   const hudSpeedTextRef = useRef<HTMLSpanElement>(null);
   const speedometerValueRef = useRef<HTMLSpanElement>(null);
-  
   const speedometerFillRef = useRef<SVGCircleElement>(null);
   const speedLinesContainerRef = useRef<HTMLDivElement>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
 
   const activeCarId = user?.activeCarId || 'vaz-2107';
   const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
+  
+  // ⚡ ФИЗИКА ИГРОКА С УЧЁТОМ ПРОКАЧКИ
+  const playerPhysics: CarPhysics = useMemo(
+    () => getFinalCarStats(activeCar, equipped, user?.partUpgrades || {}),
+    [activeCar, equipped, user?.partUpgrades]
+  );
+
+  // 🎯 МАТЧМЕЙКИНГ ПО РЕАЛЬНОЙ СКОРОСТИ
+  const opponentData = useMemo(() => {
+    const playerSpeed = playerPhysics.topSpeed;
+    const candidates = Object.values(CARS).filter(c => c.id !== activeCar.id);
+
+    let pool = candidates.filter(c => Math.abs(c.performance.topSpeed - playerSpeed) <= 40);
+    if (pool.length === 0) {
+      pool = [...candidates].sort((a, b) =>
+        Math.abs(a.performance.topSpeed - playerSpeed) - Math.abs(b.performance.topSpeed - playerSpeed)
+      ).slice(0, 5);
+    }
+
+    const rival = pool[Math.floor(Math.random() * pool.length)] || CARS['vaz-2107'];
+    const rivalName = OPPONENT_NAMES[Math.floor(Math.random() * OPPONENT_NAMES.length)];
+
+    // Соперник — стоковая машина (без прокачки) + лёгкий рандом
+    const jitter = (val: number, pct = 0.05) => val * (1 + (Math.random() - 0.5) * pct);
+
+    return {
+      car: rival,
+      name: rivalName,
+      physics: {
+        power: jitter(rival.performance.power, 0.05),
+        topSpeed: jitter(rival.performance.topSpeed, 0.05),
+        accel: jitter(rival.performance.accel, 0.08),
+        grip: rival.performance.grip,
+        handling: rival.performance.grip,
+      } as CarPhysics,
+    };
+  }, [playerPhysics.topSpeed, activeCar.id]);
+
+  const opponentPhysics = opponentData.physics;
+  const opponentCar = opponentData.car;
+
   const leaguePoints = user?.leaguePoints ?? 0;
   const league = getLeagueByPoints(leaguePoints);
   const nextLeague = getNextLeague(league.id);
   
   const playerCarImage = `/cars/side/${activeCarId}.png`;
+  const opponentCarImage = `/cars/side/${opponentCar.id}.png`;
 
-  const playerPhysics: CarPhysics = { power: 719, topSpeed: 719, accel: 6.5, grip: 100, handling: 100 };
-  const opponentPhysics: CarPhysics = { power: 656, topSpeed: 656, accel: 6.2, grip: 95, handling: 95 };
-
-  // Сброс при входе в меню
   useEffect(() => {
     if (view === 'menu') {
       if (playerCarRef.current) playerCarRef.current.style.transform = 'translate3d(0px, 0, 0)';
@@ -58,7 +96,6 @@ export const RacesScreen = () => {
       if (speedometerValueRef.current) speedometerValueRef.current.textContent = '0';
       if (speedometerFillRef.current) speedometerFillRef.current.style.strokeDashoffset = '283';
       
-      // Сброс классов NOS
       playerCarRef.current?.classList.remove('max-speed-glow');
       opponentCarRef.current?.classList.remove('max-speed-glow');
       speedLinesContainerRef.current?.classList.remove('is-max');
@@ -73,7 +110,7 @@ export const RacesScreen = () => {
     setLeaguePointsEarned(0);
 
     setTimeout(() => {
-      const result = simulateRacePhysics(playerPhysics, opponentPhysics, 'Turbo Rider');
+      const result = simulateRacePhysics(playerPhysics, opponentPhysics, opponentData.name);
       setRaceResult(result);
       startAnimation(result.ticks, result); 
     }, 1000);
@@ -98,6 +135,8 @@ export const RacesScreen = () => {
     const opponentTarget = isPlayerWinner ? loserDistance : maxDistance;
 
     let nosTriggered = false;
+    const nitroValue = activeCar.performance.nitro || 50;
+    const nitroStart = 1 - (nitroValue / 100) * 0.35;
 
     const animate = (now: number) => {
       const elapsed = now - startTime;
@@ -107,14 +146,13 @@ export const RacesScreen = () => {
       const playerX = eased * playerTarget;
       const opponentX = eased * opponentTarget;
       
-      // ПРЯМОЕ ОБНОВЛЕНИЕ DOM
       if (playerCarRef.current) playerCarRef.current.style.transform = `translate3d(${playerX}px, 0, 0)`;
       if (opponentCarRef.current) opponentCarRef.current.style.transform = `translate3d(${opponentX}px, 0, 0)`;
       
       if (playerProgressRef.current) playerProgressRef.current.style.width = `${Math.min(100, (playerX / maxDistance) * 100)}%`;
       if (opponentProgressRef.current) opponentProgressRef.current.style.width = `${Math.min(100, (opponentX / maxDistance) * 100)}%`;
 
-      // ОБНОВЛЕНИЕ СКОРОСТИ В HUD И СПИДОМЕТРЕ (разные рефы)
+      // Скорость = реальный topSpeed игрока * progress
       const currentSpd = Math.round(playerPhysics.topSpeed * progress);
       if (hudSpeedTextRef.current) hudSpeedTextRef.current.textContent = currentSpd.toString();
       if (speedometerValueRef.current) speedometerValueRef.current.textContent = currentSpd.toString();
@@ -124,8 +162,7 @@ export const RacesScreen = () => {
         speedometerFillRef.current.style.strokeDashoffset = offset.toString();
       }
 
-      // УПРАВЛЕНИЕ NOS ЧЕРЕЗ DOM (БЕЗ РЕРЕНДЕРА REACT)
-      if (progress > 0.7 && progress < 0.95) {
+      if (progress > nitroStart && progress < 0.95) {
         if (!nosTriggered) {
           nosTriggered = true;
           playerCarRef.current?.classList.add('max-speed-glow');
@@ -201,7 +238,9 @@ export const RacesScreen = () => {
             <span className="race-icon">🏁</span>
             <div className="race-mode-info">
               <strong>Быстрая гонка</strong>
-              <small>Подбор по скорости: {playerPhysics.topSpeed} км/ч</small>
+              <small>
+                {activeCar.name} · {playerPhysics.topSpeed} км/ч · {playerPhysics.power} л.с.
+              </small>
             </div>
             <span className="race-mode-action">Начать заезд</span>
           </button>
@@ -248,9 +287,9 @@ export const RacesScreen = () => {
               <div className="racer-avatar enemy"><span>PX</span></div>
               <div className="racer-meta">
                 <small>Соперник</small>
-                <strong>Turbo Rider</strong>
-                <span>Solivane Apex PX</span>
-                <em>PX · {opponentPhysics.topSpeed} км/ч</em>
+                <strong>{opponentData.name}</strong>
+                <span>{opponentCar.name}</span>
+                <em>PX · {Math.round(opponentPhysics.topSpeed)} км/ч</em>
               </div>
             </article>
           </div>
@@ -277,11 +316,7 @@ export const RacesScreen = () => {
               <div className="lane-label">ВЫ <span>{playerPhysics.topSpeed}</span></div>
               <div className="road-marks-inner"></div>
               <div className="finish-line-inner"></div>
-              <div 
-                ref={playerCarRef}
-                className="race-car" 
-                id="my-race-car"
-              >
+              <div ref={playerCarRef} className="race-car" id="my-race-car">
                 <img 
                   className="paintable-car paint-gloss" 
                   src={playerCarImage} 
@@ -292,18 +327,15 @@ export const RacesScreen = () => {
             </div>
 
             <div className="race-lane lane-two">
-                <div className="lane-label">TURBO RIDER <span>{opponentPhysics.topSpeed}</span></div>
+                <div className="lane-label">{opponentData.name.toUpperCase()} <span>{Math.round(opponentPhysics.topSpeed)}</span></div>
                 <div className="road-marks-inner"></div>
                 <div className="finish-line-inner"></div>
-                <div 
-                 ref={opponentCarRef}
-                 className="race-car enemy-car-sprite" 
-                 id="enemy-race-car"
-              >
+                <div ref={opponentCarRef} className="race-car enemy-car-sprite" id="enemy-race-car">
                 <img 
-                 src="/cars/side/vaz-2107.png" 
-                 alt="Соперник" 
+                 src={opponentCarImage} 
+                 alt={opponentCar.name} 
                  className="enemy-img"
+                 onError={(e) => { e.currentTarget.src = '/cars/side/vaz-2107.png'; }}
                 />
               </div>
             </div>
@@ -326,9 +358,7 @@ export const RacesScreen = () => {
                 <circle cx="50" cy="50" r="45" className="speedometer-track" />
                 <circle 
                   ref={speedometerFillRef}
-                  cx="50" 
-                  cy="50" 
-                  r="45" 
+                  cx="50" cy="50" r="45" 
                   className="speedometer-fill" 
                   style={{ strokeDasharray: 283, strokeDashoffset: 283 }} 
                 />

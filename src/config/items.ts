@@ -1,5 +1,5 @@
 // src/config/items.ts
-import { CARS } from './cars'; 
+import { CARS } from './cars';
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type ItemSlot = 'engine' | 'tires' | 'suspension' | 'ecu';
@@ -17,6 +17,7 @@ export const RARITY_COLORS: Record<ItemRarity, string> = {
 };
 
 export const ITEMS: Record<string, ItemConfig> = {
+  // ... (всё содержимое ITEMS оставляем как было)
   'engine_1': { id: 'engine_1', name: 'Стоковый мотор', slot: 'engine', rarity: 'common', stats: { power: 20, topSpeed: 5, grip: 0, handling: 0 } },
   'engine_2': { id: 'engine_2', name: 'Турбо-кит Stage 1', slot: 'engine', rarity: 'uncommon', stats: { power: 50, topSpeed: 10, grip: 0, handling: 0 } },
   'engine_3': { id: 'engine_3', name: 'V8 Битурбо', slot: 'engine', rarity: 'rare', stats: { power: 120, topSpeed: 25, grip: 0, handling: 0 } },
@@ -42,34 +43,50 @@ export const ITEMS: Record<string, ItemConfig> = {
 export const ALL_ITEM_IDS = Object.keys(ITEMS);
 export const RARITY_DROP_CHANCE: Record<string, number> = { common: 60, uncommon: 25, rare: 10, epic: 4, legendary: 1 };
 
+// НОВАЯ ФУНКЦИЯ — использует реальные км/ч из performance
 export function calculateStats(
   equipped: Record<string, string | null>, 
   partUpgrades: Record<string, any> = {},
-  activeCarId: string = 'vaz-2107' // 👈 ИЗМЕНЕНО НА ВАЗ 2107
+  activeCarId: string = 'vaz-2107'
 ) {
-  const carConfig = CARS[activeCarId] || CARS['vaz-2107']; // 👈 ИЗМЕНЕНО НА ВАЗ 2107
-  let base = { ...carConfig.baseStats };
+  const carConfig = CARS[activeCarId] || CARS['vaz-2107'];
+  const perf = carConfig.performance;
+
+  let totalPower = perf.power;
+  let totalTopSpeed = perf.topSpeed;
+  let totalGrip = perf.grip;
+  let totalAccel = perf.accel;
 
   Object.values(equipped).forEach(itemId => {
-    if (itemId && ITEMS[itemId]) {
-      const item = ITEMS[itemId];
-      const upg = partUpgrades[itemId] || { level: 0, goldStars: 0, redStars: 0 };
-      
-      const levelMulti = 1 + (upg.level * 0.02);
-      const goldMulti = 1 + (upg.goldStars * 0.10);
-      const redMulti = 1 + (upg.redStars * 0.25);
-      const finalMulti = levelMulti * goldMulti * redMulti;
+    if (!itemId || !ITEMS[itemId]) return;
+    const item = ITEMS[itemId];
+    const upg = partUpgrades[itemId] || { level: 0, goldStars: 0, redStars: 0 };
+    
+    const levelMulti = 1 + (upg.level * 0.02);
+    const goldMulti = 1 + (upg.goldStars * 0.10);
+    const redMulti = 1 + (upg.redStars * 0.25);
+    const finalMulti = levelMulti * goldMulti * redMulti;
 
-      base.power += Math.round(item.stats.power * finalMulti);
-      base.topSpeed += Math.round(item.stats.topSpeed * finalMulti);
-      base.grip += Math.round(item.stats.grip * finalMulti);
-      base.handling += Math.round(item.stats.handling * finalMulti);
-    }
+    // Процентные бонусы
+    totalPower *= 1 + (item.stats.power / 100) * finalMulti;
+    totalTopSpeed *= 1 + (item.stats.topSpeed / 100) * finalMulti;
+    totalGrip += (item.stats.grip / 100) * finalMulti * 50;
+    
+    const accelBonus = ((item.stats.grip + item.stats.handling) / 100) * finalMulti;
+    totalAccel = Math.max(1.0, totalAccel * (1 - accelBonus * 0.15));
   });
 
-  const accel = Math.max(1.5, 7.0 - (base.power * 0.005) - (base.grip * 0.01));
-  const rating = Math.round((base.power + base.topSpeed) / 2 + base.grip + base.handling);
-  return { ...base, accel, rating };
+  totalGrip = Math.min(100, totalGrip);
+  const rating = Math.round(totalPower * 0.3 + totalTopSpeed * 2 + (10 - totalAccel) * 50 + totalGrip * 3);
+  
+  return {
+    power: Math.round(totalPower),
+    topSpeed: Math.round(totalTopSpeed),
+    grip: Math.round(totalGrip),
+    handling: Math.round(totalGrip * 1.05),
+    accel: Math.round(totalAccel * 100) / 100,
+    rating,
+  };
 }
 
 export const SELL_PRICES: Record<ItemRarity, number> = {

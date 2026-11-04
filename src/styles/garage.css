@@ -1,4 +1,7 @@
-/* Основной экран гаража */
+/* ============================================ */
+/* ЭКРАН ГАРАЖА                                  */
+/* ============================================ */
+
 .garage-screen {
   position: absolute;
   inset: 0;
@@ -9,6 +12,7 @@
   justify-content: center;
   min-width: 0;
   min-height: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .garage-scene {
@@ -74,6 +78,12 @@
   z-index: 2;
 }
 
+.car-image-wrapper {
+  position: relative;
+  width: 100%;
+  isolation: isolate;
+}
+
 /* --- Подсказка над машиной --- */
 .car-tooltip {
   position: absolute;
@@ -119,126 +129,211 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* --- Модальное окно улучшений --- */
-.garage-modal-overlay {
+/* --- Интерактивные предметы в гараже --- */
+.interactive-object {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(5px);
-  z-index: 1000;
+  z-index: 15;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  filter:
+    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 8px rgba(0, 229, 255, 0.6));
+  animation: neon-pulse 2s infinite alternate ease-in-out;
+  transition: transform 0.2s ease;
+}
+
+@keyframes neon-pulse {
+  0% {
+    filter:
+      drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
+      drop-shadow(0 0 5px rgba(0, 229, 255, 0.4));
+  }
+  100% {
+    filter:
+      drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
+      drop-shadow(0 0 15px rgba(0, 229, 255, 0.9));
+  }
+}
+
+.interactive-object:hover {
+  filter:
+    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 25px rgba(0, 229, 255, 1))
+    brightness(1.15);
+  animation: none;
+}
+
+/* ============================================ */
+/* КНОПКА СМЕНЫ МАШИНЫ (стиль "Быстрая гонка")  */
+/* ============================================ */
+
+.garage-car-switch-btn {
+  position: absolute;
+  top: calc(20px + var(--tg-safe-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #141a2e 0%, #050608 100%);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  z-index: 50;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: hidden;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-transform: uppercase;
+}
+
+.garage-car-switch-btn:hover,
+.garage-car-switch-btn:active {
+  border-color: #00e5ff;
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 229, 255, 0.05);
+}
+
+/* ============================================ */
+/* ПРЕМИАЛЬНЫЕ МОДАЛКИ (в стиле races.css)      */
+/* ============================================ */
+
+.garage-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 10000;
+  animation: garageFadeIn 0.2s ease-out;
+}
+
+@keyframes garageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .garage-modal-content {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  min-height: 45%;
-  max-height: 90%;
-  flex: 0 1 auto;
-
-  background: #15171a;
+  background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(0, 229, 255, 0.3);
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-  padding: 20px;
-  padding-bottom: 90px;
-
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
-
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
 }
 
 .garage-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  position: relative;
+}
+
+.garage-modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.5), transparent);
 }
 
 .garage-modal-header h2 {
   margin: 0;
   color: #fff;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+  font-family: Impact, Arial Black, sans-serif;
 }
 
 .close-btn {
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  color: #aaa;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+.close-btn:hover,
+.close-btn:active {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.5);
+  color: #ff4444;
+  transform: scale(1.05);
 }
 
-/* Содержимое модального окна прокручивается */
 .garage-modal-body {
-  box-sizing: border-box;
+  padding: 16px 20px 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   color: #aaa;
   font-size: 14px;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
-/* Скроллбар модального окна */
 .garage-modal-body::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .garage-modal-body::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 3px;
+  background: transparent;
 }
 
 .garage-modal-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: rgba(0, 229, 255, 0.3);
+  border-radius: 2px;
 }
 
-/* --- Изображение и покраска машины --- */
-.car-image-wrapper {
-  position: relative;
-  width: 100%;
-  isolation: isolate;
+.garage-modal-body > p {
+  color: #8892b0;
+  font-size: 13px;
+  margin: 0 0 14px;
+  text-align: center;
 }
 
-/* 👇 УДАЛЕНЫ .car-color-overlay и .race-color-overlay (теперь используется Canvas) */
-
-/* --- Палитра цветов --- */
-.paint-desc {
-  margin: 0 0 15px 0;
-  font-size: 14px;
+/* --- Покраска --- */
+.paint-section .paint-desc {
+  color: #8892b0;
+  font-size: 13px;
+  margin: 0 0 14px;
+  text-align: center;
 }
 
 .color-grid {
@@ -264,6 +359,12 @@
   transition: all 0.2s ease;
 }
 
+.color-btn:hover,
+.color-btn:active {
+  border-color: rgba(0, 229, 255, 0.4);
+  background: rgba(0, 229, 255, 0.05);
+}
+
 .color-btn.active {
   border-color: #00e5ff;
   background: rgba(0, 229, 255, 0.1);
@@ -283,7 +384,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* --- Список деталей в инвентаре --- */
+/* --- Список деталей --- */
 .inventory-list {
   display: flex;
   flex-direction: column;
@@ -296,6 +397,13 @@
   padding-bottom: 20px;
 }
 
+.inventory-list > p:first-child {
+  color: #8892b0 !important;
+  text-align: center;
+  font-size: 12px !important;
+  margin-bottom: 14px !important;
+}
+
 .inventory-item {
   box-sizing: border-box;
   width: 100%;
@@ -304,17 +412,26 @@
   border-radius: 12px;
   padding: 14px;
   cursor: pointer;
-  transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
+  transition: transform 0.1s, background 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
 .inventory-item:active {
   transform: scale(0.97);
 }
 
+.inventory-item:not(.equipped):hover {
+  background: rgba(0, 229, 255, 0.05) !important;
+  border-color: rgba(0, 229, 255, 0.5) !important;
+  transform: translateX(2px);
+}
+
 .inventory-item.equipped {
-  background: rgba(0, 255, 65, 0.08);
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.08) 0%, rgba(0, 229, 255, 0.02) 100%) !important;
+  border-color: #00e5ff !important;
   border-width: 2px;
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
 }
 
 .item-name {
@@ -331,37 +448,51 @@
   flex-wrap: wrap;
 }
 
-/* --- Интерактивные предметы в гараже --- */
-.interactive-object {
-  position: absolute;
-  z-index: 15;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  filter:
-    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
-    drop-shadow(0 0 8px rgba(0, 229, 255, 0.6));
-  animation: neon-pulse 2s infinite alternate ease-in-out;
-  transition: transform 0.2s ease;
+.inventory-item button {
+  transition: all 0.2s ease;
 }
 
-@keyframes neon-pulse {
-  0% {
-    filter:
-      drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
-      drop-shadow(0 0 5px rgba(0, 229, 255, 0.4));
-  }
-
-  100% {
-    filter:
-      drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
-      drop-shadow(0 0 15px rgba(0, 229, 255, 0.9));
-  }
+.inventory-item button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(255, 68, 68, 0.3);
 }
 
-.interactive-object:hover {
-  filter:
-    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6))
-    drop-shadow(0 0 25px rgba(0, 229, 255, 1))
-    brightness(1.15);
-  animation: none;
+/* ============================================ */
+/* МОДАЛКА ВЫБОРА МАШИНЫ                        */
+/* ============================================ */
+
+.car-option-card {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.car-option-card:not(.active):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.car-option-card.active {
+  animation: carActivePulse 3s ease-in-out infinite;
+}
+
+@keyframes carActivePulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(0, 229, 255, 0.4); }
+}
+
+/* ============================================ */
+/* АДАПТАЦИЯ                                    */
+/* ============================================ */
+
+@media (max-width: 380px) {
+  .garage-modal-header {
+    padding: 16px 18px 12px;
+  }
+  .garage-modal-header h2 {
+    font-size: 17px;
+    letter-spacing: 1px;
+  }
+  .garage-modal-body {
+    padding: 12px 14px 20px;
+  }
 }
