@@ -56,7 +56,6 @@ interface GameState {
   history: any[];
   achievementsList: any[];
   
-  // 👇 ПРАВИЛЬНЫЕ ТИПЫ ДЛЯ КЛАНА 👇
   clanInfo: any | null;
   clanMembers: any[];
   clansList: any[];
@@ -99,7 +98,15 @@ interface GameState {
   
   startBotRace: () => Promise<{ success: boolean; result?: any }>;
   switchCar: (carId: string) => Promise<void>;
-  reportPvpResult: (data: { won: boolean; ratingDelta: number; coinsDelta: number }) => Promise<void>;
+  
+  // 👇 ТИП ОБНОВЛЕН: добавлен playerStats и результат с newBalance/newRating
+  reportPvpResult: (data: { 
+    won: boolean; 
+    ratingDelta: number; 
+    coinsDelta: number; 
+    playerStats?: any 
+  }) => Promise<void>;
+  
   buyCar: (carId: string, price: number) => Promise<boolean>;
   sellItem: (itemId: string) => Promise<boolean>;
   upgradeClicker: () => Promise<void>;
@@ -123,7 +130,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   history: [],
   achievementsList: [],
   
-  // 👇 НАЧАЛЬНЫЕ ЗНАЧЕНИЯ КЛАНА 👇
   clanInfo: null,
   clanMembers: [],
   clansList: [],
@@ -132,7 +138,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastReadClanMessageId: null,
   clanBoss: null,
   bossDamageStats: [],
-  // 👆 ----------------------- 👆
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
@@ -217,27 +222,26 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   addLeaguePoints: async (points: number) => {
-  const { user } = get();
-  if (!user) return;
+    const { user } = get();
+    if (!user) return;
 
-  const initData = getInitData();
-  try {
-    const res = await fetch('/api/game?action=addLeaguePoints', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData, points }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      set((s) => ({
-        user: s.user ? { ...s.user, leaguePoints: data.newLeaguePoints } : null,
-      }));
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=addLeaguePoints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, points }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          user: s.user ? { ...s.user, leaguePoints: data.newLeaguePoints } : null,
+        }));
+      }
+    } catch (e) {
+      console.error('[addLeaguePoints]', e);
     }
-  } catch (e) {
-    console.error('[addLeaguePoints]', e);
-  }
-},
-
+  },
 
   fetchClanMessages: async () => {
     const initData = getInitData();
@@ -251,9 +255,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         set((state) => {
           const msgs = data.messages;
           const newestMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
-          
           const isNew = newestMsg && newestMsg.id !== state.lastReadClanMessageId;
-          
           return {
             clanMessages: msgs,
             hasUnreadClanMessages: isNew ? true : state.hasUnreadClanMessages
@@ -680,28 +682,36 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  reportPvpResult: async ({ won, ratingDelta, coinsDelta }) => {
+  // 👇 ИСПРАВЛЕННЫЙ МЕТОД С СОХРАНЕНИЕМ ПРЕДЫДУЩИХ ЗНАЧЕНИЙ
+  reportPvpResult: async ({ won, ratingDelta, coinsDelta, playerStats }) => {
     const { user } = get();
     if (!user) return;
+    
+    // Сохраняем предыдущие значения для отката при ошибке
     const prevBalance = user.balance;
     const prevRating = user.rating;
-    set({
-      balance: Math.max(0, user.balance + coinsDelta),
-      user: { ...user, balance: Math.max(0, user.balance + coinsDelta), rating: Math.max(0, user.rating + ratingDelta) }
-    });
+
+    const initData = getInitData();
     try {
-      const initData = getInitData();
       const res = await fetch('/api/game?action=pvpResult', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, won, ratingDelta, coinsDelta }),
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, won, ratingDelta, coinsDelta, playerStats }),
       });
+
       if (!res.ok) throw new Error('Server error');
       const data = await res.json();
+      
       set((state) => ({
         balance: data.newBalance ?? state.balance,
-        user: state.user ? { ...state.user, balance: data.newBalance ?? state.user.balance, rating: data.newRating ?? state.user.rating } : null
+        user: state.user ? { 
+          ...state.user, 
+          balance: data.newBalance ?? state.user.balance, 
+          rating: data.newRating ?? state.user.rating 
+        } : null
       }));
     } catch (e) {
+      // Откат при ошибке
       set((state) => ({
         balance: prevBalance,
         user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null

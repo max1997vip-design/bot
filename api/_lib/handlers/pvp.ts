@@ -3,12 +3,16 @@ import { db } from '../db.js';
 import { users, equippedItems } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq, and, ne, sql } from 'drizzle-orm';
-import { calculateStats } from '../items.js'; // Используем новую систему предметов
 
 export async function pvpHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { initData } = req.body;
+  const { initData, playerStats } = req.body;
+  
+  if (!playerStats) {
+    return res.status(400).json({ error: 'playerStats is required' });
+  }
+
   const validatedData = validateInitData(initData, process.env.BOT_TOKEN!);
   if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -18,11 +22,8 @@ export async function pvpHandler(req: any, res: any) {
     const user = await db.query.users.findFirst({ where: eq(users.id, telegramId) });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 1. Получаем статы текущего игрока
-    const myEquipped = await db.query.equippedItems.findMany({ where: eq(equippedItems.userId, telegramId) });
-    const myEquippedMap: any = { engine: null, tires: null, ecu: null, suspension: null };
-    myEquipped.forEach(e => myEquippedMap[e.slot] = e.itemId);
-    const myStats = calculateStats(myEquippedMap);
+    // 1. Статы текущего игрока берем из запроса
+    const myStats = playerStats;
 
     // 2. Ищем реального соперника (разница рейтинга до 150 очков)
     const possibleOpponents = await db.select()
@@ -34,7 +35,7 @@ export async function pvpHandler(req: any, res: any) {
       .limit(1);
 
     let opponentName = 'Призрак трассы';
-    let opponentStats = { ...myStats }; // По умолчанию бот со статами как у тебя
+    let opponentStats = { ...myStats };
     let opponentId: number | null = null;
 
     if (possibleOpponents.length > 0) {
@@ -42,12 +43,14 @@ export async function pvpHandler(req: any, res: any) {
       opponentId = opp.id;
       opponentName = opp.firstName || 'Гонщик';
       
-      const oppEquipped = await db.query.equippedItems.findMany({ where: eq(equippedItems.userId, opp.id) });
-      const oppEquippedMap: any = { engine: null, tires: null, ecu: null, suspension: null };
-      oppEquipped.forEach(e => oppEquippedMap[e.slot] = e.itemId);
-      opponentStats = calculateStats(oppEquippedMap);
+      // Для соперника берем его статистику с клиента (если передана) или рандом
+      if (playerStats.opponentStats) {
+        opponentStats = playerStats.opponentStats;
+      } else {
+        opponentStats = { ...myStats };
+        opponentStats.rating += (Math.random() * 20 - 10);
+      }
     } else {
-      // Если живых нет, добавляем рандом боту, чтобы он не был точной копией
       opponentStats.rating += (Math.random() * 20 - 10);
     }
 
@@ -75,12 +78,11 @@ export async function pvpHandler(req: any, res: any) {
 
     // 4. Начисление наград
     if (winner === 'player') {
-      reward = (1000 + myStats.rating * 10) * 5; // Награда х5
+      reward = (1000 + myStats.rating * 10) * 5;
       newBalance += reward;
       ratingChange = 5;
       newRating += ratingChange;
       
-      // Если это был реальный игрок, отнимаем у него рейтинг
       if (opponentId) {
         await db.update(users)
           .set({ rating: sql`GREATEST(0, ${users.rating} - 2)` })
@@ -90,7 +92,6 @@ export async function pvpHandler(req: any, res: any) {
       ratingChange = -2;
       newRating = Math.max(0, newRating + ratingChange);
       
-      // Если это был реальный игрок, добавляем ему рейтинг
       if (opponentId) {
         await db.update(users)
           .set({ rating: sql`${users.rating} + 5` })
@@ -98,7 +99,7 @@ export async function pvpHandler(req: any, res: any) {
       }
     }
 
-    // Сохраняем результат текущего игрока
+    // Сохраняем результат
     await db.update(users).set({ balance: newBalance, rating: newRating }).where(eq(users.id, telegramId));
 
     return res.status(200).json({

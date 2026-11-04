@@ -1,3 +1,4 @@
+// api/_lib/schema.ts
 import {
   pgTable, bigint, text, integer, timestamp, boolean, jsonb, uuid, primaryKey,
 } from 'drizzle-orm/pg-core';
@@ -13,7 +14,6 @@ export const users = pgTable('users', {
   starsBalance: integer('stars_balance').notNull().default(0),
   leaguePoints: integer('league_points').default(0).notNull(),
   
-  // 👇 ИЗМЕНЕНО НА ВАЗ 2107
   activeCarId: text('active_car_id').notNull().default('vaz-2107'),
   ownedCars: jsonb('owned_cars').$type<string[]>().notNull().default(['vaz-2107']),
   
@@ -54,9 +54,9 @@ export const users = pgTable('users', {
    weeklyPass: jsonb('weekly_pass').$type<{
     weekId: number;
     xp: number;
-    isPremium?: boolean;       // Куплен ли премиум на эту неделю
-    claimed: number[];         // Забранные награды (Бесплатные)
-    claimedPremium?: number[]; // Забранные награды (Премиум)
+    isPremium?: boolean;
+    claimed: number[];
+    claimedPremium?: number[];
   }>().notNull().default({ weekId: 0, xp: 0, isPremium: false, claimed: [], claimedPremium: [] }),
 });
 
@@ -104,16 +104,14 @@ export const achievements = pgTable('achievements', {
   unlockedAt: timestamp('unlocked_at').notNull().defaultNow(),
 }, (t) => ({ pk: primaryKey({ columns: [t.userId, t.achievementId] }) }));
 
-// api/_lib/schema.ts
-
 export const clans = pgTable('clans', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull().unique(),
   leaderId: bigint('leader_id', { mode: 'number' }).notNull(),
   balance: bigint('balance', { mode: 'number' }).notNull().default(0),
   level: integer('level').notNull().default(1),
-  description: text('description').default(''), // 👈 ДОБАВЛЕНО
-  isOpen: boolean('is_open').notNull().default(true), // 👈 ДОБАВЛЕНО (открыт для входа)
+  description: text('description').default(''),
+  isOpen: boolean('is_open').notNull().default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   extraSlots: integer('extra_slots').notNull().default(0),
 });
@@ -121,8 +119,8 @@ export const clans = pgTable('clans', {
 export const clanMembers = pgTable('clan_members', {
   userId: bigint('user_id', { mode: 'number' }).primaryKey().references(() => users.id, { onDelete: 'cascade' }),
   clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
-  role: text('role').notNull().default('member'), // 'leader' | 'officer' | 'member'
-  contribution: bigint('contribution', { mode: 'number' }).notNull().default(0), // 👈 ДОБАВЛЕНО
+  role: text('role').notNull().default('member'),
+  contribution: bigint('contribution', { mode: 'number' }).notNull().default(0),
   bossDamage: integer('boss_damage').notNull().default(0),
   joinedAt: timestamp('joined_at').notNull().defaultNow(),
 });
