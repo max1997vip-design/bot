@@ -336,3 +336,165 @@
   .admin-header h2 { font-size: 20px; letter-spacing: 2px; }
   .admin-tab { padding: 8px 12px; font-size: 11px; }
 }
+
+/* ========== СТАТИСТИКА ========== */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-stat-card {
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-stat-card::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.admin-stat-label {
+  color: #666;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-stat-value {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  font-family: Impact, Arial Black, sans-serif;
+  letter-spacing: 1px;
+}
+
+.admin-stat-value.cyan { color: #00e5ff; text-shadow: 0 0 15px rgba(0, 229, 255, 0.4); }
+.admin-stat-value.green { color: #00FF41; text-shadow: 0 0 15px rgba(0, 255, 65, 0.4); }
+.admin-stat-value.gold { color: #ffcc00; text-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
+.admin-stat-value.red { color: #ff4444; text-shadow: 0 0 15px rgba(255, 68, 68, 0.4); }
+
+/* ========== ФОРМА ВЫДАЧИ ========== */
+.admin-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.admin-form-label {
+  color: #888;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-currency-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-currency-option {
+  padding: 10px 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  color: #888;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.admin-currency-option:hover {
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+.admin-currency-option.active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: #00e5ff;
+  color: #00e5ff;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+}
+
+.admin-quick-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.admin-quick-btn {
+  padding: 8px 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: monospace;
+}
+
+.admin-quick-btn:hover {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: #00e5ff;
+  color: #00e5ff;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.admin-form-actions .admin-btn {
+  flex: 1;
+}
+
+/* ========== УВЕДОМЛЕНИЕ ОБ УСПЕХЕ ========== */
+.admin-toast {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid #00e5ff;
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: #00e5ff;
+  font-size: 13px;
+  font-weight: 800;
+  z-index: 10001;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 229, 255, 0.2);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.admin-toast.error {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: #ff4444;
+  color: #ff4444;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 68, 68, 0.2);
+}
