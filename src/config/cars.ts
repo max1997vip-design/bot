@@ -102,83 +102,83 @@ export const CARS: Record<string, CarConfig> = {
     baseStats: mkStats({ topSpeed: 318, accel: 4.1, power: 455, grip: 80, weight: 1720, nitro: 88 }),
   },
   'm3gtr': { 
-    id: 'm3gtr', name: 'BMW M3 GTR', price: 6000000, image: '/cars/placeholder.png',
+    id: 'm3gtr', name: 'BMW M3 GTR', price: 6000000, image: '/cars/m3gtr.png',
     performance: { topSpeed: 320, accel: 3.9, power: 450, grip: 88, weight: 1120, nitro: 90 },
     baseStats: mkStats({ topSpeed: 320, accel: 3.9, power: 450, grip: 88, weight: 1120, nitro: 90 }),
   },
   'rs6': { 
-    id: 'rs6', name: 'Audi RS6', price: 10000000, image: '/cars/placeholder.png',
+    id: 'rs6', name: 'Audi RS6', price: 10000000, image: '/cars/rs6.png',
     performance: { topSpeed: 305, accel: 3.6, power: 600, grip: 82, weight: 2075, nitro: 92 },
     baseStats: mkStats({ topSpeed: 305, accel: 3.6, power: 600, grip: 82, weight: 2075, nitro: 92 }),
   },
 
   // --- ТИР 4: Суперкары ---
   'gtr': { 
-    id: 'gtr', name: 'Nissan GT-R R35', price: 25000000, image: '/cars/placeholder.png',
+    id: 'gtr', name: 'Nissan GT-R R35', price: 25000000, image: '/cars/gtr.png',
     performance: { topSpeed: 330, accel: 2.9, power: 600, grip: 92, weight: 1752, nitro: 95 },
     baseStats: mkStats({ topSpeed: 330, accel: 2.9, power: 600, grip: 92, weight: 1752, nitro: 95 }),
   },
   'porsche911': { 
-    id: 'porsche911', name: 'Porsche 911 Turbo S', price: 40000000, image: '/cars/placeholder.png',
+    id: 'porsche911', name: 'Porsche 911 Turbo S', price: 40000000, image: '/cars/porsche911.png',
     performance: { topSpeed: 330, accel: 2.7, power: 650, grip: 94, weight: 1640, nitro: 96 },
     baseStats: mkStats({ topSpeed: 330, accel: 2.7, power: 650, grip: 94, weight: 1640, nitro: 96 }),
   },
   'r8': { 
-    id: 'r8', name: 'Audi R8 V10', price: 60000000, image: '/cars/placeholder.png',
+    id: 'r8', name: 'Audi R8 V10', price: 60000000, image: '/cars/r8.png',
     performance: { topSpeed: 335, accel: 3.1, power: 620, grip: 93, weight: 1595, nitro: 96 },
     baseStats: mkStats({ topSpeed: 335, accel: 3.1, power: 620, grip: 93, weight: 1595, nitro: 96 }),
   },
   'amggt': { 
-    id: 'amggt', name: 'Mercedes-AMG GT', price: 85000000, image: '/cars/placeholder.png',
+    id: 'amggt', name: 'Mercedes-AMG GT', price: 85000000, image: '/cars/amggt.png',
     performance: { topSpeed: 325, accel: 3.2, power: 585, grip: 91, weight: 1645, nitro: 95 },
     baseStats: mkStats({ topSpeed: 325, accel: 3.2, power: 585, grip: 91, weight: 1645, nitro: 95 }),
   },
 
   // --- ТИР 5: Топовые суперкары ---
   'ferrari458': { 
-    id: 'ferrari458', name: 'Ferrari 458 Italia', price: 150000000, image: '/cars/placeholder.png',
+    id: 'ferrari458', name: 'Ferrari 458 Italia', price: 150000000, image: '/cars/ferrari458.png',
     performance: { topSpeed: 325, accel: 3.4, power: 570, grip: 94, weight: 1380, nitro: 96 },
     baseStats: mkStats({ topSpeed: 325, accel: 3.4, power: 570, grip: 94, weight: 1380, nitro: 96 }),
   },
   'huracan': { 
-    id: 'huracan', name: 'Lamborghini Huracan', price: 250000000, image: '/cars/placeholder.png',
+    id: 'huracan', name: 'Lamborghini Huracan', price: 250000000, image: '/cars/huracan.png',
     performance: { topSpeed: 325, accel: 3.2, power: 610, grip: 95, weight: 1422, nitro: 97 },
     baseStats: mkStats({ topSpeed: 325, accel: 3.2, power: 610, grip: 95, weight: 1422, nitro: 97 }),
   },
   'mclaren720': { 
-    id: 'mclaren720', name: 'McLaren 720S', price: 350000000, image: '/cars/placeholder.png',
+    id: 'mclaren720', name: 'McLaren 720S', price: 350000000, image: '/cars/mclaren720.png',
     performance: { topSpeed: 341, accel: 2.9, power: 720, grip: 96, weight: 1419, nitro: 98 },
     baseStats: mkStats({ topSpeed: 341, accel: 2.9, power: 720, grip: 96, weight: 1419, nitro: 98 }),
   },
   'aventador': { 
-    id: 'aventador', name: 'Lamborghini Aventador', price: 500000000, image: '/cars/placeholder.png',
+    id: 'aventador', name: 'Lamborghini Aventador', price: 500000000, image: '/cars/aventador.png',
     performance: { topSpeed: 350, accel: 2.9, power: 740, grip: 95, weight: 1575, nitro: 98 },
     baseStats: mkStats({ topSpeed: 350, accel: 2.9, power: 740, grip: 95, weight: 1575, nitro: 98 }),
   },
 
   // --- ТИР 6: Гиперкары ---
   'sf90': { 
-    id: 'sf90', name: 'Ferrari SF90', price: 1000000000, image: '/cars/placeholder.png',
+    id: 'sf90', name: 'Ferrari SF90', price: 1000000000, image: '/cars/sf90.png',
     performance: { topSpeed: 340, accel: 2.5, power: 1000, grip: 98, weight: 1570, nitro: 99 },
     baseStats: mkStats({ topSpeed: 340, accel: 2.5, power: 1000, grip: 98, weight: 1570, nitro: 99 }),
   },
   'veyron': { 
-    id: 'veyron', name: 'Bugatti Veyron', price: 1500000000, image: '/cars/placeholder.png',
+    id: 'veyron', name: 'Bugatti Veyron', price: 1500000000, image: '/cars/veyron.png',
     performance: { topSpeed: 407, accel: 2.5, power: 1001, grip: 96, weight: 1888, nitro: 99 },
     baseStats: mkStats({ topSpeed: 407, accel: 2.5, power: 1001, grip: 96, weight: 1888, nitro: 99 }),
   },
   'chiron': { 
-    id: 'chiron', name: 'Bugatti Chiron', price: 2500000000, image: '/cars/placeholder.png',
+    id: 'chiron', name: 'Bugatti Chiron', price: 2500000000, image: '/cars/chiron.png',
     performance: { topSpeed: 420, accel: 2.4, power: 1500, grip: 97, weight: 1995, nitro: 100 },
     baseStats: mkStats({ topSpeed: 420, accel: 2.4, power: 1500, grip: 97, weight: 1995, nitro: 100 }),
   },
   'speedtail': { 
-    id: 'speedtail', name: 'McLaren Speedtail', price: 4000000000, image: '/cars/placeholder.png',
+    id: 'speedtail', name: 'McLaren Speedtail', price: 4000000000, image: '/cars/speedtail.png',
     performance: { topSpeed: 403, accel: 2.5, power: 1050, grip: 97, weight: 1430, nitro: 100 },
     baseStats: mkStats({ topSpeed: 403, accel: 2.5, power: 1050, grip: 97, weight: 1430, nitro: 100 }),
   },
   'jesko': { 
-    id: 'jesko', name: 'Koenigsegg Jesko', price: 6000000000, image: '/cars/placeholder.png',
+    id: 'jesko', name: 'Koenigsegg Jesko', price: 6000000000, image: '/cars/jesko.png',
     performance: { topSpeed: 480, accel: 2.5, power: 1600, grip: 99, weight: 1420, nitro: 100 },
     baseStats: mkStats({ topSpeed: 480, accel: 2.5, power: 1600, grip: 99, weight: 1420, nitro: 100 }),
   },
