@@ -60,7 +60,6 @@ export const RacesScreen = () => {
     const rival = pool[Math.floor(Math.random() * pool.length)] || CARS['vaz-2107'];
     const rivalName = OPPONENT_NAMES[Math.floor(Math.random() * OPPONENT_NAMES.length)];
 
-    // Соперник — стоковая машина (без прокачки) + лёгкий рандом
     const jitter = (val: number, pct = 0.05) => val * (1 + (Math.random() - 0.5) * pct);
 
     return {
@@ -152,7 +151,6 @@ export const RacesScreen = () => {
       if (playerProgressRef.current) playerProgressRef.current.style.width = `${Math.min(100, (playerX / maxDistance) * 100)}%`;
       if (opponentProgressRef.current) opponentProgressRef.current.style.width = `${Math.min(100, (opponentX / maxDistance) * 100)}%`;
 
-      // Скорость = реальный topSpeed игрока * progress
       const currentSpd = Math.round(playerPhysics.topSpeed * progress);
       if (hudSpeedTextRef.current) hudSpeedTextRef.current.textContent = currentSpd.toString();
       if (speedometerValueRef.current) speedometerValueRef.current.textContent = currentSpd.toString();
@@ -192,10 +190,17 @@ export const RacesScreen = () => {
         setTimeout(() => {
           setView('result');
           if (result.winner === 'player') playSound('win');
+          
+          // 👇 ПЕРЕДАЁМ playerStats НА СЕРВЕР
           reportPvpResult({
             won: result.winner === 'player',
             ratingDelta: result.winner === 'player' ? 15 : -10,
-            coinsDelta: result.winner === 'player' ? 3000 : 0
+            coinsDelta: result.winner === 'player' ? 3000 : 0,
+            playerStats: {
+              ...playerPhysics,
+              rating: (user?.rating || 100) + (result.winner === 'player' ? 15 : -10),
+              opponentStats: { ...opponentPhysics },
+            },
           });
         }, 400);
       }

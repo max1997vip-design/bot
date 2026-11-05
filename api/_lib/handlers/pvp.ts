@@ -22,10 +22,8 @@ export async function pvpHandler(req: any, res: any) {
     const user = await db.query.users.findFirst({ where: eq(users.id, telegramId) });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 1. Статы текущего игрока берем из запроса
     const myStats = playerStats;
 
-    // 2. Ищем реального соперника (разница рейтинга до 150 очков)
     const possibleOpponents = await db.select()
       .from(users)
       .where(and(
@@ -53,7 +51,6 @@ export async function pvpHandler(req: any, res: any) {
       opponentStats.rating += (Math.random() * 20 - 10);
     }
 
-    // 3. Симуляция гонки
     const calcTime = (stats: any) => {
       const baseTime = (1000 / stats.topSpeed) * 3600; 
       return baseTime - (stats.accel * 0.5) - (stats.grip * 0.05) - (stats.handling * 0.05) + (Math.random() * 1.5);
@@ -75,7 +72,6 @@ export async function pvpHandler(req: any, res: any) {
     let ratingChange = 0;
     let reward = 0;
 
-    // 4. Начисление наград
     if (winner === 'player') {
       reward = (1000 + myStats.rating * 10) * 5;
       newBalance += reward;
@@ -98,7 +94,7 @@ export async function pvpHandler(req: any, res: any) {
       }
     }
 
-    // 👇 СОХРАНЯЕМ РЕЗУЛЬТАТ И ОБНОВЛЯЕМ СТАТИСТИКУ ГОНОК
+    // 👇 Обновляем баланс, рейтинг и СТАТИСТИКУ ГОНОК
     const statsUpdate = winner === 'player'
       ? {
           balance: newBalance,
@@ -123,7 +119,7 @@ export async function pvpHandler(req: any, res: any) {
       result: { winner, log, playerTime: pTime, opponentTime: oTime, ratingChange, reward },
       newBalance: updatedUser.balance,
       newRating: updatedUser.rating,
-      // 👇 Возвращаем статистику на клиент
+      // 👇 возвращаем статистику на клиент
       totalRaces: updatedUser.totalRaces,
       totalWins: updatedUser.totalWins,
       totalLosses: updatedUser.totalLosses,

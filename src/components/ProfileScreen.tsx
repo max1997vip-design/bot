@@ -6,6 +6,7 @@ import { ReferralScreen } from './ReferralScreen';
 import { HistoryModal } from './HistoryModal';
 import { AchievementsScreen } from './AchievementsScreen';
 import { CARS } from '../config/cars';
+import { getLeagueByPoints } from '../config/leagues';
 import '../styles/profile.css';
 
 const calcLevelInfo = (xp: number) => {
@@ -40,6 +41,7 @@ export const ProfileScreen = () => {
   const { level, xpCurrentLevel, xpNextLevel, progress } = calcLevelInfo(user.totalEarned);
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Гонщик';
   const activeCar = CARS[user.activeCarId] || CARS['vaz-2107'];
+  const league = getLeagueByPoints(user.leaguePoints || 0);
 
   const joinDate = new Date(user.createdAt).toLocaleDateString('ru-RU', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -47,7 +49,6 @@ export const ProfileScreen = () => {
 
   const unclaimedCount = achievementsList.filter(a => a.isCompleted && !a.isUnlocked).length;
 
-  // Winrate
   const totalRaces = user.totalRaces || 0;
   const totalWins = user.totalWins || 0;
   const winRate = totalRaces > 0 ? Math.round((totalWins / totalRaces) * 100) : 0;
@@ -61,7 +62,7 @@ export const ProfileScreen = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      {/* === ШАПКА === */}
+      {/* === ШАПКА (аватар + имя + XP) === */}
       <div className="profile-header">
         <div className="avatar-wrapper">
           {user.photoUrl ? (
@@ -76,93 +77,99 @@ export const ProfileScreen = () => {
 
         <h1 className="profile-name">{displayName}</h1>
         {user.username && <p className="profile-username">@{user.username}</p>}
-      </div>
 
-      {/* === XP === */}
-      <div className="xp-section">
-        <div className="xp-labels">
-          <span className="xp-label-title">Опыт</span>
-          <span className="xp-label-value">
-            {Math.floor(user.totalEarned - xpCurrentLevel)} / {xpNextLevel - xpCurrentLevel} XP
-          </span>
-        </div>
-        <div className="xp-bar">
-          <div className="xp-bar-fill" style={{ width: `${progress}%` }} />
-        </div>
-      </div>
-
-      {/* === ОБЩАЯ СТАТИСТИКА === */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">💰</div>
-          <div className="stat-value">{user.totalEarned.toLocaleString('ru-RU')}</div>
-          <div className="stat-label">Всего заработано</div>
-        </div>
-
-        <div className="stat-card" onClick={() => setShowHistory(true)} style={{ cursor: 'pointer' }}>
-          <div className="stat-icon">💵</div>
-          <div className="stat-value">{user.balance.toLocaleString('ru-RU')}</div>
-          <div className="stat-label">Баланс 📜</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">⭐</div>
-          <div className="stat-value">{user.starsBalance}</div>
-          <div className="stat-label">Звезды</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">🚗</div>
-          <div className="stat-value" style={{ fontSize: '14px', textTransform: 'uppercase' }}>
-            {activeCar.name}
+        <div className="xp-section">
+          <div className="xp-labels">
+            <span className="xp-label-title">Опыт</span>
+            <span className="xp-label-value">
+              {Math.floor(user.totalEarned - xpCurrentLevel)} / {xpNextLevel - xpCurrentLevel} XP
+            </span>
           </div>
-          <div className="stat-label">Активная машина</div>
+          <div className="xp-bar">
+            <div className="xp-bar-fill" style={{ width: `${progress}%` }} />
+          </div>
         </div>
       </div>
 
-      {/* === ИГРОВАЯ СТАТИСТИКА === */}
-      <div style={{
-        fontSize: '14px', fontWeight: 900, textTransform: 'uppercase',
-        letterSpacing: '1.5px', color: '#fff', margin: '8px 0 10px',
-        paddingLeft: '10px', borderLeft: '3px solid #00e5ff', lineHeight: 1.2,
-      }}>
-        📊 Статистика
+      {/* === ОБЩАЯ СТАТИСТИКА (2×2) === */}
+      <div className="profile-stats-card">
+        <div className="profile-stat-cell">
+          <div className="profile-stat-icon balance">💰</div>
+          <div className="profile-stat-info">
+            <span className="profile-stat-label">Всего заработано</span>
+            <span className="profile-stat-value">{user.totalEarned.toLocaleString('ru-RU')}</span>
+          </div>
+        </div>
+
+        <div className="profile-stat-cell" onClick={() => setShowHistory(true)} style={{ cursor: 'pointer' }}>
+          <div className="profile-stat-icon stars">💵</div>
+          <div className="profile-stat-info">
+            <span className="profile-stat-label">Баланс 📜</span>
+            <span className="profile-stat-value">{user.balance.toLocaleString('ru-RU')}</span>
+          </div>
+        </div>
+
+        <div className="profile-stat-cell">
+          <div className="profile-stat-icon league">⭐</div>
+          <div className="profile-stat-info">
+            <span className="profile-stat-label">Звёзды</span>
+            <span className="profile-stat-value">{user.starsBalance}</span>
+          </div>
+        </div>
+
+        <div className="profile-stat-cell">
+          <div className="profile-stat-icon rating">🚗</div>
+          <div className="profile-stat-info">
+            <span className="profile-stat-label">{league.name}</span>
+            <span className="profile-stat-value">{user.leaguePoints || 0} очк.</span>
+          </div>
+        </div>
       </div>
 
-      <div className="stats-grid" style={{ marginBottom: '14px' }}>
-        <div className="stat-card">
-          <div className="stat-icon">👆</div>
-          <div className="stat-value">{(user.totalClicks || 0).toLocaleString('ru-RU')}</div>
-          <div className="stat-label">Кликов</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">🏁</div>
-          <div className="stat-value">{user.totalRaces || 0}</div>
-          <div className="stat-label">Гонок</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">🏆</div>
-          <div className="stat-value" style={{ color: '#00FF41' }}>{user.totalWins || 0}</div>
-          <div className="stat-label">Побед</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">💨</div>
-          <div className="stat-value" style={{ color: '#ff4444' }}>{user.totalLosses || 0}</div>
-          <div className="stat-label">Поражений</div>
+      {/* === АКТИВНАЯ МАШИНА === */}
+      <div className="profile-stats-card" style={{ gridTemplateColumns: '1fr' }}>
+        <div className="profile-stat-cell">
+          <div className="profile-stat-icon league">🚗</div>
+          <div className="profile-stat-info">
+            <span className="profile-stat-label">Активная машина</span>
+            <span className="profile-stat-value">{activeCar.name}</span>
+          </div>
         </div>
       </div>
 
-      {/* Winrate */}
-      <div className="profile-info-card" style={{ marginBottom: '14px' }}>
-        <div className="info-row">
-          <span className="info-label">Winrate (побед)</span>
-          <span className="info-value" style={{ color: winRateColor, textShadow: `0 0 10px ${winRateGlow}` }}>
-            {winRate}%
-          </span>
+      {/* === ИГРОВАЯ СТАТИСТИКА (4 колонки) === */}
+      <div className="profile-game-stats">
+        <div className="profile-game-stat">
+          <div className="profile-game-stat-icon">👆</div>
+          <div className="profile-game-stat-value">{(user.totalClicks || 0).toLocaleString('ru-RU')}</div>
+          <div className="profile-game-stat-label">Кликов</div>
         </div>
+
+        <div className="profile-game-stat">
+          <div className="profile-game-stat-icon">🏁</div>
+          <div className="profile-game-stat-value">{user.totalRaces || 0}</div>
+          <div className="profile-game-stat-label">Гонок</div>
+        </div>
+
+        <div className="profile-game-stat">
+          <div className="profile-game-stat-icon">🏆</div>
+          <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{user.totalWins || 0}</div>
+          <div className="profile-game-stat-label">Побед</div>
+        </div>
+
+        <div className="profile-game-stat">
+          <div className="profile-game-stat-icon">💨</div>
+          <div className="profile-game-stat-value" style={{ color: '#ff4444' }}>{user.totalLosses || 0}</div>
+          <div className="profile-game-stat-label">Поражений</div>
+        </div>
+      </div>
+
+      {/* === WINRATE === */}
+      <div className="profile-winrate-row">
+        <span className="profile-winrate-label">📊 Winrate (побед)</span>
+        <span className="profile-winrate-value" style={{ color: winRateColor, textShadow: `0 0 10px ${winRateGlow}` }}>
+          {winRate}%
+        </span>
       </div>
 
       {/* === ДОСТИЖЕНИЯ === */}
@@ -176,7 +183,7 @@ export const ProfileScreen = () => {
           <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
           {unclaimedCount > 0 && (
             <div style={{
-              background: '#ff4444', color: '#fff', fontSize: '11px', fontWeight: 'bold',
+              background: '#ff4444', color: '#fff', fontSize: '10px', fontWeight: 'bold',
               padding: '2px 6px', borderRadius: '10px', display: 'flex', alignItems: 'center',
               justifyContent: 'center', boxShadow: '0 0 10px rgba(255,68,68,0.5)',
             }}>

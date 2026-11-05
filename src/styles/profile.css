@@ -16,23 +16,23 @@
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 100px);
   z-index: 10;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  gap: 12px;
 }
 
 .profile-screen::-webkit-scrollbar { width: 4px; }
 .profile-screen::-webkit-scrollbar-track { background: transparent; }
 .profile-screen::-webkit-scrollbar-thumb { background: var(--accent-glow); border-radius: 2px; }
 
-/* ========== ШАПКА (аватар + имя) ========== */
+/* ========== ШАПКА (аватар + имя + XP) ========== */
 .profile-header {
   display: flex;
   flex-direction: column;
   align-items: center;
   background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid var(--accent-glow);
-  border-radius: 20px;
-  padding: 24px 20px;
-  margin-bottom: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   position: relative;
   overflow: hidden;
 }
@@ -40,29 +40,29 @@
 .profile-header::before {
   content: '';
   position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 200px;
-  height: 200px;
+  top: -50px;
+  right: -50px;
+  width: 160px;
+  height: 160px;
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .avatar-wrapper {
   position: relative;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   z-index: 1;
 }
 
 .profile-avatar,
 .profile-avatar-placeholder {
-  width: 88px;
-  height: 88px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  border: 3px solid var(--accent);
-  box-shadow: 0 0 25px var(--accent-glow);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow);
   object-fit: cover;
   display: block;
 }
@@ -72,7 +72,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #1a2035 0%, #0a0a0a 100%);
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 900;
   color: var(--accent);
   font-family: Impact, Arial Black, sans-serif;
@@ -80,60 +80,57 @@
 
 .level-badge {
   position: absolute;
-  bottom: -4px;
+  bottom: -2px;
   right: -4px;
   background: linear-gradient(90deg, var(--accent), var(--accent-dim, #0088ff));
   color: #000;
   font-weight: 900;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 12px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
   border: 2px solid #0a0a0a;
-  box-shadow: 0 0 15px var(--accent-glow-strong, var(--accent-glow));
+  box-shadow: 0 0 12px var(--accent-glow);
   letter-spacing: 0.5px;
   white-space: nowrap;
-  text-transform: uppercase;
 }
 
 .profile-name {
   color: #fff;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 4px;
-  text-shadow: 0 0 15px var(--accent-glow);
+  letter-spacing: 0.8px;
+  margin: 0 0 2px;
+  text-shadow: 0 0 12px var(--accent-glow);
   text-align: center;
   z-index: 1;
 }
 
 .profile-username {
   color: var(--accent);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 12px;
   z-index: 1;
 }
 
-/* ========== XP ========== */
+/* XP прямо в шапке */
 .xp-section {
-  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 12px 16px;
-  margin-bottom: 14px;
+  width: 100%;
+  margin-top: 4px;
+  z-index: 1;
 }
 
 .xp-labels {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .xp-label-title {
   color: var(--text-secondary, #888);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -141,78 +138,187 @@
 
 .xp-label-value {
   color: var(--accent);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
   font-family: monospace;
   font-variant-numeric: tabular-nums;
 }
 
 .xp-bar {
-  height: 8px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .xp-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--accent-dim, #0088ff), var(--accent));
-  border-radius: 4px;
-  box-shadow: 0 0 10px var(--accent-glow);
+  border-radius: 3px;
+  box-shadow: 0 0 8px var(--accent-glow);
   transition: width 0.4s ease;
 }
 
-/* ========== СТАТИСТИКА ========== */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* ========== ОБЩАЯ КАРТОЧКА СТАТИСТИКИ ========== */
+.profile-stats-card {
   background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 16px 10px;
-  text-align: center;
-  transition: all 0.2s ease;
-  position: relative;
+  border-radius: 16px;
+  padding: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
   overflow: hidden;
 }
 
-.stat-card:hover {
-  border-color: var(--accent-glow);
-  transform: translateY(-1px);
+.profile-stat-cell {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  position: relative;
 }
 
-.stat-icon {
-  font-size: 24px;
-  margin-bottom: 6px;
+.profile-stat-cell:nth-child(1) { border-top-left-radius: 12px; }
+.profile-stat-cell:nth-child(2) { border-top-right-radius: 12px; }
+.profile-stat-cell:nth-child(3) { border-bottom-left-radius: 12px; }
+.profile-stat-cell:nth-child(4) { border-bottom-right-radius: 12px; }
+
+.profile-stat-cell::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
-.stat-value {
-  color: #fff;
+.profile-stat-icon {
   font-size: 18px;
-  font-weight: 900;
-  font-family: Impact, Arial Black, sans-serif;
-  letter-spacing: 0.5px;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.stat-label {
-  color: var(--text-secondary, #666);
-  font-size: 10px;
+.profile-stat-icon.balance { background: rgba(0, 255, 65, 0.1); border: 1px solid rgba(0, 255, 65, 0.3); }
+.profile-stat-icon.stars { background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); }
+.profile-stat-icon.league { background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); }
+.profile-stat-icon.rating { background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); }
+
+.profile-stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-stat-label {
+  color: var(--text-secondary, #888);
+  font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 4px;
+}
+
+.profile-stat-value {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  font-family: Impact, Arial Black, sans-serif;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========== ИГРОВАЯ СТАТИСТИКА (4 колонки) ========== */
+.profile-game-stats {
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 12px 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.profile-game-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  position: relative;
+}
+
+.profile-game-stat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-game-stat-icon {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.profile-game-stat-value {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  font-family: Impact, Arial Black, sans-serif;
+  letter-spacing: 0.3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-game-stat-label {
+  color: var(--text-secondary, #888);
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+  text-align: center;
+}
+
+/* Winrate строка */
+.profile-winrate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.profile-winrate-label {
+  color: var(--text-secondary, #888);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-winrate-value {
+  font-size: 16px;
+  font-weight: 900;
+  font-family: Impact, Arial Black, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ========== КНОПКИ-ПЕРЕХОДЫ ========== */
@@ -221,8 +327,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 14px 16px;
-  margin-bottom: 10px;
+  padding: 12px 14px;
   background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid var(--accent-glow);
   border-radius: 14px;
@@ -240,10 +345,10 @@
 }
 
 .profile-referral-icon {
-  font-size: 22px;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   background: rgba(0, 229, 255, 0.1);
   border: 1px solid var(--accent-glow);
   display: flex;
@@ -261,7 +366,7 @@
 }
 
 .profile-referral-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -269,14 +374,14 @@
 }
 
 .profile-referral-sub {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary, #888);
   font-weight: 600;
 }
 
 .profile-referral-arrow {
   color: var(--accent);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
   flex-shrink: 0;
 }
@@ -286,15 +391,14 @@
   background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  padding: 4px 16px;
-  margin-bottom: 14px;
+  padding: 2px 14px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -304,13 +408,13 @@
 
 .info-label {
   color: var(--text-secondary, #888);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .info-value {
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   font-family: monospace;
   font-variant-numeric: tabular-nums;
@@ -318,13 +422,13 @@
 
 .status-active {
   color: #00FF41;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
 }
 
 /* ========== АДАПТАЦИЯ ========== */
 @media (max-width: 380px) {
-  .profile-avatar, .profile-avatar-placeholder { width: 72px; height: 72px; }
-  .profile-name { font-size: 18px; }
-  .stat-value { font-size: 16px; }
-  .level-badge { font-size: 10px; padding: 3px 8px; }
+  .profile-avatar, .profile-avatar-placeholder { width: 64px; height: 64px; }
+  .profile-name { font-size: 16px; }
+  .profile-stat-value { font-size: 12px; }
+  .profile-game-stat-value { font-size: 12px; }
 }

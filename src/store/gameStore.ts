@@ -41,7 +41,7 @@ export interface UserData {
   };
   isAdmin?: boolean;
 
-  // 👇 НОВЫЕ ПОЛЯ СТАТИСТИКИ
+  // 👇 ПОЛЯ СТАТИСТИКИ
   totalClicks?: number;
   totalRaces?: number;
   totalWins?: number;
@@ -52,6 +52,7 @@ interface GameState {
   user: UserData | null;
   balance: number;
   unsyncedTaps: number;
+  unsyncedClicks: number; // 👈 считаем клики отдельно от монет
   isSyncing: boolean;
   tapCountInSecond: number;
   lastTapSecond: number;
@@ -127,7 +128,7 @@ interface GameState {
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
-  user: null, balance: 0, unsyncedTaps: 0, isSyncing: false,
+  user: null, balance: 0, unsyncedTaps: 0, unsyncedClicks: 0, isSyncing: false,
   tapCountInSecond: 0, lastTapSecond: 0, carColor: 'original',
   inventory: [], 
   equipped: { engine: null, tires: null, ecu: null, suspension: null }, 
@@ -146,7 +147,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
-  // 👇 ЛОКАЛЬНО ИНКРЕМЕНТИМ КЛИКИ
   tap: () => {
     const state = get(); const now = Date.now();
     const tapPower = state.user?.clickLevel || 1; 
@@ -160,9 +160,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       user: s.user ? { 
         ...s.user, 
         totalEarned: s.user.totalEarned + tapPower,
-        totalClicks: (s.user.totalClicks || 0) + 1, // 👈 локальный инкремент
+        totalClicks: (s.user.totalClicks || 0) + 1, // 👈 клик = +1
       } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
+      unsyncedClicks: s.unsyncedClicks + 1, // 👈 считаем клики отдельно
     }));
   },
 
@@ -602,15 +603,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   syncTaps: async () => {
-    const { unsyncedTaps, isSyncing } = get();
+    const { unsyncedTaps, unsyncedClicks, isSyncing } = get();
     if (unsyncedTaps === 0 || isSyncing) return;
     const tapsToSend = unsyncedTaps;
-    set({ unsyncedTaps: 0, isSyncing: true });
+    const clicksToSend = unsyncedClicks;
+    set({ unsyncedTaps: 0, unsyncedClicks: 0, isSyncing: true });
     try {
       const initData = getInitData();
       const res = await fetch('/api/game?action=tap', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, amount: tapsToSend }),
+        body: JSON.stringify({ initData, amount: tapsToSend, clicks: clicksToSend }), // 👈 передаём клики
       });
       if (!res.ok) throw new Error('Ошибка сервера');
       const data = await res.json();
@@ -628,7 +630,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
       }
     } catch (error) {
-      set((state) => ({ unsyncedTaps: state.unsyncedTaps + tapsToSend }));
+      set((state) => ({ 
+        unsyncedTaps: state.unsyncedTaps + tapsToSend,
+        unsyncedClicks: state.unsyncedClicks + clicksToSend,
+      }));
     } finally { set({ isSyncing: false }); }
   },
 
@@ -720,7 +725,6 @@ export const useGameStore = create<GameState>((set, get) => ({
           ...state.user, 
           balance: data.newBalance ?? state.user.balance, 
           rating: data.newRating ?? state.user.rating,
-          // 👇 берём статистику гонок с сервера
           totalRaces: data.totalRaces ?? state.user.totalRaces,
           totalWins: data.totalWins ?? state.user.totalWins,
           totalLosses: data.totalLosses ?? state.user.totalLosses,
