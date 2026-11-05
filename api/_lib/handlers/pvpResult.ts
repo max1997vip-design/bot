@@ -1,7 +1,8 @@
+// api/_lib/handlers/pvpResult.ts
 import { db } from '../db.js';
-import { users, clans, clanMembers } from '../schema.js'; // 👈 Добавили таблицы кланов
+import { users, clans, clanMembers } from '../schema.js';
 import { validateInitData } from '../telegram.js';
-import { eq, sql, and } from 'drizzle-orm'; // 👈 Добавили and
+import { eq, sql, and } from 'drizzle-orm';
 import { getOrCreateQuests } from '../quests.js';
 import { getOrCreatePass } from '../pass.js';
 
@@ -19,50 +20,62 @@ export async function pvpResultHandler(req: any, res: any) {
     const safeRating = Math.max(-100, Math.min(100, Math.round(ratingDelta ?? 0)));
     const safeCoins = Math.max(-10000, Math.min(10000, Math.round(coinsDelta ?? 0)));
 
-    // ОБНОВЛЯЕМ КВЕСТЫ
+    // Обновляем квесты
     const quests = getOrCreateQuests(user.dailyQuests);
     if (won) {
       quests.progress.win_3 = Math.min(3, (quests.progress.win_3 || 0) + 1);
     }
 
-    // ОБНОВЛЯЕМ ПРОПУСК (+50 XP за победу)
+    // Обновляем пропуск
     const pass = getOrCreatePass(user.weeklyPass);
     if (won) {
       pass.xp += 50;
     }
 
-    // 👇 ЛОГИКА КЛАНОВОГО НАЛОГА (10% от выигрыша) 👇
+    // Клановый налог (10% от выигрыша)
     let clanTax = 0;
     if (safeCoins > 0) {
       const memberRecord = await db.select().from(clanMembers).where(eq(clanMembers.userId, userId));
       if (memberRecord.length > 0) {
         const clanId = memberRecord[0].clanId;
-        clanTax = Math.floor(safeCoins * 0.10); // Берем 10%
+        clanTax = Math.floor(safeCoins * 0.10);
 
         if (clanTax > 0) {
-          // Начисляем в казну клана
           await db.update(clans)
             .set({ balance: sql`${clans.balance} + ${clanTax}` })
             .where(eq(clans.id, clanId));
           
-          // Записываем вклад игроку
           await db.update(clanMembers)
             .set({ contribution: sql`${clanMembers.contribution} + ${clanTax}` })
             .where(and(eq(clanMembers.userId, userId), eq(clanMembers.clanId, clanId)));
         }
       }
     }
-    // 👆 КОНЕЦ ЛОГИКИ КЛАНА 👆
+
+    // 👇 ОБНОВЛЯЕМ БАЛАНС, РЕЙТИНГ И СТАТИСТИКУ ГОНОК
+    const statsUpdate = won
+      ? {
+          rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
+          balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
+          totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
+          totalRaces: sql`${users.totalRaces} + 1`,
+          totalWins: sql`${users.totalWins} + 1`,
+          dailyQuests: quests,
+          weeklyPass: pass,
+        }
+      : {
+          rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
+          balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
+          totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
+          totalRaces: sql`${users.totalRaces} + 1`,
+          totalLosses: sql`${users.totalLosses} + 1`,
+          dailyQuests: quests,
+          weeklyPass: pass,
+        };
 
     const [updated] = await db
       .update(users)
-      .set({
-        rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
-        balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
-        totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
-        dailyQuests: quests,
-        weeklyPass: pass 
-      })
+      .set(statsUpdate)
       .where(eq(users.id, userId))
       .returning();
 
@@ -72,9 +85,13 @@ export async function pvpResultHandler(req: any, res: any) {
       rating: updated.rating,
       newBalance: updated.balance,
       newRating: updated.rating,
+      // 👇 Отдаём статистику на клиент
+      totalRaces: updated.totalRaces,
+      totalWins: updated.totalWins,
+      totalLosses: updated.totalLosses,
       quests,
       pass: updated.weeklyPass,
-      clanTax // Возвращаем сумму налога на фронт (можешь вывести в уведомлении)
+      clanTax,
     });
   } catch (error) {
     console.error('[pvpResult]', error);

@@ -126,8 +126,8 @@ export const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* === АКТИВНАЯ МАШИНА === */}
-      <div className="profile-stats-card" style={{ gridTemplateColumns: '1fr' }}>
+            {/* === АКТИВНАЯ МАШИНА === */}
+      <div className="profile-stats-card single">
         <div className="profile-stat-cell">
           <div className="profile-stat-icon league">🚗</div>
           <div className="profile-stat-info">
