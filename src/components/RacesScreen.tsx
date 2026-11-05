@@ -189,20 +189,31 @@ export const RacesScreen = () => {
 
         setTimeout(() => {
           setView('result');
-          if (result.winner === 'player') playSound('win');
-          
-          // 👇 ПЕРЕДАЁМ playerStats НА СЕРВЕР
-          reportPvpResult({
-            won: result.winner === 'player',
-            ratingDelta: result.winner === 'player' ? 15 : -10,
-            coinsDelta: result.winner === 'player' ? 3000 : 0,
-            playerStats: {
-              ...playerPhysics,
-              rating: (user?.rating || 100) + (result.winner === 'player' ? 15 : -10),
-              opponentStats: { ...opponentPhysics },
-            },
-          });
-        }, 400);
+      if (result.winner === 'player') playSound('win');
+  
+  // 👇 ПЕРЕДАЁМ playerStats ОБЯЗАТЕЛЬНО
+      reportPvpResult({
+      won: result.winner === 'player',
+      ratingDelta: result.winner === 'player' ? 15 : -10,
+      coinsDelta: result.winner === 'player' ? 3000 : 0,
+      playerStats: {
+      power: playerPhysics.power,
+      topSpeed: playerPhysics.topSpeed,
+      accel: playerPhysics.accel,
+      grip: playerPhysics.grip,
+      handling: playerPhysics.handling,
+      rating: user?.rating || 100,
+      opponentStats: {
+        power: opponentPhysics.power,
+        topSpeed: opponentPhysics.topSpeed,
+        accel: opponentPhysics.accel,
+        grip: opponentPhysics.grip,
+        handling: opponentPhysics.handling,
+        rating: user?.rating || 100,
+      },
+    },
+  });
+}, 400);
       }
     };
 

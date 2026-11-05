@@ -702,40 +702,51 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   reportPvpResult: async ({ won, ratingDelta, coinsDelta, playerStats }) => {
-    const { user } = get();
-    if (!user) return;
-    
-    const prevBalance = user.balance;
-    const prevRating = user.rating;
+  const { user } = get();
+  if (!user) return;
+  
+  console.log('[PVP] Sending:', { won, ratingDelta, coinsDelta, playerStats });
 
-    const initData = getInitData();
-    try {
-      const res = await fetch('/api/game?action=pvpResult', {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, won, ratingDelta, coinsDelta, playerStats }),
-      });
+  const prevBalance = user.balance;
+  const prevRating = user.rating;
 
-      if (!res.ok) throw new Error('Server error');
-      const data = await res.json();
-      
-      set((state) => ({
-        balance: data.newBalance ?? state.balance,
-        user: state.user ? { 
-          ...state.user, 
-          balance: data.newBalance ?? state.user.balance, 
-          rating: data.newRating ?? state.user.rating,
-          totalRaces: data.totalRaces ?? state.user.totalRaces,
-          totalWins: data.totalWins ?? state.user.totalWins,
-          totalLosses: data.totalLosses ?? state.user.totalLosses,
-        } : null
-      }));
-    } catch (e) {
-      set((state) => ({
-        balance: prevBalance,
-        user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null
-      }));
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=pvpResult', {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, won, ratingDelta, coinsDelta, playerStats }),
+    });
+
+    console.log('[PVP] Response status:', res.status);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[PVP] Server error:', errorText);
+      throw new Error(`Server error: ${res.status}`);
     }
+
+    const data = await res.json();
+    console.log('[PVP] Response data:', data);
+    
+    set((state) => ({
+      balance: data.newBalance ?? state.balance,
+      user: state.user ? { 
+        ...state.user, 
+        balance: data.newBalance ?? state.user.balance, 
+        rating: data.newRating ?? state.user.rating,
+        totalRaces: data.totalRaces ?? state.user.totalRaces,
+        totalWins: data.totalWins ?? state.user.totalWins,
+        totalLosses: data.totalLosses ?? state.user.totalLosses,
+      } : null
+    }));
+  } catch (e) {
+    console.error('[PVP] Fetch error:', e);
+    set((state) => ({
+      balance: prevBalance,
+      user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null
+    }));
+  }
   },
 
   buyCar: async (carId, price) => {
