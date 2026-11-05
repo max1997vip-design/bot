@@ -62,163 +62,165 @@ export const ProfileScreen = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      {/* === ШАПКА (аватар + имя + XP) === */}
-      <div className="profile-header">
-        <div className="avatar-wrapper">
-          {user.photoUrl ? (
-            <img src={user.photoUrl} alt={displayName} className="profile-avatar" />
-          ) : (
-            <div className="profile-avatar-placeholder">
-              {displayName[0].toUpperCase()}
+      <div className="profile-content">
+        {/* === ШАПКА === */}
+        <div className="profile-header">
+          <div className="avatar-wrapper">
+            {user.photoUrl ? (
+              <img src={user.photoUrl} alt={displayName} className="profile-avatar" />
+            ) : (
+              <div className="profile-avatar-placeholder">
+                {displayName[0].toUpperCase()}
+              </div>
+            )}
+            <div className="level-badge">LVL {level}</div>
+          </div>
+
+          <h1 className="profile-name">{displayName}</h1>
+          {user.username && <p className="profile-username">@{user.username}</p>}
+
+          <div className="xp-section">
+            <div className="xp-labels">
+              <span className="xp-label-title">Опыт</span>
+              <span className="xp-label-value">
+                {Math.floor(user.totalEarned - xpCurrentLevel)} / {xpNextLevel - xpCurrentLevel} XP
+              </span>
             </div>
-          )}
-          <div className="level-badge">LVL {level}</div>
-        </div>
-
-        <h1 className="profile-name">{displayName}</h1>
-        {user.username && <p className="profile-username">@{user.username}</p>}
-
-        <div className="xp-section">
-          <div className="xp-labels">
-            <span className="xp-label-title">Опыт</span>
-            <span className="xp-label-value">
-              {Math.floor(user.totalEarned - xpCurrentLevel)} / {xpNextLevel - xpCurrentLevel} XP
-            </span>
-          </div>
-          <div className="xp-bar">
-            <div className="xp-bar-fill" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      </div>
-
-      {/* === ОБЩАЯ СТАТИСТИКА (2×2) === */}
-      <div className="profile-stats-card">
-        <div className="profile-stat-cell">
-          <div className="profile-stat-icon balance">💰</div>
-          <div className="profile-stat-info">
-            <span className="profile-stat-label">Всего заработано</span>
-            <span className="profile-stat-value">{user.totalEarned.toLocaleString('ru-RU')}</span>
-          </div>
-        </div>
-
-        <div className="profile-stat-cell" onClick={() => setShowHistory(true)} style={{ cursor: 'pointer' }}>
-          <div className="profile-stat-icon stars">💵</div>
-          <div className="profile-stat-info">
-            <span className="profile-stat-label">Баланс 📜</span>
-            <span className="profile-stat-value">{user.balance.toLocaleString('ru-RU')}</span>
-          </div>
-        </div>
-
-        <div className="profile-stat-cell">
-          <div className="profile-stat-icon league">⭐</div>
-          <div className="profile-stat-info">
-            <span className="profile-stat-label">Звёзды</span>
-            <span className="profile-stat-value">{user.starsBalance}</span>
-          </div>
-        </div>
-
-        <div className="profile-stat-cell">
-          <div className="profile-stat-icon rating">🚗</div>
-          <div className="profile-stat-info">
-            <span className="profile-stat-label">{league.name}</span>
-            <span className="profile-stat-value">{user.leaguePoints || 0} очк.</span>
-          </div>
-        </div>
-      </div>
-
-            {/* === АКТИВНАЯ МАШИНА === */}
-      <div className="profile-stats-card single">
-        <div className="profile-stat-cell">
-          <div className="profile-stat-icon league">🚗</div>
-          <div className="profile-stat-info">
-            <span className="profile-stat-label">Активная машина</span>
-            <span className="profile-stat-value">{activeCar.name}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* === ИГРОВАЯ СТАТИСТИКА (4 колонки) === */}
-      <div className="profile-game-stats">
-        <div className="profile-game-stat">
-          <div className="profile-game-stat-icon">👆</div>
-          <div className="profile-game-stat-value">{(user.totalClicks || 0).toLocaleString('ru-RU')}</div>
-          <div className="profile-game-stat-label">Кликов</div>
-        </div>
-
-        <div className="profile-game-stat">
-          <div className="profile-game-stat-icon">🏁</div>
-          <div className="profile-game-stat-value">{user.totalRaces || 0}</div>
-          <div className="profile-game-stat-label">Гонок</div>
-        </div>
-
-        <div className="profile-game-stat">
-          <div className="profile-game-stat-icon">🏆</div>
-          <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{user.totalWins || 0}</div>
-          <div className="profile-game-stat-label">Побед</div>
-        </div>
-
-        <div className="profile-game-stat">
-          <div className="profile-game-stat-icon">💨</div>
-          <div className="profile-game-stat-value" style={{ color: '#ff4444' }}>{user.totalLosses || 0}</div>
-          <div className="profile-game-stat-label">Поражений</div>
-        </div>
-      </div>
-
-      {/* === WINRATE === */}
-      <div className="profile-winrate-row">
-        <span className="profile-winrate-label">📊 Winrate (побед)</span>
-        <span className="profile-winrate-value" style={{ color: winRateColor, textShadow: `0 0 10px ${winRateGlow}` }}>
-          {winRate}%
-        </span>
-      </div>
-
-      {/* === ДОСТИЖЕНИЯ === */}
-      <button
-        className="profile-referral-btn"
-        onClick={() => setShowAchievements(true)}
-        style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }}
-      >
-        <span className="profile-referral-icon">🏆</span>
-        <div className="profile-referral-text" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
-          <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
-          {unclaimedCount > 0 && (
-            <div style={{
-              background: '#ff4444', color: '#fff', fontSize: '10px', fontWeight: 'bold',
-              padding: '2px 6px', borderRadius: '10px', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', boxShadow: '0 0 10px rgba(255,68,68,0.5)',
-            }}>
-              {unclaimedCount}
+            <div className="xp-bar">
+              <div className="xp-bar-fill" style={{ width: `${progress}%` }} />
             </div>
-          )}
+          </div>
         </div>
-        <span className="profile-referral-arrow">›</span>
-      </button>
 
-      {/* === РЕФЕРАЛЫ === */}
-      <button className="profile-referral-btn" onClick={() => setShowReferral(true)}>
-        <span className="profile-referral-icon">🎁</span>
-        <div className="profile-referral-text">
-          <span className="profile-referral-title">Пригласить друга</span>
-          <span className="profile-referral-sub">
-            Заработано: {(user.referralEarnings || 0).toLocaleString('ru-RU')} 🪙
+        {/* === ОБЩАЯ СТАТИСТИКА (2×2) === */}
+        <div className="profile-stats-card">
+          <div className="profile-stat-cell">
+            <div className="profile-stat-icon balance">💰</div>
+            <div className="profile-stat-info">
+              <span className="profile-stat-label">Всего заработано</span>
+              <span className="profile-stat-value">{user.totalEarned.toLocaleString('ru-RU')}</span>
+            </div>
+          </div>
+
+          <div className="profile-stat-cell" onClick={() => setShowHistory(true)} style={{ cursor: 'pointer' }}>
+            <div className="profile-stat-icon stars">💵</div>
+            <div className="profile-stat-info">
+              <span className="profile-stat-label">Баланс 📜</span>
+              <span className="profile-stat-value">{user.balance.toLocaleString('ru-RU')}</span>
+            </div>
+          </div>
+
+          <div className="profile-stat-cell">
+            <div className="profile-stat-icon league">⭐</div>
+            <div className="profile-stat-info">
+              <span className="profile-stat-label">Звёзды</span>
+              <span className="profile-stat-value">{user.starsBalance}</span>
+            </div>
+          </div>
+
+          <div className="profile-stat-cell">
+            <div className="profile-stat-icon rating">🚗</div>
+            <div className="profile-stat-info">
+              <span className="profile-stat-label">{league.name}</span>
+              <span className="profile-stat-value">{user.leaguePoints || 0} очк.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* === АКТИВНАЯ МАШИНА === */}
+        <div className="profile-stats-card single">
+          <div className="profile-stat-cell">
+            <div className="profile-stat-icon league">🚗</div>
+            <div className="profile-stat-info">
+              <span className="profile-stat-label">Активная машина</span>
+              <span className="profile-stat-value">{activeCar.name}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* === ИГРОВАЯ СТАТИСТИКА (4 колонки) === */}
+        <div className="profile-game-stats">
+          <div className="profile-game-stat">
+            <div className="profile-game-stat-icon">👆</div>
+            <div className="profile-game-stat-value">{(user.totalClicks || 0).toLocaleString('ru-RU')}</div>
+            <div className="profile-game-stat-label">Кликов</div>
+          </div>
+
+          <div className="profile-game-stat">
+            <div className="profile-game-stat-icon">🏁</div>
+            <div className="profile-game-stat-value">{user.totalRaces || 0}</div>
+            <div className="profile-game-stat-label">Гонок</div>
+          </div>
+
+          <div className="profile-game-stat">
+            <div className="profile-game-stat-icon">🏆</div>
+            <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{user.totalWins || 0}</div>
+            <div className="profile-game-stat-label">Побед</div>
+          </div>
+
+          <div className="profile-game-stat">
+            <div className="profile-game-stat-icon">💨</div>
+            <div className="profile-game-stat-value" style={{ color: '#ff4444' }}>{user.totalLosses || 0}</div>
+            <div className="profile-game-stat-label">Поражений</div>
+          </div>
+        </div>
+
+        {/* === WINRATE === */}
+        <div className="profile-winrate-row">
+          <span className="profile-winrate-label">📊 Winrate (побед)</span>
+          <span className="profile-winrate-value" style={{ color: winRateColor, textShadow: `0 0 10px ${winRateGlow}` }}>
+            {winRate}%
           </span>
         </div>
-        <span className="profile-referral-arrow">›</span>
-      </button>
 
-      {/* === ИНФО === */}
-      <div className="profile-info-card">
-        <div className="info-row">
-          <span className="info-label">Telegram ID</span>
-          <span className="info-value">{user.id}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Дата регистрации</span>
-          <span className="info-value">{joinDate}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Статус</span>
-          <span className="info-value status-active">● Активен</span>
+        {/* === ДОСТИЖЕНИЯ === */}
+        <button
+          className="profile-referral-btn"
+          onClick={() => setShowAchievements(true)}
+          style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }}
+        >
+          <span className="profile-referral-icon">🏆</span>
+          <div className="profile-referral-text" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+            <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
+            {unclaimedCount > 0 && (
+              <div style={{
+                background: '#ff4444', color: '#fff', fontSize: '10px', fontWeight: 'bold',
+                padding: '2px 6px', borderRadius: '10px', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', boxShadow: '0 0 10px rgba(255,68,68,0.5)',
+              }}>
+                {unclaimedCount}
+              </div>
+            )}
+          </div>
+          <span className="profile-referral-arrow">›</span>
+        </button>
+
+        {/* === РЕФЕРАЛЫ === */}
+        <button className="profile-referral-btn" onClick={() => setShowReferral(true)}>
+          <span className="profile-referral-icon">🎁</span>
+          <div className="profile-referral-text">
+            <span className="profile-referral-title">Пригласить друга</span>
+            <span className="profile-referral-sub">
+              Заработано: {(user.referralEarnings || 0).toLocaleString('ru-RU')} 🪙
+            </span>
+          </div>
+          <span className="profile-referral-arrow">›</span>
+        </button>
+
+        {/* === ИНФО === */}
+        <div className="profile-info-card">
+          <div className="info-row">
+            <span className="info-label">Telegram ID</span>
+            <span className="info-value">{user.id}</span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">Дата регистрации</span>
+            <span className="info-value">{joinDate}</span>
+          </div>
+          <div className="info-row">
+            <span className="info-label">Статус</span>
+            <span className="info-value status-active">● Активен</span>
+          </div>
         </div>
       </div>
 
