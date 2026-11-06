@@ -13,8 +13,8 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
   const [flipping, setFlipping] = useState(false);
 
     const handlePlay = async () => {
-    if (!bet || bet < 100) return alert('Минимальная ставка 100 🪙');
-    if (user && bet > user.balance) return alert('Недостаточно монет!');
+    if (!bet || bet < 100) return alert('Минимальная ставка 100 ₽');
+    if (user && bet > user.balance) return alert('Недостаточно ₽!');
     
     setLoading(true);
     setResult(null);
@@ -49,7 +49,7 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
           <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>Закрыть</button>
         </div>
 
-        {/* Монетка */}
+        {/* ₽ка */}
         <div style={{ height: '150px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
           <motion.div
             animate={flipping ? { rotateY: [0, 720, 1440], scale: [1, 1.5, 1] } : { rotateY: 0, scale: 1 }}
@@ -62,7 +62,7 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
               border: '4px solid #fff'
             }}
           >
-            {flipping ? '🪙' : (result ? (result.result === 'heads' ? '👑' : '🦅') : '🪙')}
+            {flipping ? '₽' : (result ? (result.result === 'heads' ? '👑' : '🦅') : '₽')}
           </motion.div>
         </div>
 
@@ -74,7 +74,7 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             </h3>
             <p style={{ color: '#fff', margin: '5px 0 0 0' }}>
               {result.result === 'heads' ? 'Выпал Орел 👑' : 'Выпала Решка 🦅'} <br/>
-              {result.isWin ? `Выигрыш: +${result.payout.toLocaleString('ru-RU')} 🪙` : `Потеряно: -${bet.toLocaleString('ru-RU')} 🪙`}
+              {result.isWin ? `Выигрыш: +${result.payout.toLocaleString('ru-RU')} ₽` : `Потеряно: -${bet.toLocaleString('ru-RU')} ₽`}
             </p>
           </motion.div>
         )}
@@ -146,7 +146,7 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
           </button>
           <div style={{ color: '#888', fontSize: '12px', marginTop: '15px' }}>
             Коэффициент выигрыша: x1.9 <br/>
-            Баланс: {user?.balance.toLocaleString('ru-RU')} 🪙
+            Баланс: {user?.balance.toLocaleString('ru-RU')} ₽
           </div>
         </div>
       </div>

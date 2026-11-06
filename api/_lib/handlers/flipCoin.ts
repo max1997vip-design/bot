@@ -17,12 +17,12 @@ export async function flipCoinHandler(req: any, res: any) {
     const [user] = await db.select().from(users).where(eq(users.id, valid.user.id));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    if (user.balance < bet) return res.status(400).json({ error: 'Недостаточно монет' });
+    if (user.balance < bet) return res.status(400).json({ error: 'Недостаточно ₽' });
 
     // Списываем ставку
     let newBalance = user.balance - bet;
     
-    // Сервер кидает монетку
+    // Сервер кидает ₽ку
     const result = Math.random() < 0.5 ? 'heads' : 'tails';
     const isWin = result === choice;
     

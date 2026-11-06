@@ -15,7 +15,7 @@ export async function upgradeOfflineHandler(req: any, res: any) {
   const currentLevel = user.offlineLevel || 1;
   const cost = Math.floor(5000 * Math.pow(1.8, currentLevel - 1));
 
-  if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно монет' });
+  if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно ₽' });
 
   const [updated] = await db.update(users)
     .set({ balance: user.balance - cost, offlineLevel: currentLevel + 1 })

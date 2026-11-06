@@ -20,7 +20,7 @@
   border-top-right-radius: 24px;
   width: 100%;
   max-width: 500px;
-  min-height: 85vh;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 -10px 40px rgba(0, 229, 255, 0.1);
@@ -45,10 +45,13 @@
 .referral-topbar h2 {
   color: #fff;
   font-family: Impact, Arial Black, sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   margin: 0;
   letter-spacing: 1px;
   text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .referral-back {
@@ -73,12 +76,17 @@
 }
 
 .referral-content {
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+
+.referral-content::-webkit-scrollbar { display: none; }
 
 .referral-bonus-card {
   display: flex;
@@ -87,7 +95,7 @@
   background: rgba(0, 229, 255, 0.05);
   border: 1px solid rgba(0, 229, 255, 0.2);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px;
 }
 
 .bonus-icon { font-size: 32px; filter: drop-shadow(0 0 10px rgba(0,229,255,0.5)); }
@@ -115,10 +123,9 @@
   justify-content: space-between;
   align-items: center;
   background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 65, 0.2);
   border-radius: 14px;
-  padding: 16px;
-  margin-top: 8px;
+  padding: 14px;
 }
 
 .earnings-label { 
@@ -129,12 +136,60 @@
 
 .earnings-value { 
   color: #00FF41; 
-  font-size: 18px; 
+  font-size: 16px; 
   font-weight: 900; 
   font-family: Impact, sans-serif; 
   text-shadow: 0 0 10px rgba(0, 255, 65, 0.3); 
   font-variant-numeric: tabular-nums;
 }
+
+/* 👇 Новый блок "Как это работает" */
+.referral-how-it-works {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.referral-how-it-works h4 {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+  font-family: Impact, sans-serif;
+}
+
+.how-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.how-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.how-step p {
+  color: var(--text-secondary, #888);
+  font-size: 11px;
+  margin: 0;
+}
+
+.how-step p strong { color: var(--accent); }
 
 .referral-link-box {
   display: flex;
@@ -143,7 +198,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  padding: 14px;
+  padding: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -157,23 +212,48 @@
   font-family: monospace; 
 }
 
-.copy-icon { font-size: 16px; color: var(--accent); margin-left: 8px; }
-
-.referral-btn-action {
+/* 👇 Две кнопки */
+.referral-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
   margin-top: auto;
-  padding: 16px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-dim, #00b8cc));
-  border: none;
-  border-radius: 12px;
-  color: #000;
-  font-size: 14px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  box-shadow: 0 4px 20px var(--accent-glow, rgba(0,229,255,0.25));
-  transition: transform 0.2s;
-  font-family: Impact, sans-serif;
+  padding-top: 8px;
 }
 
-.referral-btn-action:active { transform: scale(0.98); }
+.referral-btn-copy, .referral-btn-action {
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-family: Impact, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.referral-btn-copy {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.referral-btn-copy:hover {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.referral-btn-action {
+  background: linear-gradient(90deg, var(--accent), var(--accent-dim, #00b8cc));
+  color: #000;
+  box-shadow: 0 4px 20px var(--accent-glow, rgba(0,229,255,0.25));
+}
+
+.referral-btn-copy:active, .referral-btn-action:active { transform: scale(0.98); }

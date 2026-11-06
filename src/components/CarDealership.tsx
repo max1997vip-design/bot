@@ -38,7 +38,7 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         <div>
           <h2 style={{ color: '#fff', margin: 0, fontSize: '22px' }}>🏢 Автосалон</h2>
           <p style={{ color: '#00FF41', margin: '4px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>
-            Баланс: {balance.toLocaleString('ru-RU')} 🪙
+            Баланс: {balance.toLocaleString('ru-RU')} ₽
           </p>
         </div>
         <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}>
@@ -110,7 +110,7 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
               {/* Кнопка покупки */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
                 <div style={{ color: canAfford ? '#ffd700' : '#ff4444', fontWeight: 'bold', fontSize: '16px' }}>
-                  {car.price.toLocaleString('ru-RU')} 🪙
+                  {car.price.toLocaleString('ru-RU')} ₽
                 </div>
 
                 <button

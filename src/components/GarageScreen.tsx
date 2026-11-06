@@ -95,7 +95,7 @@ export const GarageScreen: React.FC = () => {
     return (
       <div className="inventory-list">
         <p style={{ color: '#aaa', marginBottom: '10px', fontSize: '13px' }}>
-          Нажмите на предмет, чтобы надеть, или продайте за монеты:
+          Нажмите на предмет, чтобы надеть, или продайте за ₽ы:
         </p>
 
         {uniqueItems.length === 0 && (

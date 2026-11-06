@@ -288,7 +288,7 @@ export const AdminScreen: React.FC = () => {
                 <label className="admin-form-label">Тип валюты</label>
               </div>
               <div className="admin-currency-options">
-                <div className={`admin-currency-option ${giveType === 'balance' ? 'active' : ''}`} onClick={() => setGiveType('balance')}>💰 Монеты</div>
+                <div className={`admin-currency-option ${giveType === 'balance' ? 'active' : ''}`} onClick={() => setGiveType('balance')}>💰 ₽ы</div>
                 <div className={`admin-currency-option ${giveType === 'stars' ? 'active' : ''}`} onClick={() => setGiveType('stars')}>⭐ Звёзды</div>
                 <div className={`admin-currency-option ${giveType === 'league' ? 'active' : ''}`} onClick={() => setGiveType('league')}>🏆 Лига</div>
               </div>

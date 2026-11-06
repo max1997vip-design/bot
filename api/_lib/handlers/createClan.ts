@@ -13,7 +13,7 @@ export async function createClanHandler(req: any, res: any) {
     if (!name || name.length < 3) return res.status(400).json({ error: 'Название слишком короткое' });
 
     const [user] = await db.select().from(users).where(eq(users.id, valid.user.id));
-    if (user.balance < CLAN_CREATE_COST) return res.status(400).json({ error: 'Недостаточно монет' });
+    if (user.balance < CLAN_CREATE_COST) return res.status(400).json({ error: 'Недостаточно ₽' });
 
     const alreadyInClan = await db.select().from(clanMembers).where(eq(clanMembers.userId, user.id));
     if (alreadyInClan.length > 0) return res.status(400).json({ error: 'Вы уже в клане' });

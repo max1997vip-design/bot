@@ -32,7 +32,7 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
                 <span style={{ color: '#666', fontSize: '10px' }}>{new Date(tx.createdAt).toLocaleString('ru-RU')}</span>
               </div>
               <span style={{ color: tx.amount > 0 ? '#00FF41' : '#ff4444', fontWeight: '900', fontSize: '14px', whiteSpace: 'nowrap', marginLeft: '10px' }}>
-                {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('ru-RU')} 🪙
+                {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('ru-RU')} ₽
               </span>
             </div>
           ))}

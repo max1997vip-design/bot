@@ -25,7 +25,7 @@ export async function clanActionHandler(req: any, res: any) {
     // --- ДОНАТ ---
     if (action === 'donate') {
       if (!amount || amount <= 0) return res.status(400).json({ error: 'Неверная сумма' });
-      if (user.balance < amount) return res.status(400).json({ error: 'Недостаточно монет' });
+      if (user.balance < amount) return res.status(400).json({ error: 'Недостаточно ₽' });
 
       await db.update(users).set({ balance: user.balance - amount }).where(eq(users.id, user.id));
       await db.update(clans).set({ balance: clan.balance + amount }).where(eq(clans.id, clan.id));

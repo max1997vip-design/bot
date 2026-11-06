@@ -55,7 +55,7 @@ interface GameState {
   user: UserData | null;
   balance: number;
   unsyncedTaps: number;
-  unsyncedClicks: number; // 👈 считаем клики отдельно от монет
+  unsyncedClicks: number; // 👈 считаем клики отдельно от ₽
   isSyncing: boolean;
   tapCountInSecond: number;
   lastTapSecond: number;

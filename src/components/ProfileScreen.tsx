@@ -131,19 +131,19 @@ export const ProfileScreen = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
                   <MousePointerClick size={12} color="#00e5ff" /> С кликов:
                 </div>
-                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedClicks.toLocaleString('ru-RU')} 🪙</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedClicks.toLocaleString('ru-RU')} ₽</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
                   <Flag size={12} color="#ffd700" /> С гонок:
                 </div>
-                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedRaces.toLocaleString('ru-RU')} 🪙</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedRaces.toLocaleString('ru-RU')} ₽</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
                   <Building2 size={12} color="#00FF41" /> С бизнеса:
                 </div>
-                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedBusiness.toLocaleString('ru-RU')} 🪙</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedBusiness.toLocaleString('ru-RU')} ₽</span>
               </div>
             </div>
           </div>
@@ -249,7 +249,7 @@ export const ProfileScreen = () => {
           <div className="profile-referral-text">
             <span className="profile-referral-title">Пригласить друга</span>
             <span className="profile-referral-sub">
-              Заработано: {(user.referralEarnings || 0).toLocaleString('ru-RU')} 🪙
+              Заработано: {(user.referralEarnings || 0).toLocaleString('ru-RU')} ₽
             </span>
           </div>
           <span className="profile-referral-arrow">›</span>

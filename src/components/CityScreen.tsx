@@ -97,7 +97,7 @@ export const CityScreen = () => {
               <div className="city-card" onClick={() => setShowShop(true)} style={{ border: '1px solid #ffd700' }}>
                 <span className="city-icon">🛒</span>
                 <h3>Магазин</h3>
-                <p>Покупка монет</p>
+                <p>Покупка ₽</p>
               </div>
 
               {features.workshop !== false && (
@@ -161,7 +161,7 @@ export const CityScreen = () => {
                   <div key={p.id} className="lb-row">
                     <span className="lb-rank">{i + 1}</span>
                     <span className="lb-name">{p.firstName || 'Гонщик'}</span>
-                    <span className="lb-value">{p.balance.toLocaleString('ru-RU')} 🪙</span>
+                    <span className="lb-value">{p.balance.toLocaleString('ru-RU')} ₽</span>
                   </div>
                 ))}
               </div>

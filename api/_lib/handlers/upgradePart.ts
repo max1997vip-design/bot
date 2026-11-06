@@ -45,7 +45,7 @@ export async function upgradePartHandler(req: any, res: any) {
       durationMs = 12 * 60 * 60 * 1000; // 12 часов
     }
 
-    if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно монет' });
+    if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно ₽' });
 
     // Списываем деньги и запускаем таймер
     const newBalance = user.balance - cost;

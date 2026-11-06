@@ -20,7 +20,7 @@ export async function upgradeBusinessHandler(req: any, res: any) {
     if (!current) return res.status(400).json({ error: 'Сначала купите бизнес' });
 
     const cost = getBusinessUpgradeCost(config.baseCost, current.level);
-    if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно монет' });
+    if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно ₽' });
 
     const newBalance = user.balance - cost;
     businesses[businessId] = { ...current, level: current.level + 1 };

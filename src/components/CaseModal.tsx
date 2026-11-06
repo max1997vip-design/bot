@@ -175,7 +175,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const getItemData = (id: string) => {
     if (id.startsWith('coins_')) {
       const amount = id.split('_')[1];
-      return { name: `${Number(amount).toLocaleString('ru-RU')} монет`, icon: '🪙', rarity: 'common' };
+      return { name: `${Number(amount).toLocaleString('ru-RU')} ₽`, icon: '₽', rarity: 'common' };
     }
     const item = (ITEMS as any)[id];
     
@@ -287,7 +287,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
              caseConfig.currency === 'ad' && timeLeft > 0 ? `Ждать ${formatTime(timeLeft)}` :
              caseConfig.currency === 'ad' ? '🎬 Смотреть рекламу (Бесплатно)' :
              caseConfig.currency === 'stars' ? `Открыть за ${caseConfig.price} ⭐` :
-             `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} 🪙`}
+             `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} ₽`}
           </button>
 
         </div>

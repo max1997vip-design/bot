@@ -20,7 +20,7 @@ export async function buyPremiumHandler(req: any, res: any) {
 
     if (pass.isPremium) return res.status(400).json({ error: 'Премиум уже куплен на эту неделю' });
     if (user.balance < PREMIUM_PRICE) {
-      return res.status(400).json({ error: `Недостаточно монет. Нужно: ${PREMIUM_PRICE}, у вас: ${user.balance}` });
+      return res.status(400).json({ error: `Недостаточно ₽. Нужно: ${PREMIUM_PRICE}, у вас: ${user.balance}` });
     }
 
     const newBalance = user.balance - PREMIUM_PRICE;

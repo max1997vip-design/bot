@@ -9,7 +9,7 @@ export async function claimAdRewardHandler(req: any, res: any) {
   if (!userId) return res.status(400).send('Missing userId');
 
   try {
-    // Начисляем 5000 монет
+    // Начисляем 5000 ₽
     await db.update(users)
       .set({ 
         balance: sql`${users.balance} + 5000`,

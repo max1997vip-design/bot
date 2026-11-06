@@ -69,7 +69,7 @@ export async function buyCarHandler(req: any, res: any) {
     }
 
     if (user.balance < price) {
-      return res.status(400).json({ error: 'Недостаточно монет' });
+      return res.status(400).json({ error: 'Недостаточно ₽' });
     }
 
     const newBalance = user.balance - price;

@@ -12,8 +12,8 @@ export function ShopModal({ onClose }: { onClose: () => void }) {
   const SHOP_ITEMS = [
     { id: 'stars_500', title: '500 звёзд', stars: 20, type: 'stars', icon: '⭐' },
     { id: 'stars_3000', title: '3000 звёзд (+10%)', stars: 100, type: 'stars', icon: '🌟' },
-    { id: 'coins_100k', title: '100 000 монет', stars: 10, type: 'coins', icon: '🪙' },
-    { id: 'coins_1m', title: '1 000 000 монет', stars: 80, type: 'coins', icon: '💰' },
+    { id: 'coins_100k', title: '100 000 ₽', stars: 10, type: 'coins', icon: '₽' },
+    { id: 'coins_1m', title: '1 000 000 ₽', stars: 80, type: 'coins', icon: '💰' },
     { id: 'battle_pass_s1', title: 'Battle Pass — Сезон 1', stars: 150, type: 'pass', icon: '🏁' },
     { id: 'boost_x2_24h', title: 'Буст ×2 дохода (24ч)', stars: 30, type: 'boost', icon: '⚡' },
   ];

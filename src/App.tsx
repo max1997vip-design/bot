@@ -233,7 +233,7 @@ export default function App() {
                   <motion.div className="offline-card" initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 20 }}>
                     <h2>С возвращением!</h2>
                     <p>Пока вас не было, механики заработали:</p>
-                    <div className="offline-amount">+{offlineEarnings.toLocaleString('ru-RU')} 🪙</div>
+                    <div className="offline-amount">+{offlineEarnings.toLocaleString('ru-RU')} ₽</div>
                     <button onClick={() => setOfflineEarnings(0)}>Забрать</button>
                   </motion.div>
                 </motion.div>

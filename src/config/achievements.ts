@@ -37,31 +37,31 @@ export const ACHIEVEMENTS: AchievementConfig[] = [
   // ========== 💰 БОГАТСТВО ==========
   {
     id: 'wealth_1', category: 'wealth', tier: 1,
-    name: 'Первые шаги', description: 'Заработать 10,000 монет',
+    name: 'Первые шаги', description: 'Заработать 10,000 ₽',
     icon: 'Coins', reward: 5000,
     check: (user) => (user.totalEarned || 0) >= 10_000,
   },
   {
     id: 'wealth_2', category: 'wealth', tier: 2,
-    name: 'Миллионер', description: 'Заработать 1,000,000 монет',
+    name: 'Миллионер', description: 'Заработать 1,000,000 ₽',
     icon: 'Wallet', reward: 100_000,
     check: (user) => (user.totalEarned || 0) >= 1_000_000,
   },
   {
     id: 'wealth_3', category: 'wealth', tier: 3,
-    name: 'Мультимиллионер', description: 'Заработать 100,000,000 монет',
+    name: 'Мультимиллионер', description: 'Заработать 100,000,000 ₽',
     icon: 'Gem', reward: 5_000_000,
     check: (user) => (user.totalEarned || 0) >= 100_000_000,
   },
   {
     id: 'wealth_4', category: 'wealth', tier: 4,
-    name: 'Миллиардер', description: 'Заработать 1,000,000,000 монет',
+    name: 'Миллиардер', description: 'Заработать 1,000,000,000 ₽',
     icon: 'Crown', reward: 100_000_000,
     check: (user) => (user.totalEarned || 0) >= 1_000_000_000,
   },
   {
     id: 'wealth_5', category: 'wealth', tier: 5,
-    name: 'Финансовая империя', description: 'Заработать 100,000,000,000 монет',
+    name: 'Финансовая империя', description: 'Заработать 100,000,000,000 ₽',
     icon: 'Landmark', reward: 10_000_000_000,
     check: (user) => (user.totalEarned || 0) >= 100_000_000_000,
   },
@@ -192,7 +192,7 @@ export const ACHIEVEMENTS: AchievementConfig[] = [
   },
   {
     id: 'legend_5', category: 'legend', tier: 5,
-    name: 'Икона гонок', description: '1B монет, 10k кликов, 100 побед, 10 машин',
+    name: 'Икона гонок', description: '1B ₽, 10k кликов, 100 побед, 10 машин',
     icon: 'Star', reward: 500_000_000,
     check: (user) => 
       (user.totalEarned || 0) >= 1_000_000_000 &&

@@ -19,7 +19,7 @@ export async function buyBusinessHandler(req: any, res: any) {
     const businesses = { ...(user.businesses || {}) };
     if (businesses[businessId]) return res.status(400).json({ error: 'Уже куплено' });
 
-    if (user.balance < config.baseCost) return res.status(400).json({ error: 'Недостаточно монет' });
+    if (user.balance < config.baseCost) return res.status(400).json({ error: 'Недостаточно ₽' });
 
     const newBalance = user.balance - config.baseCost;
     businesses[businessId] = {

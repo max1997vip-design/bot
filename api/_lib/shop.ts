@@ -36,7 +36,7 @@ export const SHOP_ITEMS: Record<string, ShopItem> = {
   },
   coins_100k: {
     id: 'coins_100k',
-    title: '100 000 монет',
+    title: '100 000 ₽',
     description: 'Мгновенное ускорение прогресса',
     stars: 10,
     type: 'coins',
@@ -44,7 +44,7 @@ export const SHOP_ITEMS: Record<string, ShopItem> = {
   },
   coins_1m: {
     id: 'coins_1m',
-    title: '1 000 000 монет',
+    title: '1 000 000 ₽',
     description: 'Для серьёзных гонщиков',
     stars: 80,
     type: 'coins',

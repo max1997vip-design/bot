@@ -24,7 +24,7 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
     const handleBuyPremium = async () => {
-    if (!window.confirm('Купить Премиум Пропуск за 500,000 🪙?\n\nВы получите х3 опыта и х3 награды!')) return;
+    if (!window.confirm('Купить Премиум Пропуск за 500,000 ₽?\n\nВы получите х3 опыта и х3 награды!')) return;
     
     setLoading('buy');
     const result = await buyPremiumPass();
@@ -69,7 +69,7 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)'
             }}
           >
-            {loading === 'buy' ? '...' : '👑 КУПИТЬ ПРЕМИУМ (500,000 🪙)'}
+            {loading === 'buy' ? '...' : '👑 КУПИТЬ ПРЕМИУМ (500,000 ₽)'}
           </button>
         )}
 
@@ -120,7 +120,7 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', background: '#222', padding: '10px 15px', borderRadius: '10px' }}>
                   <div>
                     <div style={{ color: '#aaa', fontSize: '11px', fontWeight: 'bold' }}>БЕСПЛАТНО</div>
-                    <div style={{ color: '#fff', fontWeight: 'bold' }}>{lvl.reward.toLocaleString('ru-RU')} 🪙</div>
+                    <div style={{ color: '#fff', fontWeight: 'bold' }}>{lvl.reward.toLocaleString('ru-RU')} ₽</div>
                   </div>
                   <button
                     onClick={() => handleClaim(lvl.level, 'free')}
@@ -141,7 +141,7 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,215,0,0.05)', padding: '10px 15px', borderRadius: '10px', border: '1px solid rgba(255,215,0,0.2)' }}>
                   <div>
                     <div style={{ color: '#ffd700', fontSize: '11px', fontWeight: 'bold' }}>👑 ПРЕМИУМ (x3)</div>
-                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{(lvl.reward * 3).toLocaleString('ru-RU')} 🪙</div>
+                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{(lvl.reward * 3).toLocaleString('ru-RU')} ₽</div>
                   </div>
                   <button
                     onClick={() => handleClaim(lvl.level, 'premium')}

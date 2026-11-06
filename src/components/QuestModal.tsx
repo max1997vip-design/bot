@@ -90,7 +90,7 @@ export const QuestModal: React.FC<Props> = ({ onClose }) => {
                         <div style={{ color: '#888', fontSize: '12px' }}>{q.desc}</div>
                       </div>
                     </div>
-                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{q.reward} 🪙</div>
+                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{q.reward} ₽</div>
                   </div>
 
                   <div style={{ width: '100%', height: '8px', background: '#333', borderRadius: '4px', marginBottom: '10px', overflow: 'hidden' }}>

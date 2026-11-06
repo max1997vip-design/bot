@@ -115,7 +115,7 @@ export async function openCaseHandler(req: any, res: any) {
       newStars -= selectedCase.price;
       updateData.starsBalance = newStars;
     } else {
-      if (user.balance < selectedCase.price) return res.status(400).json({ error: 'Недостаточно монет' });
+      if (user.balance < selectedCase.price) return res.status(400).json({ error: 'Недостаточно ₽' });
       newBalance -= selectedCase.price;
     }
 
@@ -147,7 +147,7 @@ export async function openCaseHandler(req: any, res: any) {
     }
     if (isCoins) {
       const amount = parseInt(wonItemId.split('_')[1]);
-      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе: ${amount.toLocaleString('ru-RU')} монет`);
+      await logTransaction(user.id, amount, 'case_reward', `Выигрыш в ${caseType} кейсе: ${amount.toLocaleString('ru-RU')} ₽`);
     }
 
     return res.json({

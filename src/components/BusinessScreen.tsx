@@ -46,7 +46,7 @@ export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
           <div style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid #00FF41', borderRadius: '12px', padding: '15px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ color: '#00FF41', fontWeight: 'bold' }}>Доступно к сбору:</div>
-              <div style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>{totalPending.toLocaleString('ru-RU')} 🪙</div>
+              <div style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>{totalPending.toLocaleString('ru-RU')} ₽</div>
             </div>
             <button 
               onClick={() => handleAction(collectIncome, 'collect')}
@@ -75,7 +75,7 @@ export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                       <div style={{ color: '#888', fontSize: '12px' }}>{config.description}</div>
                       {owned && (
                         <div style={{ color: '#ffd700', fontSize: '13px', marginTop: '4px' }}>
-                          Ур. {level} | Доход: {income.toLocaleString('ru-RU')} 🪙/час
+                          Ур. {level} | Доход: {income.toLocaleString('ru-RU')} ₽/час
                         </div>
                       )}
                     </div>
@@ -87,7 +87,7 @@ export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                       disabled={loading === config.id}
                       style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid #444', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
-                      {config.baseCost.toLocaleString('ru-RU')} 🪙
+                      {config.baseCost.toLocaleString('ru-RU')} ₽
                     </button>
                   ) : (
                     <button 
@@ -95,7 +95,7 @@ export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                       disabled={loading === config.id}
                       style={{ background: 'rgba(255,215,0,0.2)', color: '#ffd700', border: '1px solid #ffd700', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
-                      {upgradeCost.toLocaleString('ru-RU')} 🪙
+                      {upgradeCost.toLocaleString('ru-RU')} ₽
                     </button>
                   )}
                 </div>

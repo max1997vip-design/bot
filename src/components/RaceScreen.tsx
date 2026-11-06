@@ -171,7 +171,7 @@ export function RaceScreen() {
                 transform: 'translate(-50%, -50%)'
               }}
             >
-              +{text.value} 🪙
+              +{text.value} ₽
             </motion.div>
           ))}
         </AnimatePresence>
@@ -272,11 +272,11 @@ export function RaceScreen() {
                   <div style={{ fontSize: '36px' }}>💪</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Сила клика</div>
-                    <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 монета за клик</div>
+                    <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 ₽а за клик</div>
                     <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
                   </div>
                   <button onClick={() => { upgradeClicker(); playSound('coin'); }} disabled={balance < clickCost} style={{ background: balance >= clickCost ? '#00FF41' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-                    {clickCost.toLocaleString('ru-RU')} 🪙
+                    {clickCost.toLocaleString('ru-RU')} ₽
                   </button>
                 </div>
 
@@ -284,11 +284,11 @@ export function RaceScreen() {
                   <div style={{ fontSize: '36px' }}>⏱️</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Оффлайн-доход</div>
-                    <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+500 монет/час</div>
+                    <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+500 ₽/час</div>
                     <div style={{ color: '#00bfff', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {offlineLevel}</div>
                   </div>
                   <button onClick={() => { upgradeOffline(); playSound('coin'); }} disabled={balance < offlineCost} style={{ background: balance >= offlineCost ? '#00bfff' : '#333', color: balance >= offlineCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= offlineCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-                    {offlineCost.toLocaleString('ru-RU')} 🪙
+                    {offlineCost.toLocaleString('ru-RU')} ₽
                   </button>
                 </div>
               </motion.div>

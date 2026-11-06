@@ -15,7 +15,7 @@ export async function upgradeClickerHandler(req: any, res: any) {
   const currentLevel = user.clickLevel || 1;
   const cost = Math.floor(1000 * Math.pow(1.5, currentLevel - 1));
 
-  if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно монет' });
+  if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно ₽' });
 
   const [updated] = await db.update(users)
     .set({ balance: user.balance - cost, clickLevel: currentLevel + 1 })

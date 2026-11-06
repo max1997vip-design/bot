@@ -53,7 +53,7 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
         </div>
 
         <h3 style={{ color: '#ffd700', borderBottom: '1px solid #333', paddingBottom: '10px' }}>Улучшение деталей</h3>
-        <p style={{ color: '#aaa', fontSize: '13px' }}>Улучшайте детали за монеты. Прокачка занимает реальное время!</p>
+        <p style={{ color: '#aaa', fontSize: '13px' }}>Улучшайте детали за ₽ы. Прокачка занимает реальное время!</p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
           {Object.values(equipped)
