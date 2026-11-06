@@ -65,8 +65,8 @@ export const ProfileScreen = () => {
 
   // 👇 Винрейт считаем из примитивов
   const winRate = totalRaces > 0 ? Math.round((totalWins / totalRaces) * 100) : 0;
-  const winRateColor = winRate >= 50 ? '#00FF41' : winRate >= 30 ? '#ffcc00' : '#ff4444';
-  const winRateGlow = winRate >= 50 ? 'rgba(0,255,65,0.5)' : winRate >= 30 ? 'rgba(255,204,0,0.5)' : 'rgba(255,68,68,0.5)';
+  const winRateColor = winRate >= 50 ? '#00d97e' : winRate >= 30 ? '#ffcc00' : '#ff4444';
+  const winRateGlow = winRate >= 50 ? 'rgba(0,217,126,0.5)' : winRate >= 30 ? 'rgba(255,204,0,0.5)' : 'rgba(255,68,68,0.5)';
 
   return (
     <motion.div
@@ -147,7 +147,7 @@ export const ProfileScreen = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                  <Building2 size={12} color="#00FF41" /> С бизнеса:
+                  <Building2 size={12} color="#00d97e" /> С бизнеса:
                 </div>
                 <span style={{ fontWeight: 900, color: '#fff' }}>
                   {earnedBusiness.toLocaleString('ru-RU')}
@@ -189,7 +189,7 @@ export const ProfileScreen = () => {
             </div>
           </div>
           <div className="profile-stat-cell">
-            <div className="profile-stat-icon balance"><Car size={16} color="#00FF41" /></div>
+            <div className="profile-stat-icon balance"><Car size={16} color="#00d97e" /></div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">Активная машина</span>
               <span className="profile-stat-value" style={{ fontSize: '10px' }}>{activeCar.name}</span>
@@ -210,8 +210,8 @@ export const ProfileScreen = () => {
             <div className="profile-game-stat-label">Гонок</div>
           </div>
           <div className="profile-game-stat">
-            <Trophy size={14} color="#00FF41" style={{ marginBottom: '2px' }} />
-            <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{totalWins}</div>
+            <Trophy size={14} color="#00d97e" style={{ marginBottom: '2px' }} />
+            <div className="profile-game-stat-value" style={{ color: '#00d97e' }}>{totalWins}</div>
             <div className="profile-game-stat-label">Побед</div>
           </div>
           <div className="profile-game-stat">

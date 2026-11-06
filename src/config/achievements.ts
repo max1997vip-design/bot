@@ -18,7 +18,7 @@ export interface AchievementConfig {
 export const CATEGORY_META: Record<AchievementCategory, { name: string; icon: string; color: string }> = {
   wealth:    { name: 'Богатство',    icon: 'Coins',            color: '#ffd700' },
   racer:     { name: 'Гонщик',       icon: 'Flag',             color: '#00e5ff' },
-  clicker:   { name: 'Кликер',       icon: 'MousePointerClick', color: '#00FF41' },
+  clicker:   { name: 'Кликер',       icon: 'MousePointerClick', color: '#00d97e' },
   collector: { name: 'Коллекционер', icon: 'Car',              color: '#ff8800' },
   legend:    { name: 'Легенда',      icon: 'Star',             color: '#ff00ff' },
 };

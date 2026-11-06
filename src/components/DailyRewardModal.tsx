@@ -131,7 +131,7 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
                   {reward.toLocaleString('ru-RU')}
                 </div>
                 <div style={{ fontSize: '10px', color: '#ffd700' }}>₽</div>
-                {isClaimed && <div style={{ position: 'absolute', top: 2, right: 4, color: '#00FF41', fontSize: '14px' }}>✓</div>}
+                {isClaimed && <div style={{ position: 'absolute', top: 2, right: 4, color: '#00d97e', fontSize: '14px' }}>✓</div>}
               </div>
             );
           })}
@@ -145,7 +145,7 @@ export const DailyRewardModal: React.FC<Props> = ({ onClose }) => {
              marginTop: '5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '20px', paddingRight: '20px'
           }}>
              <div style={{ color: '#888', fontSize: '12px', fontWeight: 'bold' }}>День 7</div>
-             <div style={{ color: '#00FF41', fontSize: '18px', fontWeight: 'bold' }}>100,000 ₽</div>
+             <div style={{ color: '#00d97e', fontSize: '18px', fontWeight: 'bold' }}>100,000 ₽</div>
           </div>
         </div>
 

@@ -11,7 +11,7 @@ export interface ItemConfig {
 }
 
 export const RARITY_COLORS: Record<ItemRarity, string> = {
-  common: '#aaaaaa', uncommon: '#00FF41', rare: '#00bfff', epic: '#b000ff', legendary: '#ffcc00',
+  common: '#aaaaaa', uncommon: '#00d97e', rare: '#00bfff', epic: '#b000ff', legendary: '#ffcc00',
 };
 
 export const ITEMS: Record<string, ItemConfig> = {

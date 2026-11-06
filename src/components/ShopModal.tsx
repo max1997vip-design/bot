@@ -83,7 +83,7 @@ export function ShopModal({ onClose }: { onClose: () => void }) {
                 onClick={() => handleBuy(item.id)}
                 disabled={isLoading !== null}
                 style={{ 
-                  background: isLoading === item.id ? '#555' : (item.type === 'stars' ? '#ffd700' : '#00FF41'), 
+                  background: isLoading === item.id ? '#555' : (item.type === 'stars' ? '#ffd700' : '#00d97e'), 
                   color: 'black', 
                   border: 'none', padding: '8px 12px', borderRadius: '8px', 
                   fontWeight: 'bold', fontSize: '13px', 

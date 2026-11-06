@@ -143,7 +143,7 @@ button {
 
 .app-error h2 { color: #ff4444; margin-bottom: 10px; }
 .app-error p { color: #aaa; margin-bottom: 20px; }
-.app-error button { padding: 12px 24px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.app-error button { padding: 12px 24px; background: #00d97e; color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
 /* Окно награды за отсутствие */
 .offline-overlay {
@@ -171,8 +171,8 @@ button {
 
 .offline-card h2 { color: #ffd700; margin: 0 0 10px; }
 .offline-card p { color: #ccc; margin-bottom: 20px; }
-.offline-amount { margin-bottom: 25px; color: #00ff41; font-size: 32px; font-weight: 700; text-shadow: 0 0 10px rgba(0, 255, 65, 0.5); }
-.offline-card button { width: 100%; padding: 14px 40px; background: #00ff41; color: #000; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.offline-amount { margin-bottom: 25px; color: #00d97e; font-size: 32px; font-weight: 700; text-shadow: 0 0 10px rgba(0, 217, 126, 0.5); }
+.offline-card button { width: 100%; padding: 14px 40px; background: #00d97e; color: #000; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
 
 /* Компактное игровое окно на ПК */
 @media (min-width: 500px) {

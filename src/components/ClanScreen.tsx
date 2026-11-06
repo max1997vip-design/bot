@@ -157,7 +157,7 @@ export const ClanScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const canBuySlot = clanInfo.balance >= SLOT_COST && (clanInfo.extraSlots || 0) < 10;
 
   const bossHpPercent = clanBoss ? Math.max(0, (clanBoss.currentHp / clanBoss.maxHp) * 100) : 100;
-  const bossHpColor = bossHpPercent > 50 ? '#00ff41' : bossHpPercent > 20 ? '#ffd700' : '#ff0055';
+  const bossHpColor = bossHpPercent > 50 ? '#00d97e' : bossHpPercent > 20 ? '#ffd700' : '#ff0055';
 
   return (
     <div className="clan-screen-overlay">

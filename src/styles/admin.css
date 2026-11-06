@@ -386,7 +386,7 @@
 }
 
 .admin-stat-value.cyan { color: #00e5ff; text-shadow: 0 0 15px rgba(0, 229, 255, 0.4); }
-.admin-stat-value.green { color: #00FF41; text-shadow: 0 0 15px rgba(0, 255, 65, 0.4); }
+.admin-stat-value.green { color: #00d97e; text-shadow: 0 0 15px rgba(0, 217, 126, 0.4); }
 .admin-stat-value.gold { color: #ffcc00; text-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
 .admin-stat-value.red { color: #ff4444; text-shadow: 0 0 15px rgba(255, 68, 68, 0.4); }
 

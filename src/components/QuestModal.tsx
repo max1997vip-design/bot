@@ -94,7 +94,7 @@ export const QuestModal: React.FC<Props> = ({ onClose }) => {
                   </div>
 
                   <div style={{ width: '100%', height: '8px', background: '#333', borderRadius: '4px', marginBottom: '10px', overflow: 'hidden' }}>
-                    <div style={{ width: `${progressPercent}%`, height: '100%', background: isCompleted ? '#00FF41' : '#ffd700', transition: 'width 0.3s' }} />
+                    <div style={{ width: `${progressPercent}%`, height: '100%', background: isCompleted ? '#00d97e' : '#ffd700', transition: 'width 0.3s' }} />
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -103,7 +103,7 @@ export const QuestModal: React.FC<Props> = ({ onClose }) => {
                       onClick={() => handleClaim(q.id)}
                       disabled={!isCompleted || isClaimed || loadingId === q.id}
                       style={{
-                        background: isClaimed ? 'transparent' : isCompleted ? '#00FF41' : 'transparent',
+                        background: isClaimed ? 'transparent' : isCompleted ? '#00d97e' : 'transparent',
                         color: isClaimed ? '#555' : isCompleted ? 'black' : '#888',
                         border: isClaimed ? 'none' : isCompleted ? 'none' : '1px solid #444',
                         padding: '6px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: (isCompleted && !isClaimed) ? 'pointer' : 'not-allowed'

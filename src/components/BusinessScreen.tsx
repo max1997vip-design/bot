@@ -43,15 +43,15 @@ export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
         </div>
 
         {totalPending > 0 && (
-          <div style={{ background: 'rgba(0,255,65,0.1)', border: '1px solid #00FF41', borderRadius: '12px', padding: '15px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'rgba(0,217,126,0.1)', border: '1px solid #00d97e', borderRadius: '12px', padding: '15px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: '#00FF41', fontWeight: 'bold' }}>Доступно к сбору:</div>
+              <div style={{ color: '#00d97e', fontWeight: 'bold' }}>Доступно к сбору:</div>
               <div style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>{totalPending.toLocaleString('ru-RU')} ₽</div>
             </div>
             <button 
               onClick={() => handleAction(collectIncome, 'collect')}
               disabled={loading === 'collect'}
-              style={{ background: '#00FF41', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ background: '#00d97e', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               {loading === 'collect' ? '...' : 'СОБРАТЬ'}
             </button>

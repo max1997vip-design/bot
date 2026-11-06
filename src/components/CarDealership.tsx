@@ -37,7 +37,7 @@ export const CarDealership: React.FC<{ onClose: () => void }> = ({ onClose }) =>
       }}>
         <div>
           <h2 style={{ color: '#fff', margin: 0, fontSize: '22px' }}>🏢 Автосалон</h2>
-          <p style={{ color: '#00FF41', margin: '4px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>
+          <p style={{ color: '#00d97e', margin: '4px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>
             Баланс: {balance.toLocaleString('ru-RU')} ₽
           </p>
         </div>

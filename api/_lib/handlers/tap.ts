@@ -24,7 +24,7 @@ export async function tapHandler(req: any, res: any) {
 
     // Пассивный доход с рефералов
     if (user.referredBy && amount > 0) {
-      const referralBonus = Math.floor(amount * 0.05);
+      const referralBonus = Math.floor(amount * 0.01);
       if (referralBonus > 0) {
         await db.update(users).set({
           balance: sql`${users.balance} + ${referralBonus}`,

@@ -81,7 +81,7 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                   {isUpgrading ? (
                     <div style={{ color: '#ffd700', fontSize: '12px' }}>Улучшается... {timeLeft} мин</div>
                   ) : canClaim ? (
-                    <button onClick={() => handleClaim(itemId)} style={{ background: '#00FF41', color: '#000', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
+                    <button onClick={() => handleClaim(itemId)} style={{ background: '#00d97e', color: '#000', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
                       ЗАБРАТЬ
                     </button>
                   ) : (

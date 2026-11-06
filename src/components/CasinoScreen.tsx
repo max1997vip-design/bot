@@ -69,7 +69,7 @@ export const CasinoScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         {/* Результат */}
         {result && !flipping && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '20px', minHeight: '60px' }}>
-            <h3 style={{ color: result.isWin ? '#00FF41' : '#ff4444', margin: 0 }}>
+            <h3 style={{ color: result.isWin ? '#00d97e' : '#ff4444', margin: 0 }}>
               {result.isWin ? 'ПОБЕДА!' : 'ВЫ ПРОИГРАЛИ'}
             </h3>
             <p style={{ color: '#fff', margin: '5px 0 0 0' }}>

@@ -126,9 +126,9 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     onClick={() => handleClaim(lvl.level, 'free')}
                     disabled={!canClaimFree || loading === `${lvl.level}_free`}
                     style={{
-                      background: isFreeClaimed ? 'transparent' : canClaimFree ? '#00FF41' : '#333',
-                      color: isFreeClaimed ? '#00FF41' : canClaimFree ? '#000' : '#888',
-                      border: isFreeClaimed ? '1px solid #00FF41' : 'none',
+                      background: isFreeClaimed ? 'transparent' : canClaimFree ? '#00d97e' : '#333',
+                      color: isFreeClaimed ? '#00d97e' : canClaimFree ? '#000' : '#888',
+                      border: isFreeClaimed ? '1px solid #00d97e' : 'none',
                       padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '12px',
                       cursor: canClaimFree ? 'pointer' : 'default'
                     }}

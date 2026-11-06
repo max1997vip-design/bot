@@ -172,8 +172,8 @@
 }
 
 .achievement-card.unlocked {
-  background: linear-gradient(135deg, rgba(0, 255, 65, 0.08), rgba(0, 255, 65, 0.02));
-  border-color: rgba(0, 255, 65, 0.3);
+  background: linear-gradient(135deg, rgba(0, 217, 126, 0.08), rgba(0, 217, 126, 0.02));
+  border-color: rgba(0, 217, 126, 0.3);
 }
 
 .achievement-card.claimable {
@@ -196,9 +196,9 @@
 }
 
 .achievement-icon-wrapper.unlocked {
-  background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 255, 65, 0.05));
-  border-color: rgba(0, 255, 65, 0.5);
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+  background: linear-gradient(135deg, rgba(0, 217, 126, 0.2), rgba(0, 217, 126, 0.05));
+  border-color: rgba(0, 217, 126, 0.5);
+  box-shadow: 0 0 15px rgba(0, 217, 126, 0.3);
 }
 
 .achievement-icon-wrapper.claimable {
@@ -254,7 +254,7 @@
   flex-shrink: 0;
 }
 
-.achievement-status.done { color: #00FF41; }
+.achievement-status.done { color: #00d97e; }
 .achievement-status.progress { color: #666; }
 
 .achievement-claim-btn {

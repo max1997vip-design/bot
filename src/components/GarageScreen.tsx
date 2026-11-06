@@ -213,7 +213,7 @@ export const GarageScreen: React.FC = () => {
                   {isSelling ? '...' : `💰 ${sellPrice}`}
                 </button>
               ) : (
-                <span style={{ fontSize: '11px', color: '#00FF41', fontWeight: 'bold' }}>
+                <span style={{ fontSize: '11px', color: '#00d97e', fontWeight: 'bold' }}>
                   Надето
                 </span>
               )}
@@ -436,17 +436,17 @@ export const GarageScreen: React.FC = () => {
                             flexWrap: 'wrap',
                           }}>
                             {diffSpeed !== 0 && (
-                              <span style={{ color: diffSpeed > 0 ? '#00FF41' : '#ff4444' }}>
+                              <span style={{ color: diffSpeed > 0 ? '#00d97e' : '#ff4444' }}>
                                 {diffSpeed > 0 ? '▲' : '▼'} {Math.abs(diffSpeed)} км/ч
                               </span>
                             )}
                             {diffPower !== 0 && (
-                              <span style={{ color: diffPower > 0 ? '#00FF41' : '#ff4444' }}>
+                              <span style={{ color: diffPower > 0 ? '#00d97e' : '#ff4444' }}>
                                 {diffPower > 0 ? '▲' : '▼'} {Math.abs(diffPower)} л.с.
                               </span>
                             )}
                             {diffRating !== 0 && (
-                              <span style={{ color: diffRating > 0 ? '#00FF41' : '#ff4444' }}>
+                              <span style={{ color: diffRating > 0 ? '#00d97e' : '#ff4444' }}>
                                 ⭐ {diffRating > 0 ? '+' : ''}{diffRating}
                               </span>
                             )}

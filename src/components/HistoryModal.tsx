@@ -34,7 +34,7 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
         {/* Шапка */}
         <div className="history-header">
           <h2>
-            <History size={18} color="#00e5ff" />
+            <History size={18} color="var(--accent)" />
             ИСТОРИЯ
           </h2>
           <button className="history-close" onClick={onClose}>
@@ -46,7 +46,7 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
         <div className="history-body">
           {recentHistory.length === 0 && (
             <div className="history-empty">
-              <History size={32} color="#444" />
+              <History size={32} color="var(--text-muted)" />
               <p>Пока нет операций</p>
             </div>
           )}
@@ -54,8 +54,11 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
           {recentHistory.map((tx: any, index: number) => {
             const isPositive = tx.amount > 0;
             const IconComponent = isPositive ? TrendingUp : TrendingDown;
-            const color = isPositive ? '#00FF41' : '#ff4444';
-            const glow = isPositive ? 'rgba(0,255,65,0.4)' : 'rgba(255,68,68,0.4)';
+            // 👇 Используем переменные через inline-стили
+            const colorVar = isPositive ? 'var(--success)' : 'var(--danger)';
+            const glowVar = isPositive ? 'var(--success-glow)' : 'var(--danger-glow)';
+            const bgVar = isPositive ? 'rgba(0, 217, 126, 0.15)' : 'rgba(255, 68, 68, 0.15)';
+            const borderVar = isPositive ? 'rgba(0, 217, 126, 0.4)' : 'rgba(255, 68, 68, 0.4)';
 
             return (
               <motion.div 
@@ -64,10 +67,10 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.04 }}
-                style={{ borderLeftColor: color }}
+                style={{ borderLeftColor: colorVar }}
               >
-                <div className="history-icon" style={{ background: `${color}15`, border: `1px solid ${color}44` }}>
-                  <IconComponent size={14} color={color} />
+                <div className="history-icon" style={{ background: bgVar, border: `1px solid ${borderVar}` }}>
+                  <IconComponent size={14} color={colorVar} />
                 </div>
 
                 <div className="history-info">
@@ -79,7 +82,7 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
                   </span>
                 </div>
 
-                <span className="history-amount" style={{ color, textShadow: `0 0 8px ${glow}` }}>
+                <span className="history-amount" style={{ color: colorVar, textShadow: `0 0 8px ${glowVar}` }}>
                   {isPositive ? '+' : ''}{tx.amount.toLocaleString('ru-RU')}
                   <span className="currency-ruble sm" style={{ marginLeft: 3 }}>₽</span>
                 </span>

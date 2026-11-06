@@ -197,7 +197,7 @@
   flex-shrink: 0;
 }
 
-.profile-stat-icon.balance { background: rgba(0, 255, 65, 0.1); border: 1px solid rgba(0, 255, 65, 0.3); }
+.profile-stat-icon.balance { background: rgba(0, 217, 126, 0.1); border: 1px solid rgba(0, 217, 126, 0.3); }
 .profile-stat-icon.stars { background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); }
 .profile-stat-icon.league { background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); }
 .profile-stat-icon.rating { background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); }
@@ -414,8 +414,8 @@
 }
 
 .status-active {
-  color: #00FF41;
-  text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+  color: #00d97e;
+  text-shadow: 0 0 8px rgba(0, 217, 126, 0.5);
 }
 
 /* Добавь в конец src/styles/profile.css */

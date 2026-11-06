@@ -230,10 +230,10 @@ export function RaceScreen() {
           onClick={() => setShowUpgrades(true)}
           style={{
             position: 'absolute', bottom: '53%', right: '5%', zIndex: 100,
-            background: 'linear-gradient(135deg, #00FF41, #00bfff)', border: 'none',
+            background: 'linear-gradient(135deg, #00d97e, #00bfff)', border: 'none',
             borderRadius: '50%', width: '60px', height: '60px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,255,65,0.4)',
+            fontSize: '28px', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,217,126,0.4)',
           }}
         >
           ⚡
@@ -268,14 +268,14 @@ export function RaceScreen() {
                   <button onClick={() => setShowUpgrades(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '35px', height: '35px', fontSize: '18px', cursor: 'pointer' }}>✕</button>
                 </div>
 
-                <div style={{ background: 'rgba(0,255,65,0.08)', border: '1px solid rgba(0,255,65,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ background: 'rgba(0,217,126,0.08)', border: '1px solid rgba(0,217,126,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <div style={{ fontSize: '36px' }}>💪</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>Сила клика</div>
                     <div style={{ color: '#aaa', fontSize: '12px', marginTop: '2px' }}>+1 ₽а за клик</div>
-                    <div style={{ color: '#00FF41', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
+                    <div style={{ color: '#00d97e', fontSize: '12px', marginTop: '4px' }}>Текущий уровень: {clickLevel}</div>
                   </div>
-                  <button onClick={() => { upgradeClicker(); playSound('coin'); }} disabled={balance < clickCost} style={{ background: balance >= clickCost ? '#00FF41' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                  <button onClick={() => { upgradeClicker(); playSound('coin'); }} disabled={balance < clickCost} style={{ background: balance >= clickCost ? '#00d97e' : '#333', color: balance >= clickCost ? 'black' : '#666', border: 'none', borderRadius: '10px', padding: '10px 16px', fontWeight: 'bold', fontSize: '13px', cursor: balance >= clickCost ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
                     {clickCost.toLocaleString('ru-RU')} ₽
                   </button>
                 </div>

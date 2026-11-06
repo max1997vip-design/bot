@@ -170,7 +170,7 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
                   <div key={ach.id} className={cardClass}>
                     <div className={`achievement-icon-wrapper ${isUnlocked ? 'unlocked' : ''} ${isClaimable ? 'claimable' : ''}`}>
                       {isUnlocked ? (
-                        <Check size={20} color="#00FF41" strokeWidth={3} />
+                        <Check size={20} color="#00d97e" strokeWidth={3} />
                       ) : isClaimable ? (
                         renderLucideIcon(ach.icon, 20, '#ffd700')
                       ) : (

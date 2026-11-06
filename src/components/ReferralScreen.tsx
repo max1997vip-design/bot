@@ -3,7 +3,7 @@ import React from 'react';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { motion } from 'framer-motion';
-import { Gift, Copy, Share2, ArrowLeft, Users, Coins, TrendingUp } from 'lucide-react';
+import { Gift, Copy, Share2, ArrowLeft, Users, TrendingUp } from 'lucide-react';
 import '../styles/referral.css';
 
 const BOT_NAME = 'kliker_one_bot'; 
@@ -33,6 +33,7 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
       <div className="referral-container">
+        {/* Шапка фиксирована сверху */}
         <div className="referral-topbar">
           <button className="referral-back" onClick={onClose}>
             <ArrowLeft size={18} />
@@ -41,29 +42,27 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
           <div style={{ width: 36 }} />
         </div>
 
+        {/* Контент скроллится, если не влезает */}
         <div className="referral-content">
-          {/* Бонус */}
           <div className="referral-bonus-card">
             <div className="bonus-icon"><Gift size={32} color="var(--accent)" /></div>
             <div className="bonus-text">
               <h3>Бонус за друга</h3>
-              <p>Получай <strong>50,000 ₽</strong> и <strong>5%</strong> с каждого клика друга!</p>
+              <p>Получай <strong>50,000 ₽</strong> и <strong>1%</strong> с каждого клика друга!</p>
             </div>
           </div>
 
-          {/* Статистика */}
           <div className="referral-earnings-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <TrendingUp size={16} color="#00FF41" />
+              <TrendingUp size={16} color="var(--success)" />
               <span className="earnings-label">Заработано с рефералов</span>
             </div>
             <span className="earnings-value">
               {referralEarnings.toLocaleString('ru-RU')}
-            <span className="currency-ruble" style={{ marginLeft: 4 }}>₽</span>
+              <span className="currency-ruble" style={{ marginLeft: 4 }}>₽</span>
             </span>
           </div>
 
-          {/* Как это работает */}
           <div className="referral-how-it-works">
             <h4>Как это работает?</h4>
             <div className="how-step">
@@ -76,17 +75,15 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
             </div>
             <div className="how-step">
               <div className="how-step-num">3</div>
-              <p>Ты получаешь <strong>50,000 ₽</strong> + 5% с его кликов</p>
+              <p>Ты получаешь <strong>50,000 ₽</strong> + 1% с его кликов</p>
             </div>
           </div>
 
-          {/* Ссылка */}
           <div className="referral-link-box" onClick={handleCopy}>
             <span className="link-text">{refLink}</span>
             <Copy size={16} color="var(--accent)" style={{ flexShrink: 0, marginLeft: 8 }} />
           </div>
 
-          {/* Кнопки */}
           <div className="referral-actions">
             <button onClick={handleCopy} className="referral-btn-copy">
               <Copy size={16} />

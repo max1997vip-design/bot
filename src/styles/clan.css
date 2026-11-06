@@ -53,7 +53,7 @@
 .upgrade-progress-bar { flex: 1; height: 6px; background: rgba(0,0,0,0.6); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
 .upgrade-progress-fill { height: 100%; background: linear-gradient(90deg, #ffd700, #ff8c00); box-shadow: 0 0 12px rgba(255,215,0,0.6); border-radius: 3px; }
 .upgrade-progress-text { font-size: 12px; font-weight: 700; color: #ffd700; min-width: 30px; text-align: right; }
-.upgrade-bonus { color: #00ff41; font-size: 12px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
+.upgrade-bonus { color: #00d97e; font-size: 12px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
 .bonus-icon { font-size: 14px; }
 .btn-neon-gold, .btn-neon-green, .btn-neon-cyan, .btn-neon-red { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; font-family: inherit; }
 .btn-neon-gold { background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.15)); border: 1px solid #ffd700; color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.1); }
@@ -62,8 +62,8 @@
 .btn-neon-cyan { background: rgba(0, 191, 255, 0.1); border: 1px solid #00bfff; color: #00bfff; }
 .btn-neon-cyan:hover:not(.disabled) { background: rgba(0, 191, 255, 0.2); }
 .btn-neon-cyan.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
-.btn-neon-green { background: rgba(0, 255, 65, 0.1); border: 1px solid #00ff41; color: #00ff41; }
-.btn-neon-green:hover:not(:disabled) { background: rgba(0, 255, 65, 0.2); box-shadow: 0 0 20px rgba(0,255,65,0.3); }
+.btn-neon-green { background: rgba(0, 217, 126, 0.1); border: 1px solid #00d97e; color: #00d97e; }
+.btn-neon-green:hover:not(:disabled) { background: rgba(0, 217, 126, 0.2); box-shadow: 0 0 20px rgba(0,217,126,0.3); }
 .btn-neon-red { background: rgba(255, 0, 85, 0.1); border: 1px solid #ff0055; color: #ff0055; }
 .full-width { width: 100%; }
 .clan-donate-box { background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
@@ -80,7 +80,7 @@
 .member-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #00bfff, #0055ff); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 16px; box-shadow: 0 0 10px rgba(0,191,255,0.3); }
 .member-info { display: flex; flex-direction: column; flex: 1; }
 .member-name { color: #fff; font-weight: 600; font-size: 15px; }
-.member-donate { font-size: 12px; color: #00ff41; font-weight: 600; }
+.member-donate { font-size: 12px; color: #00d97e; font-weight: 600; }
 .member-role { font-size: 10px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 .member-actions { display: flex; gap: 6px; }
 .btn-sm { padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; background: transparent; border: 1px solid currentColor; font-family: inherit; transition: 0.2s; }
@@ -202,7 +202,7 @@
 .b-stat-label { font-size: 10px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 .b-stat-value { font-size: 20px; font-weight: 800; }
 .b-stat-value.gold { color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.5); }
-.b-stat-value.green { color: #00ff41; text-shadow: 0 0 15px rgba(0,255,65,0.5); }
+.b-stat-value.green { color: #00d97e; text-shadow: 0 0 15px rgba(0,217,126,0.5); }
 
 /* Кнопка Атаки */
 .boss-attack-btn { position: relative; width: 100%; padding: 20px !important; border: none !important; background: transparent !important; cursor: pointer; z-index: 2; outline: none; }
@@ -226,4 +226,4 @@
 .b-damage-row:nth-child(3) .b-damage-rank { color: #c0c0c0; }
 .b-damage-row:nth-child(4) .b-damage-rank { color: #cd7f32; }
 .b-damage-name { flex: 1; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
-.b-damage-val { color: #00ff41; font-weight: 700; text-shadow: 0 0 5px rgba(0, 255, 65, 0.3); }
+.b-damage-val { color: #00d97e; font-weight: 700; text-shadow: 0 0 5px rgba(0, 217, 126, 0.3); }
