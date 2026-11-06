@@ -73,11 +73,12 @@ export async function tapHandler(req: any, res: any) {
       }
     }
 
-    return res.status(200).json({
+        return res.status(200).json({
       success: true,
       newBalance: updatedUser.balance,
       newTotalEarned: updatedUser.totalEarned,
       totalClicks: updatedUser.totalClicks,
+      earnedFromClicks: updatedUser.earnedFromClicks, // 👈 ДОБАВЛЕНО
       droppedItem,
       quests,
       pass: updatedUser.weeklyPass

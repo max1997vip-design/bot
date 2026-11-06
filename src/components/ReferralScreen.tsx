@@ -3,6 +3,7 @@ import React from 'react';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { motion } from 'framer-motion';
+import { Gift, Copy, Share2, ArrowLeft, Users } from 'lucide-react';
 import '../styles/referral.css';
 
 const BOT_NAME = 'kliker_one_bot'; 
@@ -32,42 +33,37 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
       <div className="referral-container">
-        {/* Шапка */}
         <div className="referral-topbar">
-          <button className="referral-back" onClick={onClose}>←</button>
-          <h2>ПРИГЛАШАЙ ДРУЗЕЙ</h2>
+          <button className="referral-back" onClick={onClose}>
+            <ArrowLeft size={18} />
+          </button>
+          <h2><Users size={18} /> ПРИГЛАШАЙ ДРУЗЕЙ</h2>
           <div style={{ width: 36 }} />
         </div>
 
-        {/* Контент */}
         <div className="referral-content">
-          
-          {/* Карточка с бонусами */}
           <div className="referral-bonus-card">
-            <div className="bonus-icon">🎁</div>
+            <div className="bonus-icon"><Gift size={32} color="var(--accent)" /></div>
             <div className="bonus-text">
               <h3>Бонус за друга</h3>
               <p>Получай <strong>50,000</strong> монет и <strong>5%</strong> с кликов друга!</p>
             </div>
           </div>
 
-          {/* Баланс рефералов */}
           <div className="referral-earnings-card">
             <span className="earnings-label">Заработано с рефералов</span>
             <span className="earnings-value">{referralEarnings.toLocaleString('ru-RU')} 🪙</span>
           </div>
 
-          {/* Ссылка */}
           <div className="referral-link-box" onClick={handleCopy}>
             <span className="link-text">{refLink}</span>
-            <span className="copy-icon">📋</span>
+            <Copy size={16} color="var(--accent)" style={{ flexShrink: 0, marginLeft: 8 }} />
           </div>
 
-          {/* Кнопка */}
           <button onClick={handleShare} className="referral-btn-action">
+            <Share2 size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} />
             ПОДЕЛИТЬСЯ ССЫЛКОЙ
           </button>
-
         </div>
       </div>
     </motion.div>

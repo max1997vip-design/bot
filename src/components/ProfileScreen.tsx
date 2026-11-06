@@ -1,6 +1,10 @@
 // src/components/ProfileScreen.tsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { 
+  Coins, Star, Car, Trophy, Gift, History, 
+  TrendingUp, MousePointerClick, Flag, Building2
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ReferralScreen } from './ReferralScreen';
 import { HistoryModal } from './HistoryModal';
@@ -55,7 +59,6 @@ export const ProfileScreen = () => {
   const winRateColor = winRate >= 50 ? '#00FF41' : winRate >= 30 ? '#ffcc00' : '#ff4444';
   const winRateGlow = winRate >= 50 ? 'rgba(0,255,65,0.5)' : winRate >= 30 ? 'rgba(255,204,0,0.5)' : 'rgba(255,68,68,0.5)';
 
-  // Используем поля из БД. Если их еще нет, они будут undefined, и покажет 0.
   const earnedClicks = user.earnedFromClicks || 0;
   const earnedRaces = user.earnedFromRaces || 0;
   const earnedBusiness = user.earnedFromBusiness || 0;
@@ -100,45 +103,58 @@ export const ProfileScreen = () => {
         {/* === СТАТИСТИКА ДОХОДА === */}
         <div className="profile-stats-card single">
           <div className="profile-stat-cell" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px 14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '8px' }}>
-              <span className="profile-stat-label" style={{ fontSize: '9px' }}>📊 Статистика дохода</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TrendingUp size={14} color="var(--accent)" />
+                <span className="profile-stat-label" style={{ fontSize: '10px' }}>Статистика дохода</span>
+              </div>
               <button 
                 onClick={() => setShowHistory(true)}
-                style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '9px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' }}
+                style={{ 
+                  background: 'none', border: 'none', color: 'var(--accent)', 
+                  fontSize: '10px', fontWeight: 900, cursor: 'pointer', 
+                  textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px'
+                }}
               >
-                История →
+                <History size={12} />
+                История
               </button>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>👆 С кликов:</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                  <MousePointerClick size={12} color="#00e5ff" /> С кликов:
+                </div>
                 <span style={{ fontWeight: 900, color: '#fff' }}>{earnedClicks.toLocaleString('ru-RU')} 🪙</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>🏁 С гонок:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                  <Flag size={12} color="#ffd700" /> С гонок:
+                </div>
                 <span style={{ fontWeight: 900, color: '#fff' }}>{earnedRaces.toLocaleString('ru-RU')} 🪙</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>🏢 С бизнеса:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
+                  <Building2 size={12} color="#00FF41" /> С бизнеса:
+                </div>
                 <span style={{ fontWeight: 900, color: '#fff' }}>{earnedBusiness.toLocaleString('ru-RU')} 🪙</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* === БАЛАНС И ЗВЕЗДЫ (2 колонки) === */}
+        {/* === БАЛАНС И ЗВЕЗДЫ === */}
         <div className="profile-stats-card">
           <div className="profile-stat-cell">
-            <div className="profile-stat-icon stars">💵</div>
+            <div className="profile-stat-icon stars"><Coins size={16} color="#ffcc00" /></div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">Баланс</span>
               <span className="profile-stat-value">{user.balance.toLocaleString('ru-RU')}</span>
             </div>
           </div>
-
           <div className="profile-stat-cell">
-            <div className="profile-stat-icon league">⭐</div>
+            <div className="profile-stat-icon league"><Star size={16} color="#00e5ff" /></div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">Звёзды</span>
               <span className="profile-stat-value">{user.starsBalance}</span>
@@ -146,18 +162,17 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === ЛИГА И МАШИНА (2 колонки) === */}
+        {/* === ЛИГА И МАШИНА === */}
         <div className="profile-stats-card">
           <div className="profile-stat-cell">
-            <div className="profile-stat-icon rating">🚗</div>
+            <div className="profile-stat-icon rating"><Trophy size={16} color="#ffd700" /></div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">{league.name}</span>
               <span className="profile-stat-value">{user.leaguePoints || 0} очк.</span>
             </div>
           </div>
-          
           <div className="profile-stat-cell">
-            <div className="profile-stat-icon balance">🏎️</div>
+            <div className="profile-stat-icon balance"><Car size={16} color="#00FF41" /></div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">Активная машина</span>
               <span className="profile-stat-value" style={{ fontSize: '10px' }}>{activeCar.name}</span>
@@ -165,28 +180,25 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === ИГРОВАЯ СТАТИСТИКА (4 колонки) === */}
+        {/* === ИГРОВАЯ СТАТИСТИКА === */}
         <div className="profile-game-stats">
           <div className="profile-game-stat">
-            <div className="profile-game-stat-icon">👆</div>
+            <MousePointerClick size={14} color="#00e5ff" style={{ marginBottom: '2px' }} />
             <div className="profile-game-stat-value">{(user.totalClicks || 0).toLocaleString('ru-RU')}</div>
             <div className="profile-game-stat-label">Кликов</div>
           </div>
-
           <div className="profile-game-stat">
-            <div className="profile-game-stat-icon">🏁</div>
+            <Flag size={14} color="#ffd700" style={{ marginBottom: '2px' }} />
             <div className="profile-game-stat-value">{user.totalRaces || 0}</div>
             <div className="profile-game-stat-label">Гонок</div>
           </div>
-
           <div className="profile-game-stat">
-            <div className="profile-game-stat-icon">🏆</div>
+            <Trophy size={14} color="#00FF41" style={{ marginBottom: '2px' }} />
             <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{user.totalWins || 0}</div>
             <div className="profile-game-stat-label">Побед</div>
           </div>
-
           <div className="profile-game-stat">
-            <div className="profile-game-stat-icon">💨</div>
+            <Flag size={14} color="#ff4444" style={{ marginBottom: '2px' }} />
             <div className="profile-game-stat-value" style={{ color: '#ff4444' }}>{user.totalLosses || 0}</div>
             <div className="profile-game-stat-label">Поражений</div>
           </div>
@@ -194,7 +206,9 @@ export const ProfileScreen = () => {
 
         {/* === WINRATE === */}
         <div className="profile-winrate-row">
-          <span className="profile-winrate-label">📊 Winrate (побед)</span>
+          <span className="profile-winrate-label">
+            <TrendingUp size={12} /> Winrate (побед)
+          </span>
           <span className="profile-winrate-value" style={{ color: winRateColor, textShadow: `0 0 10px ${winRateGlow}` }}>
             {winRate}%
           </span>
@@ -206,7 +220,9 @@ export const ProfileScreen = () => {
           onClick={() => setShowAchievements(true)}
           style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }}
         >
-          <span className="profile-referral-icon" style={{ background: 'rgba(255, 215, 0, 0.1)', borderColor: 'rgba(255, 215, 0, 0.3)' }}>🏆</span>
+          <span className="profile-referral-icon" style={{ background: 'rgba(255, 215, 0, 0.1)', borderColor: 'rgba(255, 215, 0, 0.3)' }}>
+            <Trophy size={16} color="#ffd700" />
+          </span>
           <div className="profile-referral-text" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
             <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
             {unclaimedCount > 0 && (
@@ -224,7 +240,7 @@ export const ProfileScreen = () => {
 
         {/* === РЕФЕРАЛЫ === */}
         <button className="profile-referral-btn" onClick={() => setShowReferral(true)}>
-          <span className="profile-referral-icon">🎁</span>
+          <span className="profile-referral-icon"><Gift size={16} color="var(--accent)" /></span>
           <div className="profile-referral-text">
             <span className="profile-referral-title">Пригласить друга</span>
             <span className="profile-referral-sub">

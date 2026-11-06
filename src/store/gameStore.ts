@@ -150,25 +150,29 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
-  tap: () => {
-    const state = get(); const now = Date.now();
-    const tapPower = state.user?.clickLevel || 1; 
-    
-    let newTapCount = state.tapCountInSecond; let lastSecond = state.lastTapSecond;
-    if (now - lastSecond > 1000) { newTapCount = 1; lastSecond = now; } 
-    else { if (newTapCount >= 15) return; newTapCount += 1; }
-    set((s) => ({
-      tapCountInSecond: newTapCount, lastTapSecond: lastSecond,
-      balance: s.balance + tapPower,
-      user: s.user ? { 
-        ...s.user, 
-        totalEarned: s.user.totalEarned + tapPower,
-        totalClicks: (s.user.totalClicks || 0) + 1, // 👈 клик = +1
-      } : null,
-      unsyncedTaps: s.unsyncedTaps + tapPower,
-      unsyncedClicks: s.unsyncedClicks + 1, // 👈 считаем клики отдельно
-    }));
-  },
+  // В gameStore.ts — метод tap()
+tap: () => {
+  const state = get(); const now = Date.now();
+  const tapPower = state.user?.clickLevel || 1; 
+  
+  let newTapCount = state.tapCountInSecond; let lastSecond = state.lastTapSecond;
+  if (now - lastSecond > 1000) { newTapCount = 1; lastSecond = now; } 
+  else { if (newTapCount >= 15) return; newTapCount += 1; }
+  
+  set((s) => ({
+    tapCountInSecond: newTapCount, lastTapSecond: lastSecond,
+    balance: s.balance + tapPower,
+    user: s.user ? { 
+      ...s.user, 
+      totalEarned: s.user.totalEarned + tapPower,
+      totalClicks: (s.user.totalClicks || 0) + 1,
+      // 👇 ДОБАВЛЕНО: сразу обновляем earnedFromClicks
+      earnedFromClicks: (s.user.earnedFromClicks || 0) + tapPower,
+    } : null,
+    unsyncedTaps: s.unsyncedTaps + tapPower,
+    unsyncedClicks: s.unsyncedClicks + 1,
+  }));
+},
 
   openCase: async (caseType) => {
     const initData = getInitData();
@@ -605,39 +609,42 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch { return false; }
   },
 
-  syncTaps: async () => {
-    const { unsyncedTaps, unsyncedClicks, isSyncing } = get();
-    if (unsyncedTaps === 0 || isSyncing) return;
-    const tapsToSend = unsyncedTaps;
-    const clicksToSend = unsyncedClicks;
-    set({ unsyncedTaps: 0, unsyncedClicks: 0, isSyncing: true });
-    try {
-      const initData = getInitData();
-      const res = await fetch('/api/game?action=tap', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, amount: tapsToSend, clicks: clicksToSend }), // 👈 передаём клики
-      });
-      if (!res.ok) throw new Error('Ошибка сервера');
-      const data = await res.json();
-      if (data.success) {
-        set((s) => ({
-          balance: data.newBalance + s.unsyncedTaps,
-          user: s.user ? { 
-            ...s.user, 
-            totalEarned: data.newTotalEarned + s.unsyncedTaps,
-            totalClicks: data.totalClicks ?? s.user.totalClicks, // 👈 берём с сервера
-          } : null
-        }));
-        if (data.droppedItem) {
-          set((s) => ({ inventory: [...s.inventory, data.droppedItem.id], lastDroppedItem: data.droppedItem }));
-        }
-      }
-    } catch (error) {
-      set((state) => ({ 
-        unsyncedTaps: state.unsyncedTaps + tapsToSend,
-        unsyncedClicks: state.unsyncedClicks + clicksToSend,
+// В gameStore.ts — метод syncTaps() — добавь earnedFromClicks в set
+syncTaps: async () => {
+  const { unsyncedTaps, unsyncedClicks, isSyncing } = get();
+  if (unsyncedTaps === 0 || isSyncing) return;
+  const tapsToSend = unsyncedTaps;
+  const clicksToSend = unsyncedClicks;
+  set({ unsyncedTaps: 0, unsyncedClicks: 0, isSyncing: true });
+  try {
+    const initData = getInitData();
+    const res = await fetch('/api/game?action=tap', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, amount: tapsToSend, clicks: clicksToSend }),
+    });
+    if (!res.ok) throw new Error('Ошибка сервера');
+    const data = await res.json();
+    if (data.success) {
+      set((s) => ({
+        balance: data.newBalance + s.unsyncedTaps,
+        user: s.user ? { 
+          ...s.user, 
+          totalEarned: data.newTotalEarned + s.unsyncedTaps,
+          totalClicks: data.totalClicks ?? s.user.totalClicks,
+          // 👇 ДОБАВЛЕНО: подтягиваем с сервера
+          earnedFromClicks: data.earnedFromClicks ?? s.user.earnedFromClicks,
+        } : null
       }));
-    } finally { set({ isSyncing: false }); }
+      if (data.droppedItem) {
+        set((s) => ({ inventory: [...s.inventory, data.droppedItem.id], lastDroppedItem: data.droppedItem }));
+      }
+    }
+  } catch (error) {
+    set((state) => ({ 
+      unsyncedTaps: state.unsyncedTaps + tapsToSend,
+      unsyncedClicks: state.unsyncedClicks + clicksToSend,
+    }));
+  } finally { set({ isSyncing: false }); }
   },
 
   setCarColor: (color) => set({ carColor: color }),
