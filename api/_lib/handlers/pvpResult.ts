@@ -20,19 +20,16 @@ export async function pvpResultHandler(req: any, res: any) {
     const safeRating = Math.max(-100, Math.min(100, Math.round(ratingDelta ?? 0)));
     const safeCoins = Math.max(-10000, Math.min(10000, Math.round(coinsDelta ?? 0)));
 
-    // Обновляем квесты
     const quests = getOrCreateQuests(user.dailyQuests);
     if (won) {
       quests.progress.win_3 = Math.min(3, (quests.progress.win_3 || 0) + 1);
     }
 
-    // Обновляем пропуск
     const pass = getOrCreatePass(user.weeklyPass);
     if (won) {
       pass.xp += 50;
     }
 
-    // Клановый налог (10% от выигрыша)
     let clanTax = 0;
     if (safeCoins > 0) {
       const memberRecord = await db.select().from(clanMembers).where(eq(clanMembers.userId, userId));
@@ -52,12 +49,13 @@ export async function pvpResultHandler(req: any, res: any) {
       }
     }
 
-    // 👇 ОБНОВЛЯЕМ БАЛАНС, РЕЙТИНГ И СТАТИСТИКУ ГОНОК
+    // 👇 Обновляем баланс, рейтинг, статистику гонок и доход с гонок
     const statsUpdate = won
       ? {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
           balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
           totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
+          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`, // 👈 ДОБАВЛЕНО
           totalRaces: sql`${users.totalRaces} + 1`,
           totalWins: sql`${users.totalWins} + 1`,
           dailyQuests: quests,
@@ -67,6 +65,8 @@ export async function pvpResultHandler(req: any, res: any) {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
           balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
           totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
+          // При поражении safeCoins может быть 0 или отрицательным — не добавляем в доход
+          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`, // 👈 ДОБАВЛЕНО
           totalRaces: sql`${users.totalRaces} + 1`,
           totalLosses: sql`${users.totalLosses} + 1`,
           dailyQuests: quests,
@@ -85,7 +85,6 @@ export async function pvpResultHandler(req: any, res: any) {
       rating: updated.rating,
       newBalance: updated.balance,
       newRating: updated.rating,
-      // 👇 Отдаём статистику на клиент
       totalRaces: updated.totalRaces,
       totalWins: updated.totalWins,
       totalLosses: updated.totalLosses,

@@ -35,7 +35,10 @@ export const users = pgTable('users', {
   
   clickLevel: integer('click_level').notNull().default(1),
   offlineLevel: integer('offline_level').notNull().default(1),
-  
+  earnedFromClicks: bigint('earned_from_clicks', { mode: 'number' }).notNull().default(0),
+  earnedFromRaces: bigint('earned_from_races', { mode: 'number' }).notNull().default(0),
+  earnedFromBusiness: bigint('earned_from_business', { mode: 'number' }).notNull().default(0),
+
   dailyStreak: integer('daily_streak').notNull().default(0),
   lastDailyClaim: timestamp('last_daily_claim', { withTimezone: true }),
   lastAdCaseAt: timestamp('last_ad_case_at', { withTimezone: true }),

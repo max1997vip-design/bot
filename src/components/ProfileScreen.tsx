@@ -13,7 +13,7 @@ const calcLevelInfo = (xp: number) => {
   const level = Math.floor(Math.sqrt(xp / 50)) + 1;
   const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
   const xpNextLevel = Math.pow(level, 2) * 50;
-  const progress = Math.min(100, ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100);
+  const progress = Math.min(100, Math.max(0, ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100));
   return { level, xpCurrentLevel, xpNextLevel, progress };
 };
 
@@ -38,7 +38,7 @@ export const ProfileScreen = () => {
     );
   }
 
-  const { level, xpCurrentLevel, xpNextLevel, progress } = calcLevelInfo(user.totalEarned);
+  const { level, xpCurrentLevel, xpNextLevel, progress } = calcLevelInfo(user.totalEarned || 0);
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Гонщик';
   const activeCar = CARS[user.activeCarId] || CARS['vaz-2107'];
   const league = getLeagueByPoints(user.leaguePoints || 0);
@@ -55,6 +55,11 @@ export const ProfileScreen = () => {
   const winRateColor = winRate >= 50 ? '#00FF41' : winRate >= 30 ? '#ffcc00' : '#ff4444';
   const winRateGlow = winRate >= 50 ? 'rgba(0,255,65,0.5)' : winRate >= 30 ? 'rgba(255,204,0,0.5)' : 'rgba(255,68,68,0.5)';
 
+  // Используем поля из БД. Если их еще нет, они будут undefined, и покажет 0.
+  const earnedClicks = user.earnedFromClicks || 0;
+  const earnedRaces = user.earnedFromRaces || 0;
+  const earnedBusiness = user.earnedFromBusiness || 0;
+
   return (
     <motion.div
       className="profile-screen"
@@ -70,7 +75,7 @@ export const ProfileScreen = () => {
               <img src={user.photoUrl} alt={displayName} className="profile-avatar" />
             ) : (
               <div className="profile-avatar-placeholder">
-                {displayName[0].toUpperCase()}
+                {displayName[0]?.toUpperCase() || 'Г'}
               </div>
             )}
             <div className="level-badge">LVL {level}</div>
@@ -83,7 +88,7 @@ export const ProfileScreen = () => {
             <div className="xp-labels">
               <span className="xp-label-title">Опыт</span>
               <span className="xp-label-value">
-                {Math.floor(user.totalEarned - xpCurrentLevel)} / {xpNextLevel - xpCurrentLevel} XP
+                {Math.max(0, Math.floor(user.totalEarned - xpCurrentLevel))} / {xpNextLevel - xpCurrentLevel} XP
               </span>
             </div>
             <div className="xp-bar">
@@ -92,20 +97,42 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === ОБЩАЯ СТАТИСТИКА (2×2) === */}
-        <div className="profile-stats-card">
-          <div className="profile-stat-cell">
-            <div className="profile-stat-icon balance">💰</div>
-            <div className="profile-stat-info">
-              <span className="profile-stat-label">Всего заработано</span>
-              <span className="profile-stat-value">{user.totalEarned.toLocaleString('ru-RU')}</span>
+        {/* === СТАТИСТИКА ДОХОДА === */}
+        <div className="profile-stats-card single">
+          <div className="profile-stat-cell" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '12px 14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '8px' }}>
+              <span className="profile-stat-label" style={{ fontSize: '9px' }}>📊 Статистика дохода</span>
+              <button 
+                onClick={() => setShowHistory(true)}
+                style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '9px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' }}
+              >
+                История →
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>👆 С кликов:</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedClicks.toLocaleString('ru-RU')} 🪙</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>🏁 С гонок:</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedRaces.toLocaleString('ru-RU')} 🪙</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>🏢 С бизнеса:</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedBusiness.toLocaleString('ru-RU')} 🪙</span>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="profile-stat-cell" onClick={() => setShowHistory(true)} style={{ cursor: 'pointer' }}>
+        {/* === БАЛАНС И ЗВЕЗДЫ (2 колонки) === */}
+        <div className="profile-stats-card">
+          <div className="profile-stat-cell">
             <div className="profile-stat-icon stars">💵</div>
             <div className="profile-stat-info">
-              <span className="profile-stat-label">Баланс 📜</span>
+              <span className="profile-stat-label">Баланс</span>
               <span className="profile-stat-value">{user.balance.toLocaleString('ru-RU')}</span>
             </div>
           </div>
@@ -117,7 +144,10 @@ export const ProfileScreen = () => {
               <span className="profile-stat-value">{user.starsBalance}</span>
             </div>
           </div>
+        </div>
 
+        {/* === ЛИГА И МАШИНА (2 колонки) === */}
+        <div className="profile-stats-card">
           <div className="profile-stat-cell">
             <div className="profile-stat-icon rating">🚗</div>
             <div className="profile-stat-info">
@@ -125,15 +155,12 @@ export const ProfileScreen = () => {
               <span className="profile-stat-value">{user.leaguePoints || 0} очк.</span>
             </div>
           </div>
-        </div>
-
-        {/* === АКТИВНАЯ МАШИНА === */}
-        <div className="profile-stats-card single">
+          
           <div className="profile-stat-cell">
-            <div className="profile-stat-icon league">🚗</div>
+            <div className="profile-stat-icon balance">🏎️</div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">Активная машина</span>
-              <span className="profile-stat-value">{activeCar.name}</span>
+              <span className="profile-stat-value" style={{ fontSize: '10px' }}>{activeCar.name}</span>
             </div>
           </div>
         </div>
@@ -179,7 +206,7 @@ export const ProfileScreen = () => {
           onClick={() => setShowAchievements(true)}
           style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }}
         >
-          <span className="profile-referral-icon">🏆</span>
+          <span className="profile-referral-icon" style={{ background: 'rgba(255, 215, 0, 0.1)', borderColor: 'rgba(255, 215, 0, 0.3)' }}>🏆</span>
           <div className="profile-referral-text" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
             <span className="profile-referral-title" style={{ color: '#ffd700' }}>Достижения</span>
             {unclaimedCount > 0 && (

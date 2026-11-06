@@ -2,6 +2,8 @@
 import React from 'react';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
+import { motion } from 'framer-motion';
+import '../styles/referral.css';
 
 const BOT_NAME = 'kliker_one_bot'; 
 
@@ -11,8 +13,6 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
   if (!user) return null;
 
   const referralEarnings = user.referralEarnings || 0;
-  
-  // 👇 Убрали слэш /app перед ?startapp (если только ты не назвал Mini App "app" в BotFather)
   const refLink = `https://t.me/${BOT_NAME}?startapp=ref_${user.id}`; 
 
   const handleCopy = () => {
@@ -27,47 +27,49 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
   };
 
   return (
-    <div className="referral-overlay">
+    <motion.div 
+      className="referral-overlay"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    >
       <div className="referral-container">
+        {/* Шапка */}
         <div className="referral-topbar">
-          <button className="referral-back" onClick={onClose} aria-label="Назад">←</button>
-          <h2>Приглашай друзей</h2>
-          <div style={{ width: 40 }} />
+          <button className="referral-back" onClick={onClose}>←</button>
+          <h2>ПРИГЛАШАЙ ДРУЗЕЙ</h2>
+          <div style={{ width: 36 }} />
         </div>
 
-        <div className="referral-header">
-          <p>За каждого друга ты получаешь <strong className="text-green">50,000</strong> монет и <strong className="text-green">5%</strong> от каждого его клика!</p>
-          <p style={{ fontSize: '12px', marginTop: '8px' }}>Друг получает <strong className="text-green">10,000</strong> на старт.</p>
-        </div>
-        
-        <div className="referral-stats-card">
-          <div className="stat-row">
-            <span>Заработано с рефералов:</span>
-            <strong className="text-green">{referralEarnings.toLocaleString('ru-RU')} 🪙</strong>
+        {/* Контент */}
+        <div className="referral-content">
+          
+          {/* Карточка с бонусами */}
+          <div className="referral-bonus-card">
+            <div className="bonus-icon">🎁</div>
+            <div className="bonus-text">
+              <h3>Бонус за друга</h3>
+              <p>Получай <strong>50,000</strong> монет и <strong>5%</strong> с кликов друга!</p>
+            </div>
           </div>
-        </div>
 
-        <div 
-          onClick={handleCopy}
-          style={{ 
-            background: 'rgba(255,255,255,0.05)', 
-            padding: '16px', 
-            borderRadius: '12px', 
-            wordBreak: 'break-all',
-            fontSize: '13px',
-            color: '#aaa',
-            cursor: 'pointer',
-            textAlign: 'center',
-            border: '1px dashed rgba(255,255,255,0.2)'
-          }}
-        >
-          {refLink}
-        </div>
+          {/* Баланс рефералов */}
+          <div className="referral-earnings-card">
+            <span className="earnings-label">Заработано с рефералов</span>
+            <span className="earnings-value">{referralEarnings.toLocaleString('ru-RU')} 🪙</span>
+          </div>
 
-        <button onClick={handleShare} className="referral-btn" style={{ marginTop: '16px' }}>
-          Поделиться ссылкой
-        </button>
+          {/* Ссылка */}
+          <div className="referral-link-box" onClick={handleCopy}>
+            <span className="link-text">{refLink}</span>
+            <span className="copy-icon">📋</span>
+          </div>
+
+          {/* Кнопка */}
+          <button onClick={handleShare} className="referral-btn-action">
+            ПОДЕЛИТЬСЯ ССЫЛКОЙ
+          </button>
+
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

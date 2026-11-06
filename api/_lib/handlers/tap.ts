@@ -16,21 +16,22 @@ export async function tapHandler(req: any, res: any) {
   const telegramId = validatedData.user.id;
   if (typeof amount !== 'number' || amount <= 0 || amount > 10000) return res.status(400).json({ error: 'Invalid amount' });
 
-  // 👇 Количество кликов (по умолчанию = amount, если клиент не передал clicks)
   const clicksToAdd = typeof clicks === 'number' && clicks > 0 ? clicks : amount;
 
   try {
     const [user] = await db.select().from(users).where(eq(users.id, telegramId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 👇 ПАССИВНЫЙ ДОХОД С РЕФЕРАЛОВ (5%)
+    // Пассивный доход с рефералов
     if (user.referredBy && amount > 0) {
       const referralBonus = Math.floor(amount * 0.05);
       if (referralBonus > 0) {
         await db.update(users).set({
           balance: sql`${users.balance} + ${referralBonus}`,
           totalEarned: sql`${users.totalEarned} + ${referralBonus}`,
-          referralEarnings: sql`${users.referralEarnings} + ${referralBonus}`
+          referralEarnings: sql`${users.referralEarnings} + ${referralBonus}`,
+          // 👇 реферальный бонус тоже считается доходом (можно отнести к кликам, т.к. это % от кликов)
+          earnedFromClicks: sql`${users.earnedFromClicks} + ${referralBonus}`
         }).where(eq(users.id, user.referredBy));
       }
     }
@@ -42,11 +43,12 @@ export async function tapHandler(req: any, res: any) {
     const xpMultiplier = pass.isPremium ? 3 : 1;
     pass.xp += amount * xpMultiplier;
 
-    // 👇 Обновляем баланс, квесты, пропуск и СТАТИСТИКУ КЛИКОВ
+    // 👇 Обновляем баланс, квесты, пропуск и СТАТИСТИКУ
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
       totalEarned: sql`${users.totalEarned} + ${amount}`,
-      totalClicks: sql`${users.totalClicks} + ${clicksToAdd}`, // 👈 именно клики, а не монеты
+      earnedFromClicks: sql`${users.earnedFromClicks} + ${amount}`, // 👈 ДОБАВЛЕНО
+      totalClicks: sql`${users.totalClicks} + ${clicksToAdd}`,
       lastOnlineAt: new Date(),
       dailyQuests: quests,
       weeklyPass: pass
@@ -75,7 +77,7 @@ export async function tapHandler(req: any, res: any) {
       success: true,
       newBalance: updatedUser.balance,
       newTotalEarned: updatedUser.totalEarned,
-      totalClicks: updatedUser.totalClicks, // 👈 возвращаем статистику
+      totalClicks: updatedUser.totalClicks,
       droppedItem,
       quests,
       pass: updatedUser.weeklyPass

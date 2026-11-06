@@ -414,3 +414,20 @@
   color: #00FF41;
   text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
 }
+
+/* Добавь в конец src/styles/profile.css */
+
+/* Улучшение для блока "Статистика дохода" */
+.profile-stats-card.single .profile-stat-cell {
+  min-height: auto;
+  padding: 12px 14px;
+}
+
+/* Стилизация кнопки "История" (внутри карточки) */
+.profile-stat-cell button {
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.profile-stat-cell button:hover {
+  opacity: 1;
+}

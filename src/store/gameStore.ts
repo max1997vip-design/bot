@@ -46,6 +46,9 @@ export interface UserData {
   totalRaces?: number;
   totalWins?: number;
   totalLosses?: number;
+  earnedFromClicks?: number;
+  earnedFromRaces?: number;
+  earnedFromBusiness?: number;
 }
 
 interface GameState {
