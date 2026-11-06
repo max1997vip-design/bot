@@ -476,23 +476,30 @@ tap: () => {
     } catch { return false; }
   },
 
-  collectIncome: async () => {
-    const initData = getInitData();
-    try {
-      const res = await fetch('/api/game?action=collectIncome', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        set((s) => ({
-          balance: data.newBalance,
-          user: s.user ? { ...s.user, balance: data.newBalance, businesses: data.businesses } : null
-        }));
-        return { success: true, collected: data.collected };
-      }
-      return { success: false };
-    } catch { return { success: false }; }
+  // В gameStore.ts — collectIncome
+collectIncome: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=collectIncome', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { 
+          ...s.user, 
+          balance: data.newBalance, 
+          businesses: data.businesses,
+          // 👇 ДОБАВЛЕНО: доход с бизнеса
+          earnedFromBusiness: data.earnedFromBusiness ?? s.user.earnedFromBusiness,
+        } : null
+      }));
+      return { success: true, collected: data.collected };
+    }
+    return { success: false };
+  } catch { return { success: false }; }
   },
 
   upgradePart: async (itemId, type) => {
@@ -748,6 +755,7 @@ syncTaps: async () => {
         totalRaces: data.totalRaces ?? state.user.totalRaces,
         totalWins: data.totalWins ?? state.user.totalWins,
         totalLosses: data.totalLosses ?? state.user.totalLosses,
+        earnedFromRaces: data.earnedFromRaces ?? state.user.earnedFromRaces,
       } : null
     }));
   } catch (e) {

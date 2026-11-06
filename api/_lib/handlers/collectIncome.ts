@@ -49,7 +49,7 @@ export async function collectIncomeHandler(req: any, res: any) {
       businesses 
     }).where(eq(users.id, user.id)).returning();
 
-    return res.json({ success: true, newBalance: updated.balance, businesses, collected: totalEarned });
+    return res.json({ success: true, newBalance: updated.balance, businesses, collected: totalEarned, earnedFromBusiness: updated.earnedFromBusiness, });
   } catch (e) {
     console.error('Collect income error:', e);
     return res.status(500).json({ error: 'Internal error' });

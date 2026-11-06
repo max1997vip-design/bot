@@ -88,6 +88,7 @@ export async function pvpResultHandler(req: any, res: any) {
       totalRaces: updated.totalRaces,
       totalWins: updated.totalWins,
       totalLosses: updated.totalLosses,
+      earnedFromRaces: updated.earnedFromRaces,
       quests,
       pass: updated.weeklyPass,
       clanTax,

@@ -23,13 +23,12 @@
   border-top-right-radius: 24px;
   width: 100%;
   max-width: 500px;
-  max-height: 90vh;
-  height: 90vh; /* 👈 ФИКС: фиксируем высоту */
+  max-height: 92vh;
+  height: 92vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  padding-bottom: 0; /* 👈 убираем padding снизу */
 }
 
 .achievements-header {
@@ -88,22 +87,77 @@
   color: #ff4444;
 }
 
-/* 👇 ФИКС СКРОЛЛА */
+/* 👇 ФИКС: скролл работает, полоска скрыта */
 .achievements-body {
-  padding: 16px 20px 100px; /* 👈 большой нижний padding */
+  padding: 16px 20px 32px;
   overflow-y: auto;
-  overscroll-behavior: contain; /* 👈 фикс overscroll */
+  -webkit-overflow-scrolling: touch;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); /* 👈 безопасная зона */
+  /* 👇 Скрываем полоску скролла */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.achievements-body::-webkit-scrollbar { width: 4px; }
-.achievements-body::-webkit-scrollbar-track { background: transparent; }
-.achievements-body::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.3); border-radius: 2px; }
+.achievements-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========== TIER-СЕКЦИИ ========== */
+
+.tier-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tier-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  margin-bottom: 4px;
+}
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 12px;
+  font-family: Impact, Arial Black, sans-serif;
+}
+
+.tier-badge.tier-1 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; box-shadow: 0 0 10px rgba(205, 127, 50, 0.4); }
+.tier-badge.tier-2 { background: linear-gradient(135deg, #c0c0c0, #808080); color: #000; box-shadow: 0 0 10px rgba(192, 192, 192, 0.4); }
+.tier-badge.tier-3 { background: linear-gradient(135deg, #ffd700, #ff8800); color: #000; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+.tier-badge.tier-4 { background: linear-gradient(135deg, #00e5ff, #00b8cc); color: #000; box-shadow: 0 0 10px rgba(0, 229, 255, 0.5); }
+.tier-badge.tier-5 { background: linear-gradient(135deg, #ff00ff, #8800aa); color: #fff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.6); }
+
+.tier-title {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: Impact, Arial Black, sans-serif;
+}
+
+.tier-subtitle {
+  color: var(--text-secondary, #888);
+  font-size: 9px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ========== КАРТОЧКИ ДОСТИЖЕНИЙ ========== */
 
 .achievement-card {
   display: flex;
@@ -114,7 +168,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   transition: all 0.2s ease;
-  flex-shrink: 0; /* 👈 важно, чтобы карточки не сжимались */
+  flex-shrink: 0;
 }
 
 .achievement-card.unlocked {
@@ -128,7 +182,6 @@
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
 }
 
-/* 👇 ПРЕМИУМ-ИКОНКИ С ГРАДИЕНТОМ */
 .achievement-icon-wrapper {
   width: 44px;
   height: 44px;
@@ -224,4 +277,75 @@
 .achievement-claim-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
+/* ========== ТАБЫ КАТЕГОРИЙ ========== */
+.achievements-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.achievement-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.achievement-tab.active {
+  background: rgba(255, 255, 255, 0.06);
+  border-width: 1px;
+  transform: translateY(-1px);
+}
+
+.achievement-tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ========== ПРОГРЕСС-БАР КАТЕГОРИИ ========== */
+.achievements-progress-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 20px;
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.achievements-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease, background 0.3s ease;
+}
+
+/* ========== BODY: фикс скролла ========== */
+.achievements-body {
+  padding: 12px 20px 32px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.achievements-body::-webkit-scrollbar {
+  display: none;
 }
