@@ -22,9 +22,19 @@ const calcLevelInfo = (xp: number) => {
 };
 
 export const ProfileScreen = () => {
+  // 👇 Общий объект user (для avatar, balance, username и т.д.)
   const user = useGameStore((state) => state.user);
   const achievementsList = useGameStore((state) => state.achievementsList);
   const getAchievements = useGameStore((state) => state.getAchievements);
+
+  // 👇 Ключевые поля отдельно — примитивы для реактивности
+  const earnedClicks = useGameStore((state) => state.user?.earnedFromClicks || 0);
+  const earnedRaces = useGameStore((state) => state.user?.earnedFromRaces || 0);
+  const earnedBusiness = useGameStore((state) => state.user?.earnedFromBusiness || 0);
+  const totalRaces = useGameStore((state) => state.user?.totalRaces || 0);
+  const totalWins = useGameStore((state) => state.user?.totalWins || 0);
+  const totalLosses = useGameStore((state) => state.user?.totalLosses || 0);
+  const totalClicks = useGameStore((state) => state.user?.totalClicks || 0);
   
   const [showReferral, setShowReferral] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -53,15 +63,10 @@ export const ProfileScreen = () => {
 
   const unclaimedCount = achievementsList.filter(a => a.isCompleted && !a.isUnlocked).length;
 
-  const totalRaces = user.totalRaces || 0;
-  const totalWins = user.totalWins || 0;
+  // 👇 Винрейт считаем из примитивов
   const winRate = totalRaces > 0 ? Math.round((totalWins / totalRaces) * 100) : 0;
   const winRateColor = winRate >= 50 ? '#00FF41' : winRate >= 30 ? '#ffcc00' : '#ff4444';
   const winRateGlow = winRate >= 50 ? 'rgba(0,255,65,0.5)' : winRate >= 30 ? 'rgba(255,204,0,0.5)' : 'rgba(255,68,68,0.5)';
-
-  const earnedClicks = user.earnedFromClicks || 0;
-  const earnedRaces = user.earnedFromRaces || 0;
-  const earnedBusiness = user.earnedFromBusiness || 0;
 
   return (
     <motion.div
@@ -184,22 +189,22 @@ export const ProfileScreen = () => {
         <div className="profile-game-stats">
           <div className="profile-game-stat">
             <MousePointerClick size={14} color="#00e5ff" style={{ marginBottom: '2px' }} />
-            <div className="profile-game-stat-value">{(user.totalClicks || 0).toLocaleString('ru-RU')}</div>
+            <div className="profile-game-stat-value">{totalClicks.toLocaleString('ru-RU')}</div>
             <div className="profile-game-stat-label">Кликов</div>
           </div>
           <div className="profile-game-stat">
             <Flag size={14} color="#ffd700" style={{ marginBottom: '2px' }} />
-            <div className="profile-game-stat-value">{user.totalRaces || 0}</div>
+            <div className="profile-game-stat-value">{totalRaces}</div>
             <div className="profile-game-stat-label">Гонок</div>
           </div>
           <div className="profile-game-stat">
             <Trophy size={14} color="#00FF41" style={{ marginBottom: '2px' }} />
-            <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{user.totalWins || 0}</div>
+            <div className="profile-game-stat-value" style={{ color: '#00FF41' }}>{totalWins}</div>
             <div className="profile-game-stat-label">Побед</div>
           </div>
           <div className="profile-game-stat">
             <Flag size={14} color="#ff4444" style={{ marginBottom: '2px' }} />
-            <div className="profile-game-stat-value" style={{ color: '#ff4444' }}>{user.totalLosses || 0}</div>
+            <div className="profile-game-stat-value" style={{ color: '#ff4444' }}>{totalLosses}</div>
             <div className="profile-game-stat-label">Поражений</div>
           </div>
         </div>

@@ -1,17 +1,29 @@
-// src/components/AchievementsScreen.tsx
+// src/components/AchievementsScreen.tsx (начало файла)
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
-import { Trophy, Lock, Check } from 'lucide-react';
+import {
+  Trophy, Lock, Check,
+  Coins, Wallet, Gem, Crown, Landmark,
+  Pointer, Zap, Flame, Rocket, Sparkles,
+  Flag, Gauge, Medal, Award,
+  Car, CarFront, CarTaxiFront, Warehouse,
+  Wrench, Cog, Hammer, Shield, Star,
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import WebApp from '@twa-dev/sdk';
 import { CATEGORY_META, TIER_META, AchievementCategory } from '../config/achievements';
 import '../styles/achievements.css';
 
-// Хелпер для рендера lucide-иконки по имени
+const ICON_MAP: Record<string, any> = {
+  Coins, Wallet, Gem, Crown, Landmark,
+  Pointer, Zap, Flame, Rocket, Sparkles,
+  Flag, Gauge, Trophy, Medal, Award,
+  Car, CarFront, CarTaxiFront, Warehouse,
+  Wrench, Cog, Hammer, Shield, Star,
+};
+
 const renderLucideIcon = (name: string, size = 20, color = 'currentColor') => {
-  const IconComponent = (LucideIcons as any)[name];
-  if (!IconComponent) return <Trophy size={size} color={color} />;
+  const IconComponent = ICON_MAP[name] || Trophy;
   return <IconComponent size={size} color={color} strokeWidth={2} />;
 };
 
