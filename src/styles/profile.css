@@ -434,3 +434,10 @@
 .profile-stat-cell button:hover {
   opacity: 1;
 }
+
+.currency-ruble {
+  color: #ffd700;
+  font-weight: 900;
+  font-family: Impact, Arial Black, sans-serif;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}

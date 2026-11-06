@@ -57,7 +57,10 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
               <TrendingUp size={16} color="#00FF41" />
               <span className="earnings-label">Заработано с рефералов</span>
             </div>
-            <span className="earnings-value">{referralEarnings.toLocaleString('ru-RU')} ₽</span>
+            <span className="earnings-value">
+              {referralEarnings.toLocaleString('ru-RU')}
+            <span className="currency-ruble" style={{ marginLeft: 4 }}>₽</span>
+            </span>
           </div>
 
           {/* Как это работает */}

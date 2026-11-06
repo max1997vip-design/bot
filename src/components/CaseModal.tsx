@@ -18,7 +18,7 @@ const CASE_ITEMS: Record<string, any> = {
   hourly: { name: 'Рекламный', price: 0, icon: '🎬', currency: 'ad', cooldown: 3600000 },
   silver: { name: 'Серебряный', price: 25000, icon: '🎁', currency: 'coins' },
   gold: { name: 'Золотой', price: 100000, icon: '🏆', currency: 'coins' },
-  platinum: { name: 'Платиновый', price: 500000, icon: '💎', currency: 'coins' },
+  platinum: { name: 'Платиновый', price: 500000, icon: '₽', currency: 'coins' },
   diamond: { name: 'Алмазный', price: 2000000, icon: '💠', currency: 'coins' },
   star_premium: { name: 'Звездный', price: 50, icon: '⭐', currency: 'stars' }
 };

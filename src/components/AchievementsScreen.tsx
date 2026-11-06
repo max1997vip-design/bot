@@ -193,7 +193,10 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
                         <span className="achievement-name">{ach.name}</span>
                       </div>
                       <span className="achievement-desc">{ach.description}</span>
-                      <span className="achievement-reward">💎 {ach.reward?.toLocaleString('ru-RU') || 0}</span>
+                      <span className="achievement-reward">
+                         {ach.reward?.toLocaleString('ru-RU') || 0} 
+                         <span className="currency-ruble sm" style={{ marginLeft: 4 }}>₽</span>
+                        </span>
                     </div>
 
                     {isUnlocked && <span className="achievement-status done">✓</span>}

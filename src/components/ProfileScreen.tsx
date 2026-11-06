@@ -131,19 +131,28 @@ export const ProfileScreen = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
                   <MousePointerClick size={12} color="#00e5ff" /> С кликов:
                 </div>
-                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedClicks.toLocaleString('ru-RU')} ₽</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>
+                  {earnedClicks.toLocaleString('ru-RU')}
+                <span className="currency-ruble sm" style={{ marginLeft: 3 }}>₽</span>
+                </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
                   <Flag size={12} color="#ffd700" /> С гонок:
                 </div>
-                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedRaces.toLocaleString('ru-RU')} ₽</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>
+                  {earnedRaces.toLocaleString('ru-RU')}
+                <span className="currency-ruble sm" style={{ marginLeft: 3 }}>₽</span>
+                </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
                   <Building2 size={12} color="#00FF41" /> С бизнеса:
                 </div>
-                <span style={{ fontWeight: 900, color: '#fff' }}>{earnedBusiness.toLocaleString('ru-RU')} ₽</span>
+                <span style={{ fontWeight: 900, color: '#fff' }}>
+                  {earnedBusiness.toLocaleString('ru-RU')}
+                <span className="currency-ruble sm" style={{ marginLeft: 3 }}>₽</span>
+                </span>
               </div>
             </div>
           </div>
@@ -155,7 +164,10 @@ export const ProfileScreen = () => {
             <div className="profile-stat-icon stars"><Coins size={16} color="#ffcc00" /></div>
             <div className="profile-stat-info">
               <span className="profile-stat-label">Баланс</span>
-              <span className="profile-stat-value">{user.balance.toLocaleString('ru-RU')}</span>
+              <span className="profile-stat-value">
+                {user.balance.toLocaleString('ru-RU')}
+              <span className="currency-ruble" style={{ marginLeft: 4 }}>₽</span>
+              </span>
             </div>
           </div>
           <div className="profile-stat-cell">

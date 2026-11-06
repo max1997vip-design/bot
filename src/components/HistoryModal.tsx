@@ -1,6 +1,9 @@
+// src/components/HistoryModal.tsx
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
+import { TrendingUp, TrendingDown, X, History } from 'lucide-react';
+import '../styles/history.css';
 
 export function HistoryModal({ onClose }: { onClose: () => void }) {
   const history = useGameStore((s) => s.history);
@@ -10,35 +13,88 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
     fetchHistory();
   }, [fetchHistory]);
 
+  // Показываем только 10 последних операций
+  const recentHistory = history.slice(0, 10);
+
   return (
     <motion.div 
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+      className="history-overlay"
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
     >
-      <div style={{ background: '#1a1a1a', padding: '20px', borderRadius: '16px', width: '100%', maxWidth: '400px', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h2 style={{ color: 'white', margin: 0, fontSize: '20px' }}>📜 История баланса</h2>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '30px', height: '30px', fontSize: '16px', cursor: 'pointer' }}>✕</button>
+      <motion.div 
+        className="history-container"
+        initial={{ scale: 0.9, y: 20 }} 
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Шапка */}
+        <div className="history-header">
+          <h2>
+            <History size={18} color="#00e5ff" />
+            ИСТОРИЯ
+          </h2>
+          <button className="history-close" onClick={onClose}>
+            <X size={18} />
+          </button>
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {history.length === 0 && <p style={{ color: '#aaa', textAlign: 'center', marginTop: '20px' }}>Пока нет транзакций</p>}
-          
-          {history.map((tx: any) => (
-            <div key={tx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', borderLeft: `3px solid ${tx.amount > 0 ? '#00FF41' : '#ff4444'}` }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}>{tx.description}</span>
-                <span style={{ color: '#666', fontSize: '10px' }}>{new Date(tx.createdAt).toLocaleString('ru-RU')}</span>
-              </div>
-              <span style={{ color: tx.amount > 0 ? '#00FF41' : '#ff4444', fontWeight: '900', fontSize: '14px', whiteSpace: 'nowrap', marginLeft: '10px' }}>
-                {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('ru-RU')} ₽
-              </span>
+        {/* Список */}
+        <div className="history-body">
+          {recentHistory.length === 0 && (
+            <div className="history-empty">
+              <History size={32} color="#444" />
+              <p>Пока нет операций</p>
             </div>
-          ))}
+          )}
+
+          {recentHistory.map((tx: any, index: number) => {
+            const isPositive = tx.amount > 0;
+            const IconComponent = isPositive ? TrendingUp : TrendingDown;
+            const color = isPositive ? '#00FF41' : '#ff4444';
+            const glow = isPositive ? 'rgba(0,255,65,0.4)' : 'rgba(255,68,68,0.4)';
+
+            return (
+              <motion.div 
+                key={tx.id}
+                className="history-item"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.04 }}
+                style={{ borderLeftColor: color }}
+              >
+                <div className="history-icon" style={{ background: `${color}15`, border: `1px solid ${color}44` }}>
+                  <IconComponent size={14} color={color} />
+                </div>
+
+                <div className="history-info">
+                  <span className="history-desc">{tx.description}</span>
+                  <span className="history-date">
+                    {new Date(tx.createdAt).toLocaleString('ru-RU', {
+                      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+
+                <span className="history-amount" style={{ color, textShadow: `0 0 8px ${glow}` }}>
+                  {isPositive ? '+' : ''}{tx.amount.toLocaleString('ru-RU')}
+                  <span className="currency-ruble sm" style={{ marginLeft: 3 }}>₽</span>
+                </span>
+              </motion.div>
+            );
+          })}
         </div>
 
-      </div>
+        {/* Футер (опционально) */}
+        {history.length > 10 && (
+          <div className="history-footer">
+            Показаны последние 10 операций
+          </div>
+        )}
+      </motion.div>
     </motion.div>
   );
 }

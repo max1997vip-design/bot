@@ -13,7 +13,7 @@ export async function getHistoryHandler(req: any, res: any) {
       .from(transactions)
       .where(eq(transactions.userId, valid.user.id))
       .orderBy(desc(transactions.createdAt))
-      .limit(50); // Берем последние 50 записей
+      .limit(15); // Берем последние 15 записей
 
     return res.json({ success: true, history });
   } catch (e) {

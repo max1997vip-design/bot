@@ -53,3 +53,44 @@
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0); opacity: 1; }
 }
+
+/* ========== ПРЕМИУМ ВАЛЮТА ₽ ========== */
+.currency-ruble {
+  display: inline-block;
+  font-weight: 900;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1em; /* масштабируется от родителя */
+  color: #ffd700;
+  background: linear-gradient(180deg, #fff4b0 0%, #ffd700 40%, #ff8800 70%, #cc6600 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.7)) drop-shadow(0 0 8px rgba(255, 136, 0, 0.5));
+  letter-spacing: -0.5px;
+  vertical-align: middle;
+  line-height: 1;
+  transition: filter 0.2s ease;
+}
+
+/* Дополнительная тень для объёма */
+.currency-ruble::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Если ₽ стоит рядом с числом — небольшой отступ */
+.currency-ruble + .currency-ruble {
+  margin-left: 2px;
+}
+
+/* Вариант "свечение при наведении" (для баланса в шапке) */
+.currency-ruble.glow:hover {
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1)) drop-shadow(0 0 14px rgba(255, 136, 0, 0.8));
+}
+
+/* Маленький размер для inline-мест */
+.currency-ruble.sm { font-size: 0.85em; }
+/* Большой для баланса */
+.currency-ruble.lg { font-size: 1.2em; }

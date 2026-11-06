@@ -52,7 +52,7 @@ export const LEAGUES: League[] = [
     name: 'Платина',
     color: '#5ce1e6',
     gradient: 'linear-gradient(135deg, #5ce1e6, #1f7c8a)',
-    icon: '💎',
+    icon: '₽',
     minPoints: 3000,
     maxPoints: 4999,
     winPoints: 30,
