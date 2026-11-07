@@ -467,3 +467,118 @@
   0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
   50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
 }
+
+/* ========== ПОСЛЕДНИЕ ДОСТИЖЕНИЯ ========== */
+.recent-achievements-card {
+  padding: 14px;
+}
+
+.recent-achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.recent-ach-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.recent-ach-item.unlocked {
+  background: linear-gradient(135deg, rgba(0, 217, 126, 0.08), rgba(0, 217, 126, 0.02));
+  border-color: rgba(0, 217, 126, 0.3);
+}
+
+.recent-ach-item.claimable {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.02));
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.recent-ach-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.recent-ach-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-ach-name {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.recent-ach-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recent-ach-tier {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border: 1px solid;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.recent-ach-reward {
+  color: var(--gold);
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+}
+
+.recent-ach-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #000;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px var(--gold);
+  animation: pulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* Анимации (если ещё нет) */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px var(--gold); }
+  50% { transform: scale(1.2); box-shadow: 0 0 20px var(--gold); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
+}

@@ -1,9 +1,9 @@
 // src/components/ProfileScreen.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Coins, Star, Car, Trophy, Gift, History, 
-  TrendingUp, MousePointerClick, Flag, Building2, Sparkles
+  TrendingUp, MousePointerClick, Flag, Building2, Sparkles, ChevronRight, Lock, Check
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ReferralScreen } from './ReferralScreen';
@@ -13,6 +13,8 @@ import { LevelRewardModal } from './LevelRewardModal';
 import { CARS } from '../config/cars';
 import { getLeagueByPoints } from '../config/leagues';
 import { LEVEL_REWARDS, calcLevel } from '../config/levelRewards';
+import { CATEGORY_META, TIER_META } from '../config/achievements';
+import * as LucideIcons from 'lucide-react';
 import '../styles/profile.css';
 
 const calcLevelInfo = (xp: number) => {
@@ -21,6 +23,11 @@ const calcLevelInfo = (xp: number) => {
   const xpNextLevel = Math.pow(level, 2) * 100;
   const progress = Math.min(100, Math.max(0, ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100));
   return { level, xpCurrentLevel, xpNextLevel, progress };
+};
+
+const renderLucideIcon = (name: string, size = 20, color = 'currentColor') => {
+  const IconComponent = (LucideIcons as any)[name] || Trophy;
+  return <IconComponent size={size} color={color} strokeWidth={2} />;
 };
 
 export const ProfileScreen = () => {
@@ -45,6 +52,21 @@ export const ProfileScreen = () => {
     getAchievements();
   }, [getAchievements]);
 
+  // 👇 3 последних разблокированных или ближайших к разблокировке
+  const recentAchievements = useMemo(() => {
+    if (!achievementsList.length) return [];
+    
+    // Сначала те, что готовы забрать (isCompleted && !isUnlocked)
+    const claimable = achievementsList.filter((a: any) => a.isCompleted && !a.isUnlocked);
+    // Потом уже полученные (isUnlocked)
+    const unlocked = achievementsList.filter((a: any) => a.isUnlocked);
+    // Потом в процессе
+    const inProgress = achievementsList.filter((a: any) => !a.isCompleted && !a.isUnlocked);
+
+    const combined = [...claimable, ...unlocked, ...inProgress];
+    return combined.slice(0, 3);
+  }, [achievementsList]);
+
   if (!user) {
     return (
       <div className="profile-screen" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -62,12 +84,11 @@ export const ProfileScreen = () => {
     day: 'numeric', month: 'long', year: 'numeric',
   });
 
-  const unclaimedCount = achievementsList.filter(a => a.isCompleted && !a.isUnlocked).length;
+  const unclaimedCount = achievementsList.filter((a: any) => a.isCompleted && !a.isUnlocked).length;
   const winRate = totalRaces > 0 ? Math.round((totalWins / totalRaces) * 100) : 0;
   const winRateColor = winRate >= 50 ? 'var(--success)' : winRate >= 30 ? '#ffcc00' : 'var(--danger)';
   const winRateGlow = winRate >= 50 ? 'var(--success-glow)' : winRate >= 30 ? 'rgba(255,204,0,0.4)' : 'var(--danger-glow)';
 
-  // 👇 Проверяем, есть ли награда за уровень
   const lastClaimed = user.lastClaimedLevel || 1;
   const currentLevelNum = calcLevel(user.xp || 0);
   const hasLevelReward = currentLevelNum > lastClaimed && 
@@ -91,21 +112,12 @@ export const ProfileScreen = () => {
                 <span 
                   onClick={() => setShowLevelReward(true)}
                   style={{
-                    position: 'absolute',
-                    top: -6,
-                    right: -6,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    background: 'var(--gold)',
-                    color: '#000',
-                    fontSize: 11,
-                    fontWeight: 900,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 0 10px var(--gold)',
-                    cursor: 'pointer',
+                    position: 'absolute', top: -6, right: -6,
+                    width: 16, height: 16, borderRadius: '50%',
+                    background: 'var(--gold)', color: '#000',
+                    fontSize: 11, fontWeight: 900,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 0 10px var(--gold)', cursor: 'pointer',
                     animation: 'pulse 1.5s ease-in-out infinite',
                   }}
                 >!</span>
@@ -129,7 +141,7 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* 👇 КНОПКА «ЗАБРАТЬ НАГРАДУ ЗА УРОВЕНЬ» */}
+        {/* НАГРАДА ЗА УРОВЕНЬ */}
         {hasLevelReward && (
           <button
             className="profile-menu-btn"
@@ -145,12 +157,8 @@ export const ProfileScreen = () => {
               <Sparkles size={20} color="var(--gold)" />
             </span>
             <div className="menu-text">
-              <span className="menu-title" style={{ color: 'var(--gold)' }}>
-                НАГРАДА ЗА УРОВЕНЬ!
-              </span>
-              <span className="menu-sub">
-                LVL {currentLevelNum} — забери награду
-              </span>
+              <span className="menu-title" style={{ color: 'var(--gold)' }}>НАГРАДА ЗА УРОВЕНЬ!</span>
+              <span className="menu-sub">LVL {currentLevelNum} — забери награду</span>
             </div>
             <span className="menu-arrow" style={{ color: 'var(--gold)' }}>›</span>
           </button>
@@ -183,7 +191,7 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === БАЛАНС И ЗВЕЗДЫ === */}
+        {/* БАЛАНС И ЗВЁЗДЫ */}
         <div className="profile-grid-2">
           <div className="profile-card mini-card">
             <div className="mini-icon" style={{ background: 'rgba(255, 204, 0, 0.1)', borderColor: 'rgba(255, 204, 0, 0.3)' }}><Coins size={20} color="#ffcc00" /></div>
@@ -201,7 +209,7 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === ЛИГА И МАШИНА === */}
+        {/* ЛИГА И МАШИНА */}
         <div className="profile-grid-2">
           <div className="profile-card mini-card">
             <div className="mini-icon" style={{ background: 'rgba(255, 215, 0, 0.1)', borderColor: 'rgba(255, 215, 0, 0.3)' }}><Trophy size={20} color="#ffd700" /></div>
@@ -219,7 +227,7 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === ИГРОВАЯ СТАТИСТИКА === */}
+        {/* ИГРОВАЯ СТАТИСТИКА */}
         <div className="profile-card game-stats-card">
           <div className="game-stat">
             <div className="game-stat-icon"><MousePointerClick size={18} color="#00e5ff" /></div>
@@ -243,7 +251,7 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === WINRATE === */}
+        {/* WINRATE */}
         <div className="profile-card winrate-card">
           <div className="winrate-label"><TrendingUp size={16} /> WINRATE</div>
           <div className="winrate-value" style={{ color: winRateColor, textShadow: `0 0 12px ${winRateGlow}` }}>
@@ -251,7 +259,73 @@ export const ProfileScreen = () => {
           </div>
         </div>
 
-        {/* === КНОПКИ === */}
+        {/* 👇 ПОСЛЕДНИЕ ДОСТИЖЕНИЯ */}
+        {recentAchievements.length > 0 && (
+          <div className="profile-card recent-achievements-card">
+            <div className="card-header">
+              <div className="card-title">
+                <Trophy size={16} color="var(--gold)" />
+                <span>ПОСЛЕДНИЕ ДОСТИЖЕНИЯ</span>
+              </div>
+              <button className="card-action" onClick={() => setShowAchievements(true)}>
+                ВСЕ <ChevronRight size={14} />
+              </button>
+            </div>
+            <div className="recent-achievements-list">
+              {recentAchievements.map((ach: any) => {
+                const isUnlocked = ach.isUnlocked;
+                const isClaimable = ach.isCompleted && !isUnlocked;
+                const categoryMeta = CATEGORY_META[ach.category as keyof typeof CATEGORY_META] || CATEGORY_META.wealth;
+                const tierMeta = TIER_META[ach.tier as 1|2|3|4|5] || TIER_META[1];
+
+                return (
+                  <div key={ach.id} className={`recent-ach-item ${isUnlocked ? 'unlocked' : ''} ${isClaimable ? 'claimable' : ''}`}>
+                    <div 
+                      className={`recent-ach-icon ${isUnlocked ? 'unlocked' : ''} ${isClaimable ? 'claimable' : ''}`}
+                      style={{
+                        background: isUnlocked 
+                          ? 'rgba(0, 217, 126, 0.15)' 
+                          : isClaimable 
+                            ? 'rgba(255, 215, 0, 0.15)'
+                            : `${categoryMeta.color}15`,
+                        borderColor: isUnlocked 
+                          ? 'rgba(0, 217, 126, 0.4)' 
+                          : isClaimable 
+                            ? 'rgba(255, 215, 0, 0.5)'
+                            : `${categoryMeta.color}44`,
+                      }}
+                    >
+                      {isUnlocked ? (
+                        <Check size={18} color="var(--success)" strokeWidth={3} />
+                      ) : isClaimable ? (
+                        renderLucideIcon(ach.icon, 18, 'var(--gold)')
+                      ) : (
+                        <Lock size={16} color={categoryMeta.color} />
+                      )}
+                    </div>
+                    <div className="recent-ach-info">
+                      <div className="recent-ach-name">{ach.name}</div>
+                      <div className="recent-ach-meta">
+                        <span 
+                          className="recent-ach-tier"
+                          style={{ color: tierMeta.color, borderColor: `${tierMeta.color}44` }}
+                        >
+                          {tierMeta.name}
+                        </span>
+                        <span className="recent-ach-reward">
+                          {ach.reward.toLocaleString('ru-RU')} <span className="currency-ruble sm">₽</span>
+                        </span>
+                      </div>
+                    </div>
+                    {isClaimable && <span className="recent-ach-badge">!</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* КНОПКИ */}
         <button className="profile-menu-btn" onClick={() => setShowAchievements(true)} style={{ borderColor: 'rgba(255, 215, 0, 0.4)' }}>
           <span className="menu-icon" style={{ background: 'rgba(255, 215, 0, 0.1)', borderColor: 'rgba(255, 215, 0, 0.3)' }}><Trophy size={20} color="#ffd700" /></span>
           <span className="menu-title" style={{ color: '#ffd700' }}>ДОСТИЖЕНИЯ</span>
@@ -268,7 +342,7 @@ export const ProfileScreen = () => {
           <span className="menu-arrow">›</span>
         </button>
 
-        {/* === ИНФО === */}
+        {/* ИНФО */}
         <div className="profile-card info-card">
           <div className="info-row">
             <span className="info-label">Telegram ID</span>
@@ -292,9 +366,6 @@ export const ProfileScreen = () => {
       {showLevelReward && (
         <LevelRewardModal 
           onClose={() => setShowLevelReward(false)} 
-          onClaimed={() => {
-            // После получения можно закрыть, чтобы показать результат
-          }} 
         />
       )}
     </motion.div>
