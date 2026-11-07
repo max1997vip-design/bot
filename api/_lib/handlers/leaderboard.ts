@@ -1,30 +1,49 @@
 // api/_lib/handlers/leaderboard.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
-import { desc } from 'drizzle-orm';
+import { validateInitData } from '../telegram.js';
+import { desc, eq } from 'drizzle-orm';
 
 export async function leaderboardHandler(req: any, res: any) {
-  const { type } = req.query; // 'rating' или 'balance'
-
   try {
-    const orderColumn = type === 'balance' ? users.balance : users.rating;
+    const { initData } = req.body || {};
+    const valid = validateInitData(initData, process.env.BOT_TOKEN!);
+    if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const topPlayers = await db.select({
-      id: users.id,
-      firstName: users.firstName,
-      username: users.username,
-      photoUrl: users.photoUrl,
-      rating: users.rating,
-      balance: users.balance,
-      activeCarId: users.activeCarId,
-    })
-    .from(users)
-    .orderBy(desc(orderColumn))
-    .limit(50);
+    const rawType = req.query.type;
+    const type = Array.isArray(rawType) ? rawType[0] : (rawType || 'balance');
 
-    return res.status(200).json({ success: true, players: topPlayers });
-  } catch (error) {
-    console.error('Leaderboard error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    // 👇 выбираем сортировку
+    let orderBy;
+    if (type === 'xp') {
+      orderBy = desc(users.xp);
+    } else if (type === 'wins') {
+      orderBy = desc(users.totalWins);
+    } else {
+      // balance (по умолчанию)
+      orderBy = desc(users.balance);
+    }
+
+    const players = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        photoUrl: users.photoUrl,
+        balance: users.balance,
+        xp: users.xp,
+        totalWins: users.totalWins,
+        rating: users.rating,
+      })
+      .from(users)
+      .where(eq(users.isBanned, false))
+      .orderBy(orderBy)
+      .limit(50);
+
+    return res.json({ success: true, players, type });
+  } catch (e) {
+    console.error('[leaderboard]', e);
+    return res.status(500).json({ error: 'Internal error' });
   }
 }

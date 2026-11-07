@@ -1,0 +1,213 @@
+/* src/styles/leaderboard.css */
+
+.leaderboard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.leaderboard-content {
+  background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  height: 88vh;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.1);
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  margin-bottom: 8px;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 56px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.leaderboard-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.6), transparent);
+}
+
+.leaderboard-header h2 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  font-family: Impact, Arial Black, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leaderboard-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.leaderboard-close:hover {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.4);
+  color: var(--danger);
+}
+
+/* Табы */
+.leaderboard-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 16px 20px 8px;
+  flex-shrink: 0;
+}
+
+.leaderboard-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #888;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.leaderboard-tab.active {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Список */
+.leaderboard-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 8px 20px 120px;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  scrollbar-width: none;
+}
+
+.leaderboard-body::-webkit-scrollbar { display: none; }
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.leaderboard-row.top-3 {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06), rgba(255, 215, 0, 0.02));
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.lb-rank {
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.lb-avatar, .lb-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.lb-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a2035 0%, #0a0a0a 100%);
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 14px;
+  font-family: Impact, sans-serif;
+}
+
+.lb-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lb-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-username {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.lb-value {
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
