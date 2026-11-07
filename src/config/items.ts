@@ -1,5 +1,5 @@
 // src/config/items.ts
-import { CARS } from './cars';
+import { CARS } from './cars.js';
 
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type ItemSlot = 'engine' | 'tires' | 'suspension' | 'ecu';
