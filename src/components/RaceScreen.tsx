@@ -10,8 +10,8 @@ import { playSound } from '../utils/sound';
 import { QuestModal } from './QuestModal';
 import { PassScreen } from './PassScreen';
 import { TintedCarImage } from './TintedCarImage';
-import '../styles/race.css';  // если ещё не подключен
-import '../styles/races.css'; // стили races
+import '../styles/race.css';
+import '../styles/races.css';
 
 const FLASH_DURATION_MS = 110;
 
@@ -22,13 +22,13 @@ interface FloatingText {
   value: number;
 }
 
-const CarClicker = memo(({
-  isFlashing,
-  isRejected,
-  carColor,
-  activeCar,
-  carStyles,
-  onPointerDown,
+const CarClicker = memo(({ 
+  isFlashing, 
+  isRejected, 
+  carColor, 
+  activeCar, 
+  carStyles, 
+  onPointerDown 
 }: any) => {
   const activeColorHex = PAINT_COLORS.find((c: any) => c.id === carColor)?.hex || 'transparent';
   const isPlaceholder = !activeCar.image || activeCar.image.includes('placeholder');
@@ -44,15 +44,10 @@ const CarClicker = memo(({
         className="race-car-wrapper"
         style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
-        <span
-          style={{
-            fontSize: '120px',
-            position: 'absolute',
-            zIndex: 0,
-            opacity: isPlaceholder ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-          }}
-        >
+        <span style={{ 
+          fontSize: '120px', position: 'absolute', zIndex: 0,
+          opacity: isPlaceholder ? 1 : 0, transition: 'opacity 0.3s ease'
+        }}>
           🏎️
         </span>
 
@@ -64,14 +59,11 @@ const CarClicker = memo(({
             style={{
               filter: 'none',
               transition: 'opacity 0.3s ease',
-              position: 'relative',
-              zIndex: 1,
+              position: 'relative', zIndex: 1
             }}
           />
         )}
       </motion.div>
-
-      {/* ⚠️ Свечение фар УБРАНО — теперь без headlight-glow и headlight-halo */}
     </div>
   );
 });
@@ -83,15 +75,15 @@ export function RaceScreen() {
   const [showQuests, setShowQuests] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [floatingTexts, setFloatingTexts] = useState<FloatingText[]>([]);
-
+  
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rejectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textIdCounter = useRef(0);
 
   const tap = useGameStore((s) => s.tap);
-  const balance = useGameStore((s) => s.balance);
+  const balance = useGameStore((s) => s.balance); 
   const carColor = useGameStore((s) => s.carColor);
-
+  
   const user = useGameStore((s) => s.user);
   const upgradeClicker = useGameStore((s) => s.upgradeClicker);
   const upgradeOffline = useGameStore((s) => s.upgradeOffline);
@@ -110,43 +102,42 @@ export function RaceScreen() {
   const clickCost = Math.floor(1000 * Math.pow(1.5, clickLevel - 1));
   const offlineCost = Math.floor(5000 * Math.pow(1.8, offlineLevel - 1));
 
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      const before = useGameStore.getState().balance;
-      tap();
-      const after = useGameStore.getState().balance;
-      const accepted = after > before;
+  const canUpgrade = balance >= clickCost || balance >= offlineCost;
+  const hasPassRewards = false; // заглушка
 
-      if (accepted) {
-        playSound('click');
-        try {
-          WebApp.HapticFeedback?.impactOccurred('light');
-        } catch {}
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    const before = useGameStore.getState().balance;
+    tap();
+    const after = useGameStore.getState().balance;
+    const accepted = after > before;
 
-        setIsFlashing(true);
-        if (flashTimer.current) clearTimeout(flashTimer.current);
-        flashTimer.current = setTimeout(() => setIsFlashing(false), FLASH_DURATION_MS);
+    if (accepted) {
+      playSound('click');
+      try { WebApp.HapticFeedback?.impactOccurred('light'); } catch {}
 
-        const newText: FloatingText = {
-          id: textIdCounter.current++,
-          x: e.clientX,
-          y: e.clientY - 50,
-          value: clickLevel,
-        };
+      setIsFlashing(true);
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setIsFlashing(false), FLASH_DURATION_MS);
 
-        setFloatingTexts((prev) => [...prev, newText]);
+      const newText: FloatingText = {
+        id: textIdCounter.current++,
+        x: e.clientX,
+        y: e.clientY - 50,
+        value: clickLevel
+      };
+      
+      setFloatingTexts(prev => [...prev, newText]);
 
-        setTimeout(() => {
-          setFloatingTexts((prev) => prev.filter((t) => t.id !== newText.id));
-        }, 800);
-      } else {
-        setIsRejected(true);
-        if (rejectTimer.current) clearTimeout(rejectTimer.current);
-        rejectTimer.current = setTimeout(() => setIsRejected(false), 160);
-      }
-    },
-    [tap, clickLevel],
-  );
+      setTimeout(() => {
+        setFloatingTexts(prev => prev.filter(t => t.id !== newText.id));
+      }, 800);
+
+    } else {
+      setIsRejected(true);
+      if (rejectTimer.current) clearTimeout(rejectTimer.current);
+      rejectTimer.current = setTimeout(() => setIsRejected(false), 160);
+    }
+  }, [tap, clickLevel]);
 
   const carStyles = {
     '--left-hl-x': activeCar.leftHeadlight?.x || '30%',
@@ -161,15 +152,14 @@ export function RaceScreen() {
         <div className="race-background" />
         <div className="race-background-overlay" />
 
-        {/* Плавающие цифры */}
         <AnimatePresence>
-          {floatingTexts.map((text) => (
+          {floatingTexts.map(text => (
             <motion.div
               key={text.id}
               initial={{ opacity: 1, y: 0, scale: 0.8 }}
               animate={{ opacity: 0, y: -120, scale: 1.2 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               style={{
                 position: 'fixed',
                 left: text.x,
@@ -193,11 +183,10 @@ export function RaceScreen() {
           ))}
         </AnimatePresence>
 
-        {/* Верхний HUD */}
         <div className="race-top-ui">
           <div className="race-hud">
             <span className="race-hud-coins">{Math.floor(balance).toLocaleString('ru-RU')}</span>
-            <span className="currency-ruble" style={{ marginLeft: 4, fontSize: '0.9em' }}>₽</span>
+            <span className="currency-ruble sm" style={{ marginLeft: 4 }}>₽</span>
           </div>
           <div className="race-level-bar-wrapper">
             <div className="race-level-text">
@@ -210,8 +199,7 @@ export function RaceScreen() {
           </div>
         </div>
 
-        {/* Машина-кликер */}
-        <CarClicker
+        <CarClicker 
           isFlashing={isFlashing}
           isRejected={isRejected}
           carColor={carColor}
@@ -220,35 +208,42 @@ export function RaceScreen() {
           onPointerDown={handlePointerDown}
         />
 
-        {/* Кнопки сбоку — Quest, Pass, Upgrades */}
-        <button
-          onClick={() => setShowQuests(true)}
-          className="race-side-btn"
-          style={{ bottom: '53%', left: '5%', '--btn-color': '#ff8c00' } as any}
-        >
-          <ClipboardList size={24} />
-        </button>
+        {/* ВЕРТИКАЛЬНАЯ ПАНЕЛЬ ДЕЙСТВИЙ */}
+        <div className="race-action-panel">
+          <button
+            onClick={() => setShowQuests(true)}
+            className="race-action-btn"
+            style={{ '--btn-color': '#ff8c00' } as any}
+          >
+            <ClipboardList size={22} />
+            <span className="race-action-label">Задания</span>
+          </button>
 
-        <button
-          onClick={() => setShowPass(true)}
-          className="race-side-btn"
-          style={{ bottom: '63%', left: '5%', '--btn-color': 'var(--accent)' } as any}
-        >
-          <Flag size={24} />
-        </button>
+          <button
+            onClick={() => setShowPass(true)}
+            className="race-action-btn"
+            style={{ '--btn-color': 'var(--accent)' } as any}
+          >
+            <Flag size={22} />
+            <span className="race-action-label">Пропуск</span>
+            {hasPassRewards && <span className="race-action-badge">!</span>}
+          </button>
 
-        <button
-          onClick={() => setShowUpgrades(true)}
-          className="race-side-btn"
-          style={{ bottom: '53%', right: '5%', '--btn-color': 'var(--success)' } as any}
-        >
-          <Zap size={24} />
-        </button>
+          <button
+            onClick={() => setShowUpgrades(true)}
+            className="race-action-btn"
+            style={{ '--btn-color': 'var(--success)' } as any}
+          >
+            <Zap size={22} />
+            <span className="race-action-label">Апгрейд</span>
+            {canUpgrade && <span className="race-action-badge dot" />}
+          </button>
+        </div>
 
         {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
         {showPass && <PassScreen onClose={() => setShowPass(false)} />}
 
-        {/* Модалка улучшений (в стиле races) */}
+        {/* МОДАЛКА УЛУЧШЕНИЙ */}
         <AnimatePresence>
           {showUpgrades && (
             <motion.div
@@ -275,59 +270,63 @@ export function RaceScreen() {
                   </button>
                 </div>
 
-                <div className="race-upgrade-card">
-                  <div className="race-upgrade-icon" style={{ background: 'rgba(0,217,126,0.15)', border: '1px solid rgba(0,217,126,0.3)' }}>
-                    <Zap size={24} color="var(--success)" />
-                  </div>
-                  <div className="race-upgrade-info">
-                    <div className="race-upgrade-title">Сила клика</div>
-                    <div className="race-upgrade-desc">+1 ₽ за клик</div>
-                    <div className="race-upgrade-level" style={{ color: 'var(--success)' }}>
-                      Уровень: {clickLevel}
+                {/* 👇 ОБЁРНУТО В race-modal-body для скролла */}
+                <div className="race-modal-body">
+                  <div className="race-upgrade-card">
+                    <div className="race-upgrade-icon" style={{ background: 'rgba(0,217,126,0.15)', border: '1px solid rgba(0,217,126,0.3)' }}>
+                      <Zap size={24} color="var(--success)" />
                     </div>
+                    <div className="race-upgrade-info">
+                      <div className="race-upgrade-title">Сила клика</div>
+                      <div className="race-upgrade-desc">+1 ₽ за клик</div>
+                      <div className="race-upgrade-level" style={{ color: 'var(--success)' }}>
+                        Уровень: {clickLevel}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        upgradeClicker();
+                        playSound('coin');
+                      }}
+                      disabled={balance < clickCost}
+                      className="race-upgrade-buy"
+                      style={{
+                        background: balance >= clickCost ? 'linear-gradient(90deg, var(--success), var(--success-dim))' : '#333',
+                        color: balance >= clickCost ? '#000' : '#666',
+                      }}
+                    >
+                      {clickCost.toLocaleString('ru-RU')} ₽
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      upgradeClicker();
-                      playSound('coin');
-                    }}
-                    disabled={balance < clickCost}
-                    className="race-upgrade-buy"
-                    style={{
-                      background: balance >= clickCost ? 'linear-gradient(90deg, var(--success), var(--success-dim))' : '#333',
-                      color: balance >= clickCost ? '#000' : '#666',
-                    }}
-                  >
-                    {clickCost.toLocaleString('ru-RU')} ₽
-                  </button>
-                </div>
 
-                <div className="race-upgrade-card">
-                  <div className="race-upgrade-icon" style={{ background: 'rgba(0,229,255,0.15)', border: '1px solid rgba(0,229,255,0.3)' }}>
-                    <Zap size={24} color="var(--accent)" />
-                  </div>
-                  <div className="race-upgrade-info">
-                    <div className="race-upgrade-title">Оффлайн-доход</div>
-                    <div className="race-upgrade-desc">+500 ₽/час</div>
-                    <div className="race-upgrade-level" style={{ color: 'var(--accent)' }}>
-                      Уровень: {offlineLevel}
+                  <div className="race-upgrade-card">
+                    <div className="race-upgrade-icon" style={{ background: 'rgba(0,229,255,0.15)', border: '1px solid rgba(0,229,255,0.3)' }}>
+                      <Zap size={24} color="var(--accent)" />
                     </div>
+                    <div className="race-upgrade-info">
+                      <div className="race-upgrade-title">Оффлайн-доход</div>
+                      <div className="race-upgrade-desc">+500 ₽/час</div>
+                      <div className="race-upgrade-level" style={{ color: 'var(--accent)' }}>
+                        Уровень: {offlineLevel}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        upgradeOffline();
+                        playSound('coin');
+                      }}
+                      disabled={balance < offlineCost}
+                      className="race-upgrade-buy"
+                      style={{
+                        background: balance >= offlineCost ? 'linear-gradient(90deg, var(--accent), var(--accent-dim))' : '#333',
+                        color: balance >= offlineCost ? '#000' : '#666',
+                      }}
+                    >
+                      {offlineCost.toLocaleString('ru-RU')} ₽
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      upgradeOffline();
-                      playSound('coin');
-                    }}
-                    disabled={balance < offlineCost}
-                    className="race-upgrade-buy"
-                    style={{
-                      background: balance >= offlineCost ? 'linear-gradient(90deg, var(--accent), var(--accent-dim))' : '#333',
-                      color: balance >= offlineCost ? '#000' : '#666',
-                    }}
-                  >
-                    {offlineCost.toLocaleString('ru-RU')} ₽
-                  </button>
                 </div>
+                {/* 👆 КОНЕЦ race-modal-body */}
               </motion.div>
             </motion.div>
           )}
