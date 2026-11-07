@@ -39,6 +39,15 @@ import { getClanMessagesHandler, sendClanMessageHandler } from './_lib/handlers/
 import { skipUpgradeTimeHandler } from './_lib/handlers/skipUpgradeTime.js';
 import { claimLevelRewardHandler } from './_lib/handlers/claimLevelReward.js';
 import { getClanBossHandler, attackClanBossHandler } from './_lib/handlers/clanBoss.js';
+import {
+  applyToClanHandler,
+  inviteToClanHandler,
+  getMyClanRequestsHandler,
+  respondToInviteHandler,
+  getClanApplicationsHandler,
+  respondToApplicationHandler,
+  cancelApplicationHandler,
+} from './_lib/handlers/clanRequests.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -101,6 +110,13 @@ export default async function handler(req: any, res: any) {
     case 'addLeaguePoints': return addLeaguePointsHandler(req, res);
     case 'claimLevelReward': return claimLevelRewardHandler(req, res);
     case 'skipUpgradeTime': return skipUpgradeTimeHandler(req, res);
+    case 'applyToClan': return applyToClanHandler(req, res);
+    case 'inviteToClan': return inviteToClanHandler(req, res);
+    case 'getMyClanRequests': return getMyClanRequestsHandler(req, res);
+    case 'respondToInvite': return respondToInviteHandler(req, res);
+    case 'getClanApplications': return getClanApplicationsHandler(req, res);
+    case 'respondToApplication': return respondToApplicationHandler(req, res);
+    case 'cancelApplication': return cancelApplicationHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

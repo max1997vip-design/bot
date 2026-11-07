@@ -1,6 +1,7 @@
 // src/store/gameStore.ts
 import { create } from 'zustand';
 import { calculateStats, ITEMS, SELL_PRICES } from '../config/items';
+import WebApp from '@twa-dev/sdk';
 import { getInitData } from '../lib/telegram';
 
 declare global {
@@ -66,6 +67,9 @@ interface GameState {
   lastDroppedItem: any | null;
   history: any[];
   achievementsList: any[];
+  myClanInvites: any[];     
+  myClanApplications: any[];  
+  clanApplications: any[];
   
   clanInfo: any | null;
   clanMembers: any[];
@@ -103,6 +107,13 @@ interface GameState {
   markClanChatAsRead: () => void;
   fetchReferrals: () => Promise<void>;
   skipUpgradeTime: (itemId: string, reduceMs?: number) => Promise<boolean>;
+  applyToClan: (clanId: string, message?: string) => Promise<boolean>;
+  inviteToClan: (targetUsername: string) => Promise<{ success: boolean; error?: string; targetName?: string }>;
+  getMyClanRequests: () => Promise<void>;
+  respondToInvite: (requestId: string, accept: boolean) => Promise<boolean>;
+  getClanApplications: () => Promise<void>;
+  respondToApplication: (requestId: string, accept: boolean) => Promise<boolean>;
+  cancelApplication: (requestId: string) => Promise<boolean>;
   
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
@@ -162,6 +173,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   clanBoss: null,
   bossDamageStats: [],
   referrals: [],
+  myClanInvites: [],
+  myClanApplications: [],
+  clanApplications: [],
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
@@ -409,6 +423,125 @@ export const useGameStore = create<GameState>((set, get) => ({
       return false;
     } catch { return false; }
   },
+
+  applyToClan: async (clanId, message) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=applyToClan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, clanId, message }),
+    });
+    const data = await res.json();
+    if (data.success) return true;
+    WebApp.showAlert(data.error || 'Ошибка');
+    return false;
+  } catch { return false; }
+},
+
+inviteToClan: async (targetUsername) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=inviteToClan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, targetUsername }),
+    });
+    const data = await res.json();
+    if (data.success) return { success: true, targetName: data.targetName };
+    return { success: false, error: data.error || 'Ошибка' };
+  } catch {
+    return { success: false, error: 'Ошибка сети' };
+  }
+},
+
+getMyClanRequests: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=getMyClanRequests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({
+        myClanInvites: data.invites || [],
+        myClanApplications: data.applications || [],
+      });
+    }
+  } catch {}
+},
+
+respondToInvite: async (requestId, accept) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=respondToInvite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, requestId, accept }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().getMyClanRequests();
+      if (accept) await get().fetchClan();
+      return true;
+    }
+    WebApp.showAlert(data.error || 'Ошибка');
+    return false;
+  } catch { return false; }
+},
+
+getClanApplications: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=getClanApplications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({ clanApplications: data.applications || [] });
+    }
+  } catch {}
+},
+
+respondToApplication: async (requestId, accept) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=respondToApplication', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, requestId, accept }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().getClanApplications();
+      await get().fetchClan();
+      return true;
+    }
+    WebApp.showAlert(data.error || 'Ошибка');
+    return false;
+  } catch { return false; }
+},
+
+cancelApplication: async (requestId) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=cancelApplication', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, requestId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().getMyClanRequests();
+      return true;
+    }
+    return false;
+  } catch { return false; }
+},
 
   fetchClanBoss: async () => {
     const initData = getInitData();

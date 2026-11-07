@@ -1,7 +1,8 @@
 // api/_lib/schema.ts
 import {
-  pgTable, bigint, text, integer, timestamp, boolean, jsonb, uuid, primaryKey,
+  pgTable, bigint, text, integer, timestamp, boolean, jsonb, uuid, primaryKey, uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: bigint('id', { mode: 'number' }).primaryKey(),
@@ -163,4 +164,20 @@ export const clanBosses = pgTable('clan_bosses', {
   lastDefeatedAt: timestamp('last_defeated_at').defaultNow(),
 });
 
+export const clanRequests = pgTable('clan_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  direction: text('direction').notNull(), // 'invite' | 'application'
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'declined' | 'expired'
+  createdBy: bigint('created_by', { mode: 'number' }).notNull(), // кто создал (лидер для invite, игрок для application)
+  message: text('message'), // опционально — комментарий
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at').notNull().default(sql`NOW() + INTERVAL '7 days'`),
+}, (t) => ({
+  // Один активный запрос (pending) на пару (clan, user, direction)
+  uniqPending: uniqueIndex('clan_requests_uniq_pending')
+    .on(t.clanId, t.userId, t.direction)
+    .where(sql`${t.status} = 'pending'`),
+}));
 export type User = typeof users.$inferSelect;

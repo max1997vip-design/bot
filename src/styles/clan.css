@@ -227,3 +227,320 @@
 .b-damage-row:nth-child(4) .b-damage-rank { color: #cd7f32; }
 .b-damage-name { flex: 1; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 10px; }
 .b-damage-val { color: #00d97e; font-weight: 700; text-shadow: 0 0 5px rgba(0, 217, 126, 0.3); }
+
+/* ============================================================
+   RATING TAB
+   ============================================================ */
+.rating-section {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 15px;
+}
+
+.rating-title {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.rating-row.is-me {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.rating-rank {
+  width: 22px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: #8892b0;
+  flex-shrink: 0;
+}
+
+.rating-rank.rank-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+.rating-rank.rank-2 { color: #c0c0c0; }
+.rating-rank.rank-3 { color: #cd7f32; }
+
+.rating-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00bfff, #0055ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.rating-name {
+  flex: 1;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-value {
+  font-weight: 800;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.rating-value.gold { color: var(--gold); text-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+.rating-value.green { color: var(--success); text-shadow: 0 0 8px rgba(0, 217, 126, 0.3); }
+
+.rating-empty {
+  text-align: center;
+  color: #8892b0;
+  font-size: 12px;
+  padding: 20px 0;
+}
+
+/* ============================================================
+   INVITE BOX
+   ============================================================ */
+.clan-invite-box {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 85, 255, 0.05));
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.clan-invite-box h4 {
+  margin: 0 0 6px 0;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.clan-invite-desc {
+  margin: 0 0 12px 0;
+  color: #8892b0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   TABS — горизонтальный скролл на мобилке
+   ============================================================ */
+.clan-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.clan-tabs::-webkit-scrollbar { display: none; }
+
+.clan-tabs button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Мелкие фиксы
+   ============================================================ */
+.boss-stat-card .b-stat-label { font-size: 10px; }
+.clan-tab-content { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+
+/* ============================================================
+   ЗАЯВКИ И ПРИГЛАШЕНИЯ
+   ============================================================ */
+
+/* Бейдж на вкладке "Заявки" */
+.clan-tab-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 8px var(--danger-glow);
+  min-width: 14px;
+  text-align: center;
+}
+
+/* Баннер входящих приглашений (для игрока без клана) */
+.clan-invites-banner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.clan-invites-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.clan-invite-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.clan-invite-item:last-child { margin-bottom: 0; }
+
+.clan-invite-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clan-invite-info strong {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clan-invite-info span {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.clan-invite-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Баннер "моя заявка отправлена" */
+.clan-pending-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.clan-pending-banner > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clan-pending-banner strong {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clan-pending-banner span {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+/* Приглашение по username */
+.clan-invite-by-name {
+  background: rgba(0, 229, 255, 0.05);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.clan-invite-by-name h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Входящие заявки в клан */
+.clan-application-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.clan-application-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.clan-app-username {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.clan-app-meta {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 700;
+}
