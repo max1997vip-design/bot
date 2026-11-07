@@ -73,7 +73,7 @@
   display: inline-block;
   font-weight: 900;
   font-family: Impact, 'Arial Black', sans-serif;
-  font-size: 1em;
+  font-size: 1.05em;
   color: #ffd700;
   background: linear-gradient(180deg, #fff4b0 0%, #ffd700 40%, #ff8800 70%, #cc6600 100%);
   -webkit-background-clip: text;
@@ -94,5 +94,5 @@
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1)) drop-shadow(0 0 14px rgba(255, 136, 0, 0.8));
 }
 
-.currency-ruble.sm { font-size: 0.85em; }
+.currency-ruble.sm { font-size: 0.9em; }
 .currency-ruble.lg { font-size: 1.2em; }
