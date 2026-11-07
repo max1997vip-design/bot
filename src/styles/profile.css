@@ -455,3 +455,15 @@
   font-weight: 800;
   font-family: monospace;
 }
+
+/* Пульсация бейджа "!" */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px var(--gold); }
+  50% { transform: scale(1.2); box-shadow: 0 0 20px var(--gold); }
+}
+
+/* Пульсация кнопки "Награда за уровень" */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
+}

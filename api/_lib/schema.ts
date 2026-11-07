@@ -13,6 +13,7 @@ export const users = pgTable('users', {
   totalEarned: bigint('total_earned', { mode: 'number' }).notNull().default(0),
   starsBalance: integer('stars_balance').notNull().default(0),
   leaguePoints: integer('league_points').default(0).notNull(),
+  lastClaimedLevel: integer('last_claimed_level').notNull().default(1),
   
   activeCarId: text('active_car_id').notNull().default('vaz-2107'),
   ownedCars: jsonb('owned_cars').$type<string[]>().notNull().default(['vaz-2107']),

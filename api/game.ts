@@ -36,6 +36,7 @@ import { getClansHandler } from './_lib/handlers/getClans.js';
 import { getReferralsHandler } from './_lib/handlers/getReferrals.js';
 import { addLeaguePointsHandler } from './_lib/handlers/addLeaguePoints.js';
 import { getClanMessagesHandler, sendClanMessageHandler } from './_lib/handlers/clanChat.js';
+import { claimLevelRewardHandler } from './_lib/handlers/claimLevelReward.js';
 import { getClanBossHandler, attackClanBossHandler } from './_lib/handlers/clanBoss.js';
 
 export default async function handler(req: any, res: any) {
@@ -97,6 +98,7 @@ export default async function handler(req: any, res: any) {
     case 'getClanBoss': return getClanBossHandler(req, res);
     case 'attackClanBoss': return attackClanBossHandler(req, res);
     case 'addLeaguePoints': return addLeaguePointsHandler(req, res);
+    case 'claimLevelReward': return claimLevelRewardHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

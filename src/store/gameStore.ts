@@ -40,6 +40,7 @@ export interface UserData {
     claimedPremium?: number[]; 
   };
   isAdmin?: boolean;
+  lastClaimedLevel?: number; // 👈 НОВОЕ
 
   // 👇 ПОЛЯ СТАТИСТИКИ
   totalClicks?: number;
@@ -75,6 +76,16 @@ interface GameState {
   clanBoss: any | null;
   bossDamageStats: any[];
   referrals: any[];
+
+  // 👇 МЕТОД: забрать награду за уровень
+  claimLevelReward: () => Promise<{
+    success: boolean;
+    claimed?: any[];
+    totalRubles?: number;
+    totalStars?: number;
+    caseType?: string | null;
+    error?: string;
+  }>;
 
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
@@ -149,8 +160,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastReadClanMessageId: null,
   clanBoss: null,
   bossDamageStats: [],
-
-  referrals: [], // 👈 ДОБАВЛЕНО
+  referrals: [],
 
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
@@ -218,7 +228,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (e) { console.error(e); }
   },
 
-  fetchReferrals: async () => { // 👈 ДОБАВЛЕНО
+  fetchReferrals: async () => {
     const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=getReferrals', {
@@ -834,7 +844,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch {}
   },
 
-    claimAchievement: async (id) => {
+  claimAchievement: async (id) => {
     const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimAchievement', {
@@ -925,6 +935,34 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       return false;
     } catch (e) { return false; }
+  },
+
+  claimLevelReward: async () => {
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=claimLevelReward', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? {
+            ...s.user,
+            balance: data.newBalance,
+            starsBalance: data.newStars ?? s.user.starsBalance,
+            totalEarned: data.newTotalEarned ?? s.user.totalEarned,
+            lastClaimedLevel: data.newLastClaimedLevel ?? s.user.lastClaimedLevel,
+          } : null,
+        }));
+        return data;
+      }
+      return { success: false, error: data.error };
+    } catch (e) {
+      return { success: false, error: 'Ошибка сети' };
+    }
   },
 
   claimQuest: async (questId) => {

@@ -1,0 +1,186 @@
+/* src/styles/levelReward.css */
+
+.level-reward-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.level-reward-content {
+  position: relative;
+  background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 24px;
+  padding: 32px 24px 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.9), 
+    0 0 40px rgba(255, 215, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* Декоративное свечение сверху */
+.level-reward-content::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Искры */
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+}
+.sparkle-1 { top: 20px; left: 20px; }
+.sparkle-2 { top: 40px; right: 24px; }
+
+.level-reward-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.level-reward-header h2 {
+  margin: 0;
+  color: #ffd700;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.level-badge-big {
+  background: linear-gradient(90deg, #ffd700, #ff8800);
+  color: #000;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 6px 18px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  letter-spacing: 1px;
+}
+
+.level-reward-subtitle {
+  color: var(--text-secondary, #8E929D);
+  font-size: 13px;
+  margin: 0 0 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.level-rewards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.level-reward-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.reward-item-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reward-item-value {
+  color: #fff;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.reward-item-value strong {
+  color: #ffd700;
+  margin-left: 4px;
+}
+
+.level-reward-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(90deg, #ffd700, #ff8800);
+  border: none;
+  border-radius: 14px;
+  color: #000;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+  transition: transform 0.15s;
+  position: relative;
+  z-index: 1;
+}
+
+.level-reward-btn:active {
+  transform: scale(0.97);
+}
+
+.level-reward-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.level-reward-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.level-reward-close:hover {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.4);
+  color: #ff4444;
+}

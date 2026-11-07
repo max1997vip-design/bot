@@ -3,14 +3,16 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Coins, Star, Car, Trophy, Gift, History, 
-  TrendingUp, MousePointerClick, Flag, Building2
+  TrendingUp, MousePointerClick, Flag, Building2, Sparkles
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ReferralScreen } from './ReferralScreen';
 import { HistoryModal } from './HistoryModal';
 import { AchievementsScreen } from './AchievementsScreen';
+import { LevelRewardModal } from './LevelRewardModal';
 import { CARS } from '../config/cars';
 import { getLeagueByPoints } from '../config/leagues';
+import { LEVEL_REWARDS, calcLevel } from '../config/levelRewards';
 import '../styles/profile.css';
 
 const calcLevelInfo = (xp: number) => {
@@ -37,6 +39,7 @@ export const ProfileScreen = () => {
   const [showReferral, setShowReferral] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showLevelReward, setShowLevelReward] = useState(false);
 
   useEffect(() => {
     getAchievements();
@@ -64,11 +67,17 @@ export const ProfileScreen = () => {
   const winRateColor = winRate >= 50 ? 'var(--success)' : winRate >= 30 ? '#ffcc00' : 'var(--danger)';
   const winRateGlow = winRate >= 50 ? 'var(--success-glow)' : winRate >= 30 ? 'rgba(255,204,0,0.4)' : 'var(--danger-glow)';
 
+  // 👇 Проверяем, есть ли награда за уровень
+  const lastClaimed = user.lastClaimedLevel || 1;
+  const currentLevelNum = calcLevel(user.xp || 0);
+  const hasLevelReward = currentLevelNum > lastClaimed && 
+    LEVEL_REWARDS.some(r => r.level > lastClaimed && r.level <= currentLevelNum);
+
   return (
     <motion.div className="profile-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="profile-content">
         
-                        {/* === ШАПКА === */}
+        {/* === ШАПКА === */}
         <div className="profile-header">
           <div className="avatar-wrapper">
             {user.photoUrl ? (
@@ -76,7 +85,32 @@ export const ProfileScreen = () => {
             ) : (
               <div className="profile-avatar-placeholder">{displayName[0]?.toUpperCase() || 'Г'}</div>
             )}
-            <div className="level-badge">LVL {level}</div>
+            <div className="level-badge">
+              LVL {level}
+              {hasLevelReward && (
+                <span 
+                  onClick={() => setShowLevelReward(true)}
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: 'var(--gold)',
+                    color: '#000',
+                    fontSize: 11,
+                    fontWeight: 900,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 10px var(--gold)',
+                    cursor: 'pointer',
+                    animation: 'pulse 1.5s ease-in-out infinite',
+                  }}
+                >!</span>
+              )}
+            </div>
           </div>
           <h1 className="profile-name">{displayName}</h1>
           {user.username && <p className="profile-username">@{user.username}</p>}
@@ -94,6 +128,33 @@ export const ProfileScreen = () => {
             <div className="xp-bar-fill" style={{ width: `${progress}%` }} />
           </div>
         </div>
+
+        {/* 👇 КНОПКА «ЗАБРАТЬ НАГРАДУ ЗА УРОВЕНЬ» */}
+        {hasLevelReward && (
+          <button
+            className="profile-menu-btn"
+            onClick={() => setShowLevelReward(true)}
+            style={{
+              borderColor: 'var(--gold)',
+              background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 136, 0, 0.05))',
+              boxShadow: '0 0 20px rgba(255, 215, 0, 0.2)',
+              animation: 'pulseGlow 2s ease-in-out infinite',
+            }}
+          >
+            <span className="menu-icon" style={{ background: 'rgba(255, 215, 0, 0.15)', borderColor: 'rgba(255, 215, 0, 0.4)' }}>
+              <Sparkles size={20} color="var(--gold)" />
+            </span>
+            <div className="menu-text">
+              <span className="menu-title" style={{ color: 'var(--gold)' }}>
+                НАГРАДА ЗА УРОВЕНЬ!
+              </span>
+              <span className="menu-sub">
+                LVL {currentLevelNum} — забери награду
+              </span>
+            </div>
+            <span className="menu-arrow" style={{ color: 'var(--gold)' }}>›</span>
+          </button>
+        )}
 
         {/* === СТАТИСТИКА ДОХОДА === */}
         <div className="profile-card income-card">
@@ -228,6 +289,14 @@ export const ProfileScreen = () => {
       {showReferral && <ReferralScreen onClose={() => setShowReferral(false)} />}
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
       {showAchievements && <AchievementsScreen onClose={() => setShowAchievements(false)} />}
+      {showLevelReward && (
+        <LevelRewardModal 
+          onClose={() => setShowLevelReward(false)} 
+          onClaimed={() => {
+            // После получения можно закрыть, чтобы показать результат
+          }} 
+        />
+      )}
     </motion.div>
   );
 };
