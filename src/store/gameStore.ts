@@ -101,7 +101,15 @@ interface GameState {
   adminGetData: () => Promise<{ flags: any[], users: any[] } | null>;
   adminAction: (action: string, payload: any) => Promise<boolean>;
   playCoinFlip: (betAmount: number, choice: 'heads' | 'tails') => Promise<{ success: boolean; isWin?: boolean; result?: string; payout?: number; error?: string }>;
-  
+  playDice: (betAmount: number, guess: number) => Promise<{
+  success: boolean; roll?: number; isWin?: boolean; payout?: number; error?: string;
+}>;
+
+playRoulette: (betAmount: number, betType: 'red' | 'black' | 'zero') => Promise<{
+  success: boolean; result?: number; color?: 'red' | 'black' | 'zero';
+  isWin?: boolean; payout?: number; error?: string;
+}>;
+
   fetchClans: () => Promise<void>;
   fetchClanMessages: () => Promise<void>;
   sendClanMessage: (message: string) => Promise<boolean>;
@@ -632,6 +640,56 @@ cancelApplication: async (requestId) => {
     } catch (e) {
       return { success: false, error: 'Ошибка сети' };
     }
+  },
+
+  playDice: async (betAmount, guess) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=flipDice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, betAmount, guess }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { ...s.user, balance: data.newBalance } : null,
+      }));
+      return { success: true, roll: data.roll, isWin: data.isWin, payout: data.payout };
+    }
+    return { success: false, error: data.error || 'Ошибка сервера' };
+  } catch {
+    return { success: false, error: 'Ошибка сети' };
+  }
+},
+
+playRoulette: async (betAmount, betType) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=spinRoulette', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, betAmount, betType }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { ...s.user, balance: data.newBalance } : null,
+      }));
+      return {
+        success: true,
+        result: data.result,
+        color: data.color,
+        isWin: data.isWin,
+        payout: data.payout,
+      };
+    }
+    return { success: false, error: data.error || 'Ошибка сервера' };
+  } catch {
+    return { success: false, error: 'Ошибка сети' };
+  }
   },
 
   upgradeBusiness: async (businessId) => {

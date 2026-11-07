@@ -1,7 +1,10 @@
+// api/_lib/handlers/flipCoin.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
-import { eq } from 'drizzle-orm';
+import { logTransaction } from '../logger.js';
+import { eq, sql } from 'drizzle-orm';
+import { effectiveChance, CASINO_LIMITS } from '../../../src/config/casinoFair.js';
 
 export async function flipCoinHandler(req: any, res: any) {
   try {
@@ -10,43 +13,73 @@ export async function flipCoinHandler(req: any, res: any) {
     if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
     const bet = Math.floor(betAmount);
-    if (!bet || bet < 100 || bet > 1000000) {
-      return res.status(400).json({ error: 'Ставка должна быть от 100 до 1 000 000' });
+    if (!bet || bet < CASINO_LIMITS.minBet || bet > CASINO_LIMITS.maxBet) {
+      return res.status(400).json({
+        error: `Ставка должна быть от ${CASINO_LIMITS.minBet} до ${CASINO_LIMITS.maxBet.toLocaleString('ru-RU')} ₽`,
+      });
+    }
+    if (!['heads', 'tails'].includes(choice)) {
+      return res.status(400).json({ error: 'Неверный выбор' });
     }
 
     const [user] = await db.select().from(users).where(eq(users.id, valid.user.id));
     if (!user) return res.status(404).json({ error: 'User not found' });
-
     if (user.balance < bet) return res.status(400).json({ error: 'Недостаточно ₽' });
 
-    // Списываем ставку
+    // 💰 Античит: эффективный шанс
+    const baseChance = 0.5;
+    const winChance = effectiveChance(baseChance, bet);
+    const isWin = Math.random() < winChance;
+
+    // 🪙 Результат
+    const result: 'heads' | 'tails' = isWin ? choice : choice === 'heads' ? 'tails' : 'heads';
+
+    // 💸 Начисление
     let newBalance = user.balance - bet;
-    
-    // Сервер кидает ₽ку
-    const result = Math.random() < 0.5 ? 'heads' : 'tails';
-    const isWin = result === choice;
-    
     let payout = 0;
     if (isWin) {
-      payout = Math.floor(bet * 1.9); // Коэффициент 1.9
+      const multiplier = 1.9;
+      payout = Math.floor(bet * multiplier);
       newBalance += payout;
     }
 
-    const newTotalEarned = isWin ? user.totalEarned + payout : user.totalEarned;
+    const [updated] = await db
+      .update(users)
+      .set({
+        balance: newBalance,
+        totalEarned: isWin ? sql`${users.totalEarned} + ${payout}` : users.totalEarned,
+      })
+      .where(eq(users.id, user.id))
+      .returning();
 
-    await db.update(users)
-      .set({ balance: newBalance, totalEarned: newTotalEarned })
-      .where(eq(users.id, user.id));
+    // 📝 Лог
+    if (isWin) {
+      await logTransaction(
+        user.id,
+        payout - bet,
+        'casino_coinflip',
+        `Монетка: выигрыш на ${choice === 'heads' ? 'орёл' : 'решку'} (+${payout.toLocaleString('ru-RU')} ₽)`
+      );
+    } else {
+      await logTransaction(
+        user.id,
+        -bet,
+        'casino_coinflip',
+        `Монетка: проигрыш (-${bet.toLocaleString('ru-RU')} ₽)`
+      );
+    }
 
-    return res.json({ 
-      success: true, 
-      result, 
-      isWin, 
-      payout, 
-      newBalance 
+    return res.json({
+      success: true,
+      result,
+      isWin,
+      payout,
+      newBalance: updated.balance,
+      winChance, // 👈 возвращаем, чтобы UI показал
+      bet,
     });
   } catch (e) {
-    console.error(e);
+    console.error('[flipCoin]', e);
     return res.status(500).json({ error: 'Internal error' });
   }
 }

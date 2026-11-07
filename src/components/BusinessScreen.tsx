@@ -1,6 +1,24 @@
+// src/components/BusinessScreen.tsx
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Coffee, Droplets, Wrench, Fuel, Music,
+  TrendingUp, X, Coins, Building2,
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { BUSINESSES, getBusinessUpgradeCost, getBusinessIncome, BusinessConfig } from '../config/businesses';
+import {
+  BUSINESSES,
+  BusinessConfig,
+  getBusinessUpgradeCost,
+  getBusinessIncome,
+} from '../config/businesses';
+import WebApp from '@twa-dev/sdk';
+import { playSound } from '../utils/sound';
+import '../styles/business.css';
+
+const BUSINESS_ICONS = {
+  Coffee, Droplets, Wrench, Fuel, Music,
+} as const;
 
 export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
@@ -11,99 +29,197 @@ export const BusinessScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
   const businesses = user?.businesses || {};
   const now = Date.now();
-  let totalPending = 0;
+  const balance = user?.balance || 0;
 
+  // Считаем, сколько накопилось
+  let totalPending = 0;
   Object.entries(businesses).forEach(([id, data]) => {
     const config = BUSINESSES[id];
     if (!config) return;
     const hoursPassed = Math.min((now - data.lastCollected) / (1000 * 60 * 60), 24);
     if (hoursPassed > 0) {
-      totalPending += Math.floor(getBusinessIncome(config.baseIncomePerHour, data.level) * hoursPassed);
+      totalPending += Math.floor(
+        getBusinessIncome(config.baseIncomePerHour, data.level) * hoursPassed
+      );
     }
   });
 
   const handleAction = async (action: () => Promise<any>, id: string) => {
     setLoading(id);
-    await action();
+    const ok = await action();
     setLoading(null);
+    if (ok) playSound('coin');
   };
 
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: '#111', zIndex: 1000, overflowY: 'auto', padding: '20px',
-      paddingTop: 'calc(20px + var(--tg-safe-top, 0px))', // 👈 ДОБАВИТЬ
-      paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' // 👈 ДОБАВИТЬ (для iPhone)
+  const ownedCount = Object.keys(businesses).length;
 
-    }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ color: '#fff', margin: 0 }}>🏢 Бизнесы</h2>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>Закрыть</button>
+  return (
+    <div className="business-overlay" onClick={onClose}>
+      <motion.div
+        className="business-modal"
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 20 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* HEADER */}
+        <div className="business-header">
+          <div className="business-header-title">
+            <div className="business-header-icon">
+              <Building2 size={22} color="#00d97e" />
+            </div>
+            <div>
+              <h2 className="business-header-name">БИЗНЕСЫ</h2>
+              <span className="business-header-sub">
+                Владеешь: {ownedCount} / {Object.keys(BUSINESSES).length}
+              </span>
+            </div>
+          </div>
+          <button className="business-close-btn" onClick={onClose} aria-label="Закрыть">
+            <X size={18} />
+          </button>
         </div>
 
+        {/* БАЛАНС */}
+        <div className="business-balance-card">
+          <Coins size={18} color="#ffd700" />
+          <span className="business-balance-label">Баланс:</span>
+          <span className="business-balance-value">{balance.toLocaleString('ru-RU')} ₽</span>
+        </div>
+
+        {/* ДОХОД К СБОРУ */}
         {totalPending > 0 && (
-          <div style={{ background: 'rgba(0,217,126,0.1)', border: '1px solid #00d97e', borderRadius: '12px', padding: '15px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: '#00d97e', fontWeight: 'bold' }}>Доступно к сбору:</div>
-              <div style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>{totalPending.toLocaleString('ru-RU')} ₽</div>
+          <motion.div
+            className="business-collect-card"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="business-collect-info">
+              <TrendingUp size={18} color="#00d97e" />
+              <div>
+                <span className="business-collect-label">Доступно к сбору:</span>
+                <span className="business-collect-value">
+                  +{totalPending.toLocaleString('ru-RU')} ₽
+                </span>
+              </div>
             </div>
-            <button 
+            <button
+              className="business-collect-btn"
               onClick={() => handleAction(collectIncome, 'collect')}
               disabled={loading === 'collect'}
-              style={{ background: '#00d97e', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               {loading === 'collect' ? '...' : 'СОБРАТЬ'}
             </button>
-          </div>
+          </motion.div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {Object.values(BUSINESSES).map((config: BusinessConfig) => {
-            const owned = businesses[config.id];
-            const level = owned?.level || 0;
-            const upgradeCost = getBusinessUpgradeCost(config.baseCost, level);
-            const income = getBusinessIncome(config.baseIncomePerHour, level || 1);
+        {/* СПИСОК БИЗНЕСОВ */}
+        <div className="business-body">
+          <AnimatePresence>
+            {Object.values(BUSINESSES).map((config: BusinessConfig) => {
+              const owned = businesses[config.id];
+              const level = owned?.level || 0;
+              const upgradeCost = getBusinessUpgradeCost(config.baseCost, level);
+              const income = getBusinessIncome(config.baseIncomePerHour, level || 1);
+              const isOwned = !!owned;
+              const canAffordBuy = balance >= config.baseCost;
+              const canAffordUpgrade = balance >= upgradeCost;
+              const Icon = BUSINESS_ICONS[config.iconName] || Coffee;
 
-            return (
-              <div key={config.id} style={{ background: '#222', borderRadius: '12px', padding: '15px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    <div style={{ fontSize: '32px' }}>{config.icon}</div>
-                    <div>
-                      <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '16px' }}>{config.name}</div>
-                      <div style={{ color: '#888', fontSize: '12px' }}>{config.description}</div>
-                      {owned && (
-                        <div style={{ color: '#ffd700', fontSize: '13px', marginTop: '4px' }}>
-                          Ур. {level} | Доход: {income.toLocaleString('ru-RU')} ₽/час
-                        </div>
-                      )}
-                    </div>
+              // pending для конкретного бизнеса
+              let pending = 0;
+              if (isOwned) {
+                const hoursPassed = Math.min(
+                  (now - owned.lastCollected) / (1000 * 60 * 60),
+                  24
+                );
+                if (hoursPassed > 0) {
+                  pending = Math.floor(income * hoursPassed);
+                }
+              }
+
+              return (
+                <motion.div
+                  key={config.id}
+                  className={`business-card ${isOwned ? 'owned' : ''}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{ borderColor: `${config.accentColor}44` }}
+                >
+                  {/* Иконка */}
+                  <div
+                    className="business-card-icon"
+                    style={{
+                      background: `${config.accentColor}18`,
+                      borderColor: `${config.accentColor}66`,
+                      boxShadow: `0 0 16px ${config.accentColor}33`,
+                    }}
+                  >
+                    <Icon size={22} color={config.accentColor} />
                   </div>
-                  
-                  {!owned ? (
-                    <button 
-                      onClick={() => handleAction(() => buyBusiness(config.id), config.id)}
-                      disabled={loading === config.id}
-                      style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid #444', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    >
-                      {config.baseCost.toLocaleString('ru-RU')} ₽
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => handleAction(() => upgradeBusiness(config.id), config.id)}
-                      disabled={loading === config.id}
-                      style={{ background: 'rgba(255,215,0,0.2)', color: '#ffd700', border: '1px solid #ffd700', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    >
-                      {upgradeCost.toLocaleString('ru-RU')} ₽
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+
+                  {/* Инфо */}
+                  <div className="business-card-info">
+                    <div className="business-card-name">{config.name}</div>
+                    <div className="business-card-desc">{config.description}</div>
+
+                    {isOwned ? (
+                      <div className="business-card-stats">
+                        <span className="business-stat">
+                          Ур. <strong>{level}</strong>
+                        </span>
+                        <span className="business-stat income">
+                          <TrendingUp size={11} />
+                          {income.toLocaleString('ru-RU')} ₽/час
+                        </span>
+                        {pending > 0 && (
+                          <span className="business-stat pending">
+                            +{pending.toLocaleString('ru-RU')} ₽
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="business-card-stats">
+                        <span className="business-stat">
+                          Доход: <strong>{getBusinessIncome(config.baseIncomePerHour, 1).toLocaleString('ru-RU')} ₽/час</strong>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Кнопка */}
+                  <div className="business-card-action">
+                    {!isOwned ? (
+                      <button
+                        className={`business-btn buy ${canAffordBuy ? 'ready' : 'disabled'}`}
+                        onClick={() => handleAction(() => buyBusiness(config.id), config.id)}
+                        disabled={!canAffordBuy || loading === config.id}
+                      >
+                        {loading === config.id ? '...' : config.baseCost.toLocaleString('ru-RU')}
+                        <span>₽</span>
+                      </button>
+                    ) : (
+                      <button
+                        className={`business-btn upgrade ${canAffordUpgrade ? 'ready' : 'disabled'}`}
+                        onClick={() => handleAction(() => upgradeBusiness(config.id), config.id)}
+                        disabled={!canAffordUpgrade || loading === config.id}
+                        style={{
+                          borderColor: canAffordUpgrade ? config.accentColor : undefined,
+                          color: canAffordUpgrade ? config.accentColor : undefined,
+                        }}
+                      >
+                        {loading === config.id ? '...' : upgradeCost.toLocaleString('ru-RU')}
+                        <span>₽</span>
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

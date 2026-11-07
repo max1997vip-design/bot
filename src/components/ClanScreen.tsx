@@ -393,7 +393,9 @@ export const ClanScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const bossHpColor =
     bossHpPercent > 50 ? '#00d97e' : bossHpPercent > 20 ? '#ffd700' : '#ff0055';
 
-  const estimatedDamage = (user?.clickLevel || 1) * 50 + (user?.rating || 100) * 2;
+  const baseDamage = (user?.clickLevel || 1) * 50 + (user?.rating || 100) * 2;
+  const maxHit = clanBoss ? Math.max(1000, Math.floor(clanBoss.maxHp * 0.05)) : baseDamage;
+  const estimatedDamage = Math.min(baseDamage, maxHit);
 
   return (
     <div className="clan-screen-overlay">
