@@ -1,6 +1,7 @@
 // api/_lib/schema.ts
 import {
   pgTable, bigint, text, integer, timestamp, boolean, jsonb, uuid, primaryKey, uniqueIndex,
+  numeric,  // 👈 ДОБАВЛЕНО
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -15,11 +16,11 @@ export const users = pgTable('users', {
   starsBalance: integer('stars_balance').notNull().default(0),
   leaguePoints: integer('league_points').default(0).notNull(),
   lastClaimedLevel: integer('last_claimed_level').notNull().default(1),
-  
+
   activeCarId: text('active_car_id').notNull().default('vaz-2107'),
   ownedCars: jsonb('owned_cars').$type<string[]>().notNull().default(['vaz-2107']),
-  
-  carColor: text('car_color').notNull().default('original'), 
+
+  carColor: text('car_color').notNull().default('original'),
   level: integer('level').notNull().default(1),
   xp: bigint('xp', { mode: 'number' }).notNull().default(0),
   isAdmin: boolean('is_admin').notNull().default(false),
@@ -35,7 +36,7 @@ export const users = pgTable('users', {
   totalRaces: integer('total_races').notNull().default(0),
   totalWins: integer('total_wins').notNull().default(0),
   totalLosses: integer('total_losses').notNull().default(0),
-  
+
   clickLevel: integer('click_level').notNull().default(1),
   offlineLevel: integer('offline_level').notNull().default(1),
   earnedFromClicks: bigint('earned_from_clicks', { mode: 'number' }).notNull().default(0),
@@ -45,9 +46,9 @@ export const users = pgTable('users', {
   dailyStreak: integer('daily_streak').notNull().default(0),
   lastDailyClaim: timestamp('last_daily_claim', { withTimezone: true }),
   lastAdCaseAt: timestamp('last_ad_case_at', { withTimezone: true }),
-  
+
   dailyQuests: jsonb('daily_quests').$type<any>(),
-  
+
   partUpgrades: jsonb('part_upgrades').$type<Record<string, {
     level: number;
     goldStars: number;
@@ -61,7 +62,8 @@ export const users = pgTable('users', {
     lastCollected: number;
   }>>().notNull().default({}),
 
-   weeklyPass: jsonb('weekly_pass').$type<{
+  weeklyPass: jsonb('weekly_pass').$type<{
+    seasonId?: string;
     weekId: number;
     xp: number;
     isPremium?: boolean;
@@ -169,14 +171,13 @@ export const clanRequests = pgTable('clan_requests', {
   id: uuid('id').primaryKey().defaultRandom(),
   clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
   userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  direction: text('direction').notNull(), // 'invite' | 'application'
-  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'declined' | 'expired'
-  createdBy: bigint('created_by', { mode: 'number' }).notNull(), // кто создал (лидер для invite, игрок для application)
-  message: text('message'), // опционально — комментарий
+  direction: text('direction').notNull(),
+  status: text('status').notNull().default('pending'),
+  createdBy: bigint('created_by', { mode: 'number' }).notNull(),
+  message: text('message'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   expiresAt: timestamp('expires_at').notNull().default(sql`NOW() + INTERVAL '7 days'`),
 }, (t) => ({
-  // Один активный запрос (pending) на пару (clan, user, direction)
   uniqPending: uniqueIndex('clan_requests_uniq_pending')
     .on(t.clanId, t.userId, t.direction)
     .where(sql`${t.status} = 'pending'`),
@@ -200,6 +201,29 @@ export const userBadges = pgTable('user_badges', {
 export const seasonProcessed = pgTable('season_processed', {
   seasonId: text('season_id').primaryKey(),
   processedAt: timestamp('processed_at').notNull().defaultNow(),
+});
+
+// ============================================================
+// PvP БАТТЛЫ
+// ============================================================
+export const pvpBattles = pgTable('pvp_battles', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  player1Id: bigint('player1_id', { mode: 'number' }).notNull(),
+  player2Id: bigint('player2_id', { mode: 'number' }),
+  bet: bigint('bet', { mode: 'number' }).notNull(),
+  status: text('status').notNull().default('waiting'), // 'waiting' | 'playing' | 'finished' | 'cancelled'
+  player1Stats: jsonb('player1_stats').$type<any>(),
+  player2Stats: jsonb('player2_stats').$type<any>(),
+  winnerId: bigint('winner_id', { mode: 'number' }),
+  player1RatingChange: integer('player1_rating_change').default(0),
+  player2RatingChange: integer('player2_rating_change').default(0),
+  player1CoinsChange: bigint('player1_coins_change', { mode: 'number' }).default(0),
+  player2CoinsChange: bigint('player2_coins_change', { mode: 'number' }).default(0),
+  player1Time: numeric('player1_time', { precision: 10, scale: 3 }),
+  player2Time: numeric('player2_time', { precision: 10, scale: 3 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  startedAt: timestamp('started_at'),
+  finishedAt: timestamp('finished_at'),
 });
 
 export type User = typeof users.$inferSelect;

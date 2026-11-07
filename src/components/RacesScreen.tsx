@@ -7,23 +7,66 @@ import { simulateRacePhysics, CarPhysics } from '../utils/raceEngine';
 import { getFinalCarStats } from '../utils/carStats';
 import { LeagueBadge } from './LeagueBadge';
 import { getLeagueByPoints, getNextLeague } from '../config/leagues';
+import { PvpArenaScreen } from './PvpArenaScreen';
+import { Swords } from 'lucide-react';
+import { motion } from 'framer-motion';
 import '../styles/races.css';
 
 type RacePhase = 'idle' | 'racing' | 'finish';
 
-const OPPONENT_NAMES = ['Turbo Rider', 'Neon Racer', 'NightRider', 'DriftKing', 'RoadRunner'];
+const OPPONENT_NAMES = ['Turbo Rider', 'Neon Racer', 'NightRider', 'DriftKing', 'RoadRunner', 'Ghost', 'Phantom', 'Blaze'];
+
+// 🎯 Генерация соперника (вынесено в отдельную функцию)
+function generateOpponent(playerSpeed: number, playerCarId: string) {
+  const candidates = Object.values(CARS).filter(c => c.id !== playerCarId);
+
+  // 🎯 Подбираем в диапазоне ±15% от скорости игрока
+  const minSpeed = playerSpeed * 0.85;
+  const maxSpeed = playerSpeed * 1.15;
+
+  let pool = candidates.filter(c =>
+    c.performance.topSpeed >= minSpeed && c.performance.topSpeed <= maxSpeed
+  );
+
+  if (pool.length === 0) {
+    pool = [...candidates]
+      .sort((a, b) =>
+        Math.abs(a.performance.topSpeed - playerSpeed) -
+        Math.abs(b.performance.topSpeed - playerSpeed)
+      )
+      .slice(0, 5);
+  }
+
+  const rival = pool[Math.floor(Math.random() * pool.length)] || CARS['vaz-2107'];
+  const rivalName = OPPONENT_NAMES[Math.floor(Math.random() * OPPONENT_NAMES.length)];
+
+  const jitter = (val: number, pct = 0.05) => val * (1 + (Math.random() - 0.5) * pct);
+
+  return {
+    car: rival,
+    name: rivalName,
+    physics: {
+      power: jitter(rival.performance.power, 0.05),
+      topSpeed: jitter(rival.performance.topSpeed, 0.05),
+      accel: jitter(rival.performance.accel, 0.08),
+      grip: rival.performance.grip,
+      handling: rival.performance.grip,
+    } as CarPhysics,
+  };
+}
 
 export const RacesScreen = () => {
   const user = useGameStore((s) => s.user);
   const equipped = useGameStore((s) => s.equipped);
   const reportPvpResult = useGameStore((s) => s.reportPvpResult);
   const addLeaguePoints = useGameStore((s) => s.addLeaguePoints);
-  
+
   const [view, setView] = useState<'menu' | 'racing' | 'result'>('menu');
   const [raceResult, setRaceResult] = useState<any>(null);
   const [racePhase, setRacePhase] = useState<RacePhase>('idle');
   const [leaguePointsEarned, setLeaguePointsEarned] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showPvp, setShowPvp] = useState(false);
 
   const raceStageRef = useRef<HTMLDivElement>(null);
   const playerCarRef = useRef<HTMLDivElement>(null);
@@ -38,42 +81,16 @@ export const RacesScreen = () => {
 
   const activeCarId = user?.activeCarId || 'vaz-2107';
   const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
-  
-  // ⚡ ФИЗИКА ИГРОКА С УЧЁТОМ ПРОКАЧКИ
+
   const playerPhysics: CarPhysics = useMemo(
     () => getFinalCarStats(activeCar, equipped, user?.partUpgrades || {}),
     [activeCar, equipped, user?.partUpgrades]
   );
 
-  // 🎯 МАТЧМЕЙКИНГ ПО РЕАЛЬНОЙ СКОРОСТИ
-  const opponentData = useMemo(() => {
-    const playerSpeed = playerPhysics.topSpeed;
-    const candidates = Object.values(CARS).filter(c => c.id !== activeCar.id);
-
-    let pool = candidates.filter(c => Math.abs(c.performance.topSpeed - playerSpeed) <= 40);
-    if (pool.length === 0) {
-      pool = [...candidates].sort((a, b) =>
-        Math.abs(a.performance.topSpeed - playerSpeed) - Math.abs(b.performance.topSpeed - playerSpeed)
-      ).slice(0, 5);
-    }
-
-    const rival = pool[Math.floor(Math.random() * pool.length)] || CARS['vaz-2107'];
-    const rivalName = OPPONENT_NAMES[Math.floor(Math.random() * OPPONENT_NAMES.length)];
-
-    const jitter = (val: number, pct = 0.05) => val * (1 + (Math.random() - 0.5) * pct);
-
-    return {
-      car: rival,
-      name: rivalName,
-      physics: {
-        power: jitter(rival.performance.power, 0.05),
-        topSpeed: jitter(rival.performance.topSpeed, 0.05),
-        accel: jitter(rival.performance.accel, 0.08),
-        grip: rival.performance.grip,
-        handling: rival.performance.grip,
-      } as CarPhysics,
-    };
-  }, [playerPhysics.topSpeed, activeCar.id]);
+  // 🎯 Соперник — в useState (не useMemo!), чтобы генерировался заново
+  const [opponentData, setOpponentData] = useState(() =>
+    generateOpponent(playerPhysics.topSpeed, activeCar.id)
+  );
 
   const opponentPhysics = opponentData.physics;
   const opponentCar = opponentData.car;
@@ -81,7 +98,7 @@ export const RacesScreen = () => {
   const leaguePoints = user?.leaguePoints ?? 0;
   const league = getLeagueByPoints(leaguePoints);
   const nextLeague = getNextLeague(league.id);
-  
+
   const playerCarImage = `/cars/side/${activeCarId}.png`;
   const opponentCarImage = `/cars/side/${opponentCar.id}.png`;
 
@@ -94,7 +111,7 @@ export const RacesScreen = () => {
       if (hudSpeedTextRef.current) hudSpeedTextRef.current.textContent = '0';
       if (speedometerValueRef.current) speedometerValueRef.current.textContent = '0';
       if (speedometerFillRef.current) speedometerFillRef.current.style.strokeDashoffset = '283';
-      
+
       playerCarRef.current?.classList.remove('max-speed-glow');
       opponentCarRef.current?.classList.remove('max-speed-glow');
       speedLinesContainerRef.current?.classList.remove('is-max');
@@ -102,34 +119,43 @@ export const RacesScreen = () => {
     }
   }, [view]);
 
+  // 🎯 Симуляция гонки — при смене view на 'racing'
+  useEffect(() => {
+    if (view !== 'racing') return;
+
+    const timer = setTimeout(() => {
+      const result = simulateRacePhysics(playerPhysics, opponentPhysics, opponentData.name);
+      setRaceResult(result);
+      startAnimation(result.ticks, result);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [view]);  // 👈 только view, чтобы симуляция запускалась 1 раз при старте
+
   const handleStartRace = () => {
     playSound('click');
+    // 👇 Регенерируем соперника ПЕРЕД стартом
+    setOpponentData(generateOpponent(playerPhysics.topSpeed, activeCar.id));
     setView('racing');
     setRacePhase('racing');
     setLeaguePointsEarned(0);
-
-    setTimeout(() => {
-      const result = simulateRacePhysics(playerPhysics, opponentPhysics, opponentData.name);
-      setRaceResult(result);
-      startAnimation(result.ticks, result); 
-    }, 1000);
   };
 
   const startAnimation = (ticks: any[], result: any) => {
     const duration = 4500;
     const startTime = performance.now();
-    
+
     const stageWidth = raceStageRef.current?.clientWidth || 320;
     const carWidth = 120;
     const finishOffset = 60;
-    
+
     const maxDistance = Math.max(180, stageWidth - carWidth - finishOffset);
     const isPlayerWinner = result.winner === 'player';
-    
+
     const relativeGap = Math.abs(ticks[0].playerDist - ticks[0].opponentDist) / Math.max(1, ticks[0].playerDist, ticks[0].opponentDist);
     const finishGap = Math.min(92, 52 + relativeGap * 260);
     const loserDistance = Math.max(150, maxDistance - finishGap);
-    
+
     const playerTarget = isPlayerWinner ? maxDistance : loserDistance;
     const opponentTarget = isPlayerWinner ? loserDistance : maxDistance;
 
@@ -141,20 +167,20 @@ export const RacesScreen = () => {
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
       const eased = 1 - Math.pow(1 - progress, 2.4);
-      
+
       const playerX = eased * playerTarget;
       const opponentX = eased * opponentTarget;
-      
+
       if (playerCarRef.current) playerCarRef.current.style.transform = `translate3d(${playerX}px, 0, 0)`;
       if (opponentCarRef.current) opponentCarRef.current.style.transform = `translate3d(${opponentX}px, 0, 0)`;
-      
+
       if (playerProgressRef.current) playerProgressRef.current.style.width = `${Math.min(100, (playerX / maxDistance) * 100)}%`;
       if (opponentProgressRef.current) opponentProgressRef.current.style.width = `${Math.min(100, (opponentX / maxDistance) * 100)}%`;
 
       const currentSpd = Math.round(playerPhysics.topSpeed * progress);
       if (hudSpeedTextRef.current) hudSpeedTextRef.current.textContent = currentSpd.toString();
       if (speedometerValueRef.current) speedometerValueRef.current.textContent = currentSpd.toString();
-      
+
       if (speedometerFillRef.current) {
         const offset = 283 - (283 * (currentSpd / (playerPhysics.topSpeed || 1)));
         speedometerFillRef.current.style.strokeDashoffset = offset.toString();
@@ -182,38 +208,37 @@ export const RacesScreen = () => {
         requestAnimationFrame(animate);
       } else {
         setRacePhase('finish');
-        
+
         const pointsDelta = isPlayerWinner ? league.winPoints : league.losePoints;
         setLeaguePointsEarned(pointsDelta);
         addLeaguePoints(pointsDelta);
 
         setTimeout(() => {
           setView('result');
-      if (result.winner === 'player') playSound('win');
-  
-  // 👇 ПЕРЕДАЁМ playerStats ОБЯЗАТЕЛЬНО
-      reportPvpResult({
-      won: result.winner === 'player',
-      ratingDelta: result.winner === 'player' ? 15 : -10,
-      coinsDelta: result.winner === 'player' ? 3000 : 0,
-      playerStats: {
-      power: playerPhysics.power,
-      topSpeed: playerPhysics.topSpeed,
-      accel: playerPhysics.accel,
-      grip: playerPhysics.grip,
-      handling: playerPhysics.handling,
-      rating: user?.rating || 100,
-      opponentStats: {
-        power: opponentPhysics.power,
-        topSpeed: opponentPhysics.topSpeed,
-        accel: opponentPhysics.accel,
-        grip: opponentPhysics.grip,
-        handling: opponentPhysics.handling,
-        rating: user?.rating || 100,
-      },
-    },
-  });
-}, 400);
+          if (result.winner === 'player') playSound('win');
+
+          reportPvpResult({
+            won: result.winner === 'player',
+            ratingDelta: result.winner === 'player' ? 15 : -10,
+            coinsDelta: result.winner === 'player' ? 3000 : 0,
+            playerStats: {
+              power: playerPhysics.power,
+              topSpeed: playerPhysics.topSpeed,
+              accel: playerPhysics.accel,
+              grip: playerPhysics.grip,
+              handling: playerPhysics.handling,
+              rating: user?.rating || 100,
+              opponentStats: {
+                power: opponentPhysics.power,
+                topSpeed: opponentPhysics.topSpeed,
+                accel: opponentPhysics.accel,
+                grip: opponentPhysics.grip,
+                handling: opponentPhysics.handling,
+                rating: user?.rating || 100,
+              },
+            },
+          });
+        }, 400);
       }
     };
 
@@ -246,7 +271,7 @@ export const RacesScreen = () => {
           </div>
 
           <button className="league-badge-button" onClick={() => setShowLeaderboard(true)}>
-             <LeagueBadge />
+            <LeagueBadge />
           </button>
 
           <button className="race-mode-primary" onClick={handleStartRace}>
@@ -260,6 +285,26 @@ export const RacesScreen = () => {
             </div>
             <span className="race-mode-action">Начать заезд</span>
           </button>
+
+          {/* 👇 PvP Арена */}
+          <motion.button
+            className="race-mode-pvp"
+            onClick={() => setShowPvp(true)}
+            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="race-mode-pvp-glow" />
+            <div className="race-mode-pvp-icon">
+              <Swords size={32} color="#ffd700" />
+            </div>
+            <div className="race-mode-pvp-info">
+              <strong>PvP АРЕНА</strong>
+              <small>Сразись с реальным игроком · 95% банка победителю</small>
+            </div>
+            <div className="race-mode-pvp-badge">NEW</div>
+          </motion.button>
 
           <div className="race-extra-modes">
             <div className="race-extra-card">
@@ -310,16 +355,16 @@ export const RacesScreen = () => {
             </article>
           </div>
 
-          <div 
+          <div
             ref={raceStageRef}
-            className={`race-stage ${racePhase === 'racing' ? 'is-racing' : ''} ${racePhase === 'finish' ? 'is-finishing' : ''}`} 
+            className={`race-stage ${racePhase === 'racing' ? 'is-racing' : ''} ${racePhase === 'finish' ? 'is-finishing' : ''}`}
             id="race-stage"
           >
             <div className="race-sky">
               <div className="race-sun"></div>
               <div className="race-city"></div>
             </div>
-            
+
             <div className="race-horizon"></div>
             <div className="race-road-bg"></div>
 
@@ -333,9 +378,9 @@ export const RacesScreen = () => {
               <div className="road-marks-inner"></div>
               <div className="finish-line-inner"></div>
               <div ref={playerCarRef} className="race-car" id="my-race-car">
-                <img 
-                  className="paintable-car paint-gloss" 
-                  src={playerCarImage} 
+                <img
+                  className="paintable-car paint-gloss"
+                  src={playerCarImage}
                   alt={activeCar.name}
                   onError={(e) => { e.currentTarget.src = '/cars/side/vaz-2107.png'; }}
                 />
@@ -343,15 +388,15 @@ export const RacesScreen = () => {
             </div>
 
             <div className="race-lane lane-two">
-                <div className="lane-label">{opponentData.name.toUpperCase()} <span>{Math.round(opponentPhysics.topSpeed)}</span></div>
-                <div className="road-marks-inner"></div>
-                <div className="finish-line-inner"></div>
-                <div ref={opponentCarRef} className="race-car enemy-car-sprite" id="enemy-race-car">
-                <img 
-                 src={opponentCarImage} 
-                 alt={opponentCar.name} 
-                 className="enemy-img"
-                 onError={(e) => { e.currentTarget.src = '/cars/side/vaz-2107.png'; }}
+              <div className="lane-label">{opponentData.name.toUpperCase()} <span>{Math.round(opponentPhysics.topSpeed)}</span></div>
+              <div className="road-marks-inner"></div>
+              <div className="finish-line-inner"></div>
+              <div ref={opponentCarRef} className="race-car enemy-car-sprite" id="enemy-race-car">
+                <img
+                  src={opponentCarImage}
+                  alt={opponentCar.name}
+                  className="enemy-img"
+                  onError={(e) => { e.currentTarget.src = '/cars/side/vaz-2107.png'; }}
                 />
               </div>
             </div>
@@ -366,17 +411,17 @@ export const RacesScreen = () => {
               <div className="speed-line"></div>
               <div className="speed-line"></div>
             </div>
-            
+
             <div ref={vignetteRef} className="race-vignette"></div>
 
             <div className="speedometer">
               <svg className="speedometer-svg" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" className="speedometer-track" />
-                <circle 
+                <circle
                   ref={speedometerFillRef}
-                  cx="50" cy="50" r="45" 
-                  className="speedometer-fill" 
-                  style={{ strokeDasharray: 283, strokeDashoffset: 283 }} 
+                  cx="50" cy="50" r="45"
+                  className="speedometer-fill"
+                  style={{ strokeDasharray: 283, strokeDashoffset: 283 }}
                 />
               </svg>
               <div className="speedometer-content">
@@ -435,7 +480,7 @@ export const RacesScreen = () => {
                 <p>Гонка завершена!</p>
               )}
             </div>
-            
+
             <button className="race-close-btn" onClick={handleBackToMenu}>
               В МЕНЮ
             </button>
@@ -451,7 +496,7 @@ export const RacesScreen = () => {
               <h2>{league.name} Лига</h2>
               <p>Топ игроков ранга</p>
             </div>
-            
+
             <div className="leaderboard-list">
               {fakeLeaderboard.map((player, idx) => (
                 <div key={player.id} className={`leaderboard-row ${player.isMe ? 'is-me' : ''}`}>
@@ -468,6 +513,9 @@ export const RacesScreen = () => {
           </div>
         </div>
       )}
+
+      {/* 👇 PvP Арена */}
+      {showPvp && <PvpArenaScreen onClose={() => setShowPvp(false)} />}
     </div>
   );
 };

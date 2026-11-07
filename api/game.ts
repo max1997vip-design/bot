@@ -55,6 +55,11 @@ import {
   getMyBadgesHandler,
   getUserBadgesHandler,
 } from './_lib/handlers/badges.js';
+import {
+  matchmakeHandler,
+  getMyBattleHandler,
+  cancelMatchHandler,
+} from './_lib/handlers/pvpArena.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -129,6 +134,9 @@ export default async function handler(req: any, res: any) {
     case 'spinRoulette': return spinRouletteHandler(req, res);
     case 'getMyBadges': return getMyBadgesHandler(req, res);
     case 'getUserBadges': return getUserBadgesHandler(req, res);
+    case 'pvpMatchmake': return matchmakeHandler(req, res);
+    case 'getMyBattle': return getMyBattleHandler(req, res);
+    case 'pvpCancel': return cancelMatchHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

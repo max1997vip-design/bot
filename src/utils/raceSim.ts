@@ -9,38 +9,55 @@ export interface RaceResult {
 }
 
 export function simulateRace(
-  player: RacingStats, 
-  opponent: RacingStats, 
+  player: RacingStats,
+  opponent: RacingStats,
   opponentName: string
 ): RaceResult {
   const log: string[] = [];
 
-  // Формула: Время = (Дистанция / Максималка) - (Разгон / 10) - (Управляемость / 50) + Случайность
-  // Дистанция: 400 метров (стандартный дрэг)
-  const calcTime = (stats: RacingStats) => {
-    const baseTime = (400 / stats.topSpeed) * 3600; // время в секундах
-    const accelBonus = stats.accel * 0.5;
-    const gripBonus = stats.grip * 0.05;
-    const handlingBonus = stats.handling * 0.05;
-    // Небольшой рандом (от 0 до 1.5 сек)
-    const randomDelay = Math.random() * 1.5;
-    
-    return Math.max(5, baseTime - accelBonus - gripBonus - handlingBonus + randomDelay);
+  // 🎯 НОВАЯ ФОРМУЛА — все характеристики влияют сбалансированно
+  // Дистанция: 400 м (стандартный дрэг)
+  const calcTime = (stats: RacingStats, isBot: boolean = false) => {
+    // 1. Базовая скорость — уменьшили коэффициент ×2800 → ×1500
+    //    чтобы topSpeed не доминировал так сильно
+    const baseTime = (1000 / Math.max(1, stats.topSpeed)) * 1500;
+
+    // 2. Разгон — теперь ВАЖЕН (×0.5 → ×4.0)
+    const accelBonus = stats.accel * 4.0;
+
+    // 3. Сцепление (×0.05 → ×0.25)
+    const gripBonus = stats.grip * 0.25;
+
+    // 4. Управление (×0.05 → ×0.25)
+    const handlingBonus = stats.handling * 0.25;
+
+    // 5. Случайность: у бота — шире (0..3.5), у игрока — уже (0..1.5)
+    //    Это даёт боту шанс выиграть, даже если он чуть слабее
+    const randomDelay = isBot ? Math.random() * 3.5 : Math.random() * 1.5;
+
+    return Math.max(
+      5,
+      baseTime - accelBonus - gripBonus - handlingBonus + randomDelay
+    );
   };
 
-  const playerTime = calcTime(player);
-  const opponentTime = calcTime(opponent);
+  const playerTime = calcTime(player, false);
+  const opponentTime = calcTime(opponent, true);
 
   log.push(`🏁 Старт! Соперник: ${opponentName}`);
   log.push(`Вы проехали 400м за ${playerTime.toFixed(2)} сек.`);
   log.push(`${opponentName} проехал за ${opponentTime.toFixed(2)} сек.`);
 
   const winner = playerTime < opponentTime ? 'player' : 'opponent';
-  
+
   if (winner === 'player') {
-    log.push(`🏆 Победа! Вы обогнали соперника на ${(opponentTime - playerTime).toFixed(2)} сек.`);
+    log.push(
+      `🏆 Победа! Вы обогнали соперника на ${(opponentTime - playerTime).toFixed(2)} сек.`
+    );
   } else {
-    log.push(`💨 Поражение... Соперник был быстрее на ${(playerTime - opponentTime).toFixed(2)} сек.`);
+    log.push(
+      `💨 Поражение... Соперник был быстрее на ${(playerTime - opponentTime).toFixed(2)} сек.`
+    );
   }
 
   return { winner, playerTime, opponentTime, log };

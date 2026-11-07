@@ -93,6 +93,11 @@ interface GameState {
   clanBoss: any | null;
   bossDamageStats: any[];
   referrals: any[];
+  myBattle: any | null;
+  pvpMatchmake: (bet: number, stats: any) => Promise<{ success: boolean; battle?: any; error?: string }>;
+  getMyBattle: () => Promise<void>;
+  pvpCancel: () => Promise<boolean>;
+
 
   // 🆕 Бейджи
   myBadges: Array<{ badgeId: string; seasonId: string; unlockedAt: string }>;
@@ -1510,5 +1515,63 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (e) {
       console.error(e);
     }
+  },
+
+  myBattle: null,
+
+pvpMatchmake: async (bet, stats) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=pvpMatchmake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, bet, stats }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({ myBattle: data.battle });
+      return { success: true, battle: data.battle };
+    }
+    return { success: false, error: data.error };
+  } catch {
+    return { success: false, error: 'Ошибка сети' };
+  }
+},
+
+getMyBattle: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=getMyBattle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({ myBattle: data.battle });
+      if (data.refunded) {
+        // Возврат — можно показать уведомление
+      }
+    }
+  } catch {}
+},
+
+pvpCancel: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=pvpCancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({ myBattle: null });
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
   },
 }));
