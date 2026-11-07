@@ -6,7 +6,7 @@
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 10000;
+  z-index: 10001;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,11 +197,12 @@
   transform: translateY(-1px);
 }
 
-/* Body */
 .pass-body {
-  padding: 0 20px 20px;
+  padding: 0 20px 100px;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   flex: 1;
   min-height: 0;
   display: flex;

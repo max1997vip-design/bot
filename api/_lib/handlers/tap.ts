@@ -41,9 +41,10 @@ export async function tapHandler(req: any, res: any) {
     const quests = getOrCreateQuests(user.dailyQuests);
     quests.progress.click_1000 = Math.min(1000, (quests.progress.click_1000 || 0) + amount);
 
+    // 👇 ФИКС: XP за клик = фиксировано (не зависит от дохода)
     const pass = getOrCreatePass(user.weeklyPass);
-    const xpMultiplier = pass.isPremium ? 5 : 1; // 👈 x5
-    pass.xp += amount * xpMultiplier;
+    const xpPerClick = pass.isPremium ? 5 : 1;
+    pass.xp += clicksToAdd * xpPerClick; // 👈 умножаем на КОЛИЧЕСТВО кликов
 
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
@@ -53,7 +54,7 @@ export async function tapHandler(req: any, res: any) {
       xp: sql`${users.xp} + ${clicksToAdd}`,
       lastOnlineAt: new Date(),
       dailyQuests: quests,
-      weeklyPass: pass, // 👈
+      weeklyPass: pass,
     }).where(eq(users.id, telegramId)).returning();
 
     let droppedItem = null;

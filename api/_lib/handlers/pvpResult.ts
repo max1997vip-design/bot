@@ -25,10 +25,11 @@ export async function pvpResultHandler(req: any, res: any) {
       quests.progress.win_3 = Math.min(3, (quests.progress.win_3 || 0) + 1);
     }
 
+    // 👇 XP для пропуска (не для уровня персонажа)
     const pass = getOrCreatePass(user.weeklyPass);
+    const baseRaceXp = won ? 10 : 2; // 👈 было 50/10, стало 10/2
     const xpMultiplier = pass.isPremium ? 5 : 1;
-    const xpReward = won ? 50 : 10;
-    pass.xp += xpReward * xpMultiplier;
+    pass.xp += baseRaceXp * xpMultiplier;
 
     let clanTax = 0;
     if (safeCoins > 0) {
@@ -49,30 +50,31 @@ export async function pvpResultHandler(req: any, res: any) {
       }
     }
 
-    // 👇 Обновляем баланс, рейтинг, статистику гонок и доход с гонок
+    // 👇 XP для уровня персонажа (отдельно)
+    const levelXpReward = won ? 50 : 10; // 👈 для user.xp оставляем 50/10
+
     const statsUpdate = won
       ? {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
           balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
           totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
-          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`, // 👈 ДОБАВЛЕНО
+          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`,
           totalRaces: sql`${users.totalRaces} + 1`,
           totalWins: sql`${users.totalWins} + 1`,
+          xp: sql`${users.xp} + ${levelXpReward}`,
           dailyQuests: quests,
           weeklyPass: pass,
-          xp: sql`${users.xp} + 50`,
         }
       : {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
           balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
           totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
-          // При поражении safeCoins может быть 0 или отрицательным — не добавляем в доход
-          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`, // 👈 ДОБАВЛЕНО
+          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`,
           totalRaces: sql`${users.totalRaces} + 1`,
           totalLosses: sql`${users.totalLosses} + 1`,
+          xp: sql`${users.xp} + ${levelXpReward}`,
           dailyQuests: quests,
           weeklyPass: pass,
-          xp: sql`${users.xp} + 10`,
         };
 
     const [updated] = await db

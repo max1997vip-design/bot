@@ -28,10 +28,8 @@ export async function claimAchievementHandler(req: any, res: any) {
     // 3. Проверяем, выполнено ли условие (защита от читов)
     if (!config.check(user)) return res.status(400).json({ error: 'Условие не выполнено' });
 
-    // 4. Выдаем награду и записываем в БД
-    // 👇 XP за достижение (можно масштабировать по tier: 100 * tier)
-    const xpReward = 100;
-    const pass = getOrCreatePass(user.weeklyPass); // 👈 нужен import
+    const xpReward = 50; // 👈 было 100
+    const pass = getOrCreatePass(user.weeklyPass);
     const xpMultiplier = pass.isPremium ? 5 : 1;
     pass.xp += xpReward * xpMultiplier;
 
