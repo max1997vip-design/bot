@@ -443,3 +443,53 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 13px;
 }
+
+/* ============================================================
+   MODE TABS
+   ============================================================ */
+.pvparena-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pvparena-mode-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #888;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pvparena-mode-tab span {
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.7;
+  font-family: monospace;
+}
+
+.pvparena-mode-tab.active.online {
+  background: rgba(0, 217, 126, 0.1);
+  border-color: #00d97e;
+  color: #00d97e;
+  box-shadow: 0 0 16px rgba(0, 217, 126, 0.3);
+}
+
+.pvparena-mode-tab.active.offline {
+  background: rgba(255, 136, 0, 0.1);
+  border-color: #ff8800;
+  color: #ff8800;
+  box-shadow: 0 0 16px rgba(255, 136, 0, 0.3);
+}

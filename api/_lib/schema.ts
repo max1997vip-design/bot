@@ -36,6 +36,7 @@ export const users = pgTable('users', {
   totalRaces: integer('total_races').notNull().default(0),
   totalWins: integer('total_wins').notNull().default(0),
   totalLosses: integer('total_losses').notNull().default(0),
+  mode: text('mode').notNull().default('online'),
 
   clickLevel: integer('click_level').notNull().default(1),
   offlineLevel: integer('offline_level').notNull().default(1),
@@ -211,7 +212,8 @@ export const pvpBattles = pgTable('pvp_battles', {
   player1Id: bigint('player1_id', { mode: 'number' }).notNull(),
   player2Id: bigint('player2_id', { mode: 'number' }),
   bet: bigint('bet', { mode: 'number' }).notNull(),
-  status: text('status').notNull().default('waiting'), // 'waiting' | 'playing' | 'finished' | 'cancelled'
+  status: text('status').notNull().default('waiting'),
+  mode: text('mode').notNull().default('online'),
   player1Stats: jsonb('player1_stats').$type<any>(),
   player2Stats: jsonb('player2_stats').$type<any>(),
   winnerId: bigint('winner_id', { mode: 'number' }),

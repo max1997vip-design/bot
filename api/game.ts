@@ -57,6 +57,7 @@ import {
 } from './_lib/handlers/badges.js';
 import {
   matchmakeHandler,
+  offlineMatchHandler,
   getMyBattleHandler,
   cancelMatchHandler,
 } from './_lib/handlers/pvpArena.js';
@@ -134,6 +135,7 @@ export default async function handler(req: any, res: any) {
     case 'spinRoulette': return spinRouletteHandler(req, res);
     case 'getMyBadges': return getMyBadgesHandler(req, res);
     case 'getUserBadges': return getUserBadgesHandler(req, res);
+    case 'pvpOffline': return offlineMatchHandler(req, res);  
     case 'pvpMatchmake': return matchmakeHandler(req, res);
     case 'getMyBattle': return getMyBattleHandler(req, res);
     case 'pvpCancel': return cancelMatchHandler(req, res);

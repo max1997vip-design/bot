@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Swords, X, Clock, Trophy, TrendingUp, TrendingDown, Coins, Users,
+  Swords, X, Clock, Trophy, TrendingUp, TrendingDown, Coins, Users, Zap, Wifi, WifiOff,
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { calculateStats } from '../config/items';
@@ -12,33 +12,36 @@ import '../styles/pvparena.css';
 
 const MIN_BET = 1000;
 const MAX_BET = 10_000_000;
-
 const QUICK_BETS = [1000, 10000, 100000, 1000000];
+
+type Mode = 'online' | 'offline';
 
 export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
   const equipped = useGameStore((s) => s.equipped);
   const myBattle = useGameStore((s) => s.myBattle);
   const pvpMatchmake = useGameStore((s) => s.pvpMatchmake);
+  const pvpOffline = useGameStore((s) => s.pvpOffline);
   const getMyBattle = useGameStore((s) => s.getMyBattle);
   const pvpCancel = useGameStore((s) => s.pvpCancel);
 
+  const [mode, setMode] = useState<Mode>('online');
   const [bet, setBet] = useState<number | ''>(10000);
   const [searching, setSearching] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
+
+  // 🎯 Таймер — от createdAt
+  const [now, setNow] = useState(Date.now());
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const balance = user?.balance || 0;
 
-  // При монтировании — проверяем, нет ли уже матча
   useEffect(() => {
     getMyBattle();
   }, [getMyBattle]);
 
-  // Polling когда есть активный матч
+  // Polling для онлайн-поиска
   useEffect(() => {
-    if (!myBattle || myBattle.status === 'finished' || myBattle.status === 'cancelled') {
+    if (!myBattle || myBattle.status !== 'waiting' || myBattle.mode !== 'online') {
       if (pollRef.current) clearInterval(pollRef.current);
       return;
     }
@@ -50,22 +53,17 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [myBattle, getMyBattle]);
+  }, [myBattle?.status, myBattle?.id, myBattle?.mode, getMyBattle]);
 
-  // Таймер ожидания
+  // Обновление таймера
   useEffect(() => {
     if (myBattle?.status === 'waiting') {
-      setElapsed(0);
-      timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
-      return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-      };
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      const t = setInterval(() => setNow(Date.now()), 1000);
+      return () => clearInterval(t);
     }
-  }, [myBattle]);
+  }, [myBattle?.status]);
 
-  // Если матч завершён — проигрываем звук
+  // Звук при завершении
   useEffect(() => {
     if (myBattle?.status === 'finished') {
       const isWin = myBattle.winnerId === user?.id;
@@ -73,6 +71,11 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
       try { WebApp.HapticFeedback?.notificationOccurred(isWin ? 'success' : 'error'); } catch {}
     }
   }, [myBattle?.status, myBattle?.winnerId, user?.id]);
+
+  const elapsed = myBattle?.status === 'waiting'
+    ? Math.floor((now - new Date(myBattle.createdAt).getTime()) / 1000)
+    : 0;
+  const timeLeft = Math.max(0, 60 - elapsed);
 
   const handleSearch = async () => {
     if (!bet || bet < MIN_BET) {
@@ -85,18 +88,19 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
     }
     setSearching(true);
     const stats = calculateStats(equipped, user?.partUpgrades, user?.activeCarId);
-    const res = await pvpMatchmake(bet, stats);
-    setSearching(false);
-    if (!res.success) {
-      WebApp.showAlert(res.error || 'Ошибка');
+
+    if (mode === 'online') {
+      const res = await pvpMatchmake(bet, stats);
+      if (!res.success) WebApp.showAlert(res.error || 'Ошибка');
+    } else {
+      const res = await pvpOffline(bet, stats);
+      if (!res.success) WebApp.showAlert(res.error || 'Ошибка');
     }
+    setSearching(false);
   };
 
   const handleCancel = async () => {
-    if (await pvpCancel()) {
-      setSearching(false);
-      setElapsed(0);
-    }
+    if (await pvpCancel()) setSearching(false);
   };
 
   const handleClose = async () => {
@@ -134,7 +138,7 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
               </span>
             </div>
           </div>
-          <button className="pvparena-close-btn" onClick={handleClose} aria-label="Закрыть">
+          <button className="pvparena-close-btn" onClick={handleClose}>
             <X size={18} />
           </button>
         </div>
@@ -143,25 +147,42 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
         <div className="pvparena-body">
           <AnimatePresence mode="wait">
 
-            {/* IDLE */}
+            {/* IDLE — выбор режима */}
             {(!myBattle || myBattle.status === 'cancelled') && (
-              <motion.div
-                key="idle"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="pvparena-game"
-              >
+              <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pvparena-game">
+                <div className="pvparena-mode-tabs">
+                  <button
+                    className={`pvparena-mode-tab ${mode === 'online' ? 'active online' : ''}`}
+                    onClick={() => setMode('online')}
+                  >
+                    <Wifi size={14} />
+                    ОНЛАЙН
+                    <span>+15 / −10</span>
+                  </button>
+                  <button
+                    className={`pvparena-mode-tab ${mode === 'offline' ? 'active offline' : ''}`}
+                    onClick={() => setMode('offline')}
+                  >
+                    <WifiOff size={14} />
+                    ОФЛАЙН
+                    <span>+3 / −1</span>
+                  </button>
+                </div>
+
                 <div className="pvparena-intro">
                   <motion.div
                     className="pvparena-swords"
                     animate={{ rotate: [-5, 5, -5] }}
                     transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   >
-                    <Swords size={64} color="#ff8800" />
+                    <Swords size={64} color={mode === 'online' ? '#00d97e' : '#ff8800'} />
                   </motion.div>
-                  <h3>Сразись с реальным игроком</h3>
-                  <p>Поставь ставку — победитель забирает <strong>95%</strong> банка</p>
+                  <h3>{mode === 'online' ? 'Онлайн-бой' : 'Офлайн-бой'}</h3>
+                  <p>
+                    {mode === 'online'
+                      ? 'Сразись с реальным игроком · 95% банка победителю'
+                      : 'Соперник из твоей лиги · мягкий рейтинг'}
+                  </p>
                 </div>
 
                 <div className="pvparena-bet-box">
@@ -178,11 +199,7 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                   </div>
                   <div className="pvparena-quick-bets">
                     {QUICK_BETS.map((qb) => (
-                      <button
-                        key={qb}
-                        onClick={() => setBet(qb)}
-                        className="pvparena-quick-bet-btn"
-                      >
+                      <button key={qb} onClick={() => setBet(qb)} className="pvparena-quick-bet-btn">
                         {qb >= 1000000 ? `${qb / 1000000}M` : qb >= 1000 ? `${qb / 1000}K` : qb}
                       </button>
                     ))}
@@ -193,21 +210,24 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                   className="pvparena-play-btn"
                   onClick={handleSearch}
                   disabled={searching || !bet}
+                  style={
+                    mode === 'online'
+                      ? { background: 'linear-gradient(135deg, #00d97e, #00b368)' }
+                      : undefined
+                  }
                 >
-                  {searching ? 'ПОИСК СОПЕРНИКА...' : 'НАЙТИ ИГРУ'}
+                  {searching
+                    ? 'ЗАГРУЗКА...'
+                    : mode === 'online'
+                    ? 'НАЙТИ ИГРОКА'
+                    : 'СРАЗИТЬСЯ С ИГРОКОМ ИЗ ЛИГИ'}
                 </button>
               </motion.div>
             )}
 
-            {/* WAITING */}
-            {myBattle?.status === 'waiting' && (
-              <motion.div
-                key="waiting"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="pvparena-waiting"
-              >
+            {/* WAITING — только для онлайн */}
+            {myBattle?.status === 'waiting' && myBattle.mode === 'online' && (
+              <motion.div key="waiting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pvparena-waiting">
                 <motion.div
                   className="pvparena-radar"
                   animate={{ rotate: 360 }}
@@ -221,26 +241,20 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                 </p>
                 <div className="pvparena-timer">
                   <Clock size={16} />
-                  <span>{elapsed} сек</span>
+                  <span>{elapsed} сек · таймаут {timeLeft} сек</span>
                 </div>
                 <p className="pvparena-waiting-hint">
-                  Ждём игрока с такой же ставкой. Обычно 5–30 секунд.
+                  Ждём игрока с такой же ставкой. Если не найдём за 60 сек — вернём ставку.
                 </p>
                 <button className="pvparena-cancel-btn" onClick={handleCancel}>
-                  ОТМЕНИТЬ (вернуть ставку)
+                  ОТМЕНИТЬ
                 </button>
               </motion.div>
             )}
 
             {/* FINISHED */}
             {myBattle?.status === 'finished' && (
-              <motion.div
-                key="finished"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                className="pvparena-finished"
-              >
+              <motion.div key="finished" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pvparena-finished">
                 {myBattle.winnerId === user?.id ? (
                   <>
                     <motion.div
@@ -251,27 +265,6 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                       <Trophy size={64} color="#ffd700" />
                     </motion.div>
                     <h3 className="win-text">ПОБЕДА!</h3>
-                    <div className="pvparena-result-stats">
-                      <div className="pvparena-result-row">
-                        <span>Твоё время:</span>
-                        <strong>{myBattle.player1Id === user?.id ? myBattle.player1Time : myBattle.player2Time} сек</strong>
-                      </div>
-                      <div className="pvparena-result-row">
-                        <span>Время соперника:</span>
-                        <strong>{myBattle.player1Id === user?.id ? myBattle.player2Time : myBattle.player1Time} сек</strong>
-                      </div>
-                      <div className="pvparena-result-row highlight">
-                        <TrendingUp size={16} />
-                        <span>Выигрыш:</span>
-                        <strong style={{ color: '#00d97e' }}>
-                          +{((myBattle.player1Id === user?.id ? myBattle.player1CoinsChange : myBattle.player2CoinsChange) || 0).toLocaleString('ru-RU')} ₽
-                        </strong>
-                      </div>
-                      <div className="pvparena-result-row">
-                        <span>Рейтинг:</span>
-                        <strong style={{ color: '#00d97e' }}>+15</strong>
-                      </div>
-                    </div>
                   </>
                 ) : (
                   <>
@@ -279,36 +272,46 @@ export const PvpArenaScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                       <TrendingDown size={64} color="#ff4444" />
                     </div>
                     <h3 className="lose-text">ПОРАЖЕНИЕ</h3>
-                    <div className="pvparena-result-stats">
-                      <div className="pvparena-result-row">
-                        <span>Твоё время:</span>
-                        <strong>{myBattle.player1Id === user?.id ? myBattle.player1Time : myBattle.player2Time} сек</strong>
-                      </div>
-                      <div className="pvparena-result-row">
-                        <span>Время соперника:</span>
-                        <strong>{myBattle.player1Id === user?.id ? myBattle.player2Time : myBattle.player1Time} сек</strong>
-                      </div>
-                      <div className="pvparena-result-row highlight">
-                        <TrendingDown size={16} />
-                        <span>Потеря:</span>
-                        <strong style={{ color: '#ff4444' }}>
-                          {(myBattle.player1Id === user?.id ? myBattle.player1CoinsChange : myBattle.player2CoinsChange || 0).toLocaleString('ru-RU')} ₽
-                        </strong>
-                      </div>
-                      <div className="pvparena-result-row">
-                        <span>Рейтинг:</span>
-                        <strong style={{ color: '#ff4444' }}>-10</strong>
-                      </div>
-                    </div>
                   </>
                 )}
 
+                <div className="pvparena-result-stats">
+                  <div className="pvparena-result-row">
+                    <span>Режим:</span>
+                    <strong>{myBattle.mode === 'online' ? 'Онлайн' : 'Офлайн'}</strong>
+                  </div>
+                  <div className="pvparena-result-row">
+                    <span>Ставка:</span>
+                    <strong>{(myBattle.bet || 0).toLocaleString('ru-RU')} ₽</strong>
+                  </div>
+                  <div className="pvparena-result-row">
+                    <span>Твоё время:</span>
+                    <strong>{myBattle.player1Id === user?.id ? myBattle.player1Time : myBattle.player2Time} сек</strong>
+                  </div>
+                  <div className="pvparena-result-row">
+                    <span>Соперник:</span>
+                    <strong>{myBattle.player1Id === user?.id ? myBattle.player2Time : myBattle.player1Time} сек</strong>
+                  </div>
+                  <div className="pvparena-result-row highlight">
+                    <TrendingUp size={16} />
+                    <span>Баланс:</span>
+                    <strong style={{ color: myBattle.winnerId === user?.id ? '#00d97e' : '#ff4444' }}>
+                      {myBattle.player1Id === user?.id
+                        ? (myBattle.player1CoinsChange >= 0 ? '+' : '') + (myBattle.player1CoinsChange || 0).toLocaleString('ru-RU')
+                        : (myBattle.player2CoinsChange >= 0 ? '+' : '') + (myBattle.player2CoinsChange || 0).toLocaleString('ru-RU')} ₽
+                    </strong>
+                  </div>
+                  <div className="pvparena-result-row">
+                    <span>Рейтинг:</span>
+                    <strong style={{ color: myBattle.winnerId === user?.id ? '#00d97e' : '#ff4444' }}>
+                      {myBattle.winnerId === user?.id ? `+${myBattle.mode === 'online' ? 15 : 3}` : `−${myBattle.mode === 'online' ? 10 : 1}`}
+                    </strong>
+                  </div>
+                </div>
+
                 <button
                   className="pvparena-play-btn"
-                  onClick={() => {
-                    // Сброс — можно искать заново
-                    useGameStore.setState({ myBattle: null });
-                  }}
+                  onClick={() => useGameStore.setState({ myBattle: null })}
                 >
                   ИГРАТЬ СНОВА
                 </button>

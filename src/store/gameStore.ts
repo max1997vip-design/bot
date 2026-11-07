@@ -97,6 +97,12 @@ interface GameState {
   pvpMatchmake: (bet: number, stats: any) => Promise<{ success: boolean; battle?: any; error?: string }>;
   getMyBattle: () => Promise<void>;
   pvpCancel: () => Promise<boolean>;
+  pvpOffline: (bet: number, stats: any) => Promise<{
+  success: boolean;
+  battle?: any;
+  rival?: any;
+  error?: string;
+}>;
 
 
   // 🆕 Бейджи
@@ -1572,6 +1578,25 @@ pvpCancel: async () => {
     return false;
   } catch {
     return false;
+  }
+  },
+
+  pvpOffline: async (bet, stats) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=pvpOffline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, bet, stats }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({ myBattle: data.battle });
+      return { success: true, battle: data.battle, rival: data.rival };
+    }
+    return { success: false, error: data.error };
+  } catch {
+    return { success: false, error: 'Ошибка сети' };
   }
   },
 }));
