@@ -51,6 +51,10 @@ import {
   cancelApplicationHandler,
   searchPlayersHandler,  
 } from './_lib/handlers/clanRequests.js';
+import {
+  getMyBadgesHandler,
+  getUserBadgesHandler,
+} from './_lib/handlers/badges.js';
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -123,6 +127,8 @@ export default async function handler(req: any, res: any) {
     case 'searchPlayers': return searchPlayersHandler(req, res);
     case 'flipDice': return flipDiceHandler(req, res);
     case 'spinRoulette': return spinRouletteHandler(req, res);
+    case 'getMyBadges': return getMyBadgesHandler(req, res);
+    case 'getUserBadges': return getUserBadgesHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

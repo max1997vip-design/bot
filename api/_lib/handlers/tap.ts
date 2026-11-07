@@ -6,6 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 import { ALL_ITEM_IDS, ITEMS, RARITY_DROP_CHANCE } from '../items.js';
 import { getOrCreateQuests } from '../quests.js';
 import { getOrCreatePass } from '../pass.js';
+import { checkAndAwardBadges } from './badges.js'; // 👈 ДОБАВЛЕНО
 
 export async function tapHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -41,10 +42,9 @@ export async function tapHandler(req: any, res: any) {
     const quests = getOrCreateQuests(user.dailyQuests);
     quests.progress.click_1000 = Math.min(1000, (quests.progress.click_1000 || 0) + amount);
 
-    // 👇 ФИКС: XP за клик = фиксировано (не зависит от дохода)
     const pass = getOrCreatePass(user.weeklyPass);
     const xpPerClick = pass.isPremium ? 5 : 1;
-    pass.xp += clicksToAdd * xpPerClick; // 👈 умножаем на КОЛИЧЕСТВО кликов
+    pass.xp += clicksToAdd * xpPerClick;
 
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
@@ -75,6 +75,9 @@ export async function tapHandler(req: any, res: any) {
         droppedItem = { ...ITEMS[randomItemId], dbId: newItem.id };
       }
     }
+
+    // 🏅 Проверяем бейджи в фоне (не блокирует ответ)
+    checkAndAwardBadges(telegramId).catch(console.error);
 
     return res.status(200).json({
       success: true,

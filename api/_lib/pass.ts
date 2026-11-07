@@ -1,4 +1,6 @@
 // api/_lib/pass.ts
+import { getCurrentSeasonId } from '../../src/config/seasons.js';
+
 export interface PassLevel {
   level: number;
   xpReq: number;
@@ -19,18 +21,24 @@ export const PASS_LEVELS: PassLevel[] = [
 ];
 
 export function getOrCreatePass(dbPass: any) {
-  const currentWeek = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 7));
-  
-  // Если неделя сменилась или пропуска нет — создаем новый
-  if (!dbPass || dbPass.weekId !== currentWeek) {
-    return { weekId: currentWeek, xp: 0, isPremium: false, claimed: [], claimedPremium: [] };
+  const currentSeasonId = getCurrentSeasonId();
+
+  // 🆕 Сезонный сброс — при смене месяца
+  if (!dbPass || dbPass.seasonId !== currentSeasonId) {
+    return {
+      seasonId: currentSeasonId,
+      weekId: 0,
+      xp: 0,
+      isPremium: false,
+      claimed: [],
+      claimedPremium: [],
+    };
   }
-  
-  // Иначе возвращаем с безопасными дефолтами
+
   return {
     ...dbPass,
     isPremium: dbPass.isPremium || false,
     claimed: dbPass.claimed || [],
-    claimedPremium: dbPass.claimedPremium || []
+    claimedPremium: dbPass.claimedPremium || [],
   };
 }

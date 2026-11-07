@@ -181,4 +181,25 @@ export const clanRequests = pgTable('clan_requests', {
     .on(t.clanId, t.userId, t.direction)
     .where(sql`${t.status} = 'pending'`),
 }));
+
+// ============================================================
+// БЕЙДЖИ
+// ============================================================
+export const userBadges = pgTable('user_badges', {
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  badgeId: text('badge_id').notNull(),
+  seasonId: text('season_id').notNull().default(''),
+  unlockedAt: timestamp('unlocked_at').notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.badgeId, t.seasonId] }),
+}));
+
+// ============================================================
+// СЕЗОНЫ (флаг обработки)
+// ============================================================
+export const seasonProcessed = pgTable('season_processed', {
+  seasonId: text('season_id').primaryKey(),
+  processedAt: timestamp('processed_at').notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;

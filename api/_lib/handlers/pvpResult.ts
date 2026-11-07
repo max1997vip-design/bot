@@ -5,6 +5,7 @@ import { validateInitData } from '../telegram.js';
 import { eq, sql, and } from 'drizzle-orm';
 import { getOrCreateQuests } from '../quests.js';
 import { getOrCreatePass } from '../pass.js';
+import { checkAndAwardBadges } from './badges.js'; // 👈 ДОБАВЛЕНО
 
 export async function pvpResultHandler(req: any, res: any) {
   const { initData, won, ratingDelta, coinsDelta } = req.body;
@@ -25,9 +26,9 @@ export async function pvpResultHandler(req: any, res: any) {
       quests.progress.win_3 = Math.min(3, (quests.progress.win_3 || 0) + 1);
     }
 
-    // 👇 XP для пропуска (не для уровня персонажа)
+    // XP для пропуска
     const pass = getOrCreatePass(user.weeklyPass);
-    const baseRaceXp = won ? 10 : 2; // 👈 было 50/10, стало 10/2
+    const baseRaceXp = won ? 10 : 2;
     const xpMultiplier = pass.isPremium ? 5 : 1;
     pass.xp += baseRaceXp * xpMultiplier;
 
@@ -42,7 +43,7 @@ export async function pvpResultHandler(req: any, res: any) {
           await db.update(clans)
             .set({ balance: sql`${clans.balance} + ${clanTax}` })
             .where(eq(clans.id, clanId));
-          
+
           await db.update(clanMembers)
             .set({ contribution: sql`${clanMembers.contribution} + ${clanTax}` })
             .where(and(eq(clanMembers.userId, userId), eq(clanMembers.clanId, clanId)));
@@ -50,8 +51,8 @@ export async function pvpResultHandler(req: any, res: any) {
       }
     }
 
-    // 👇 XP для уровня персонажа (отдельно)
-    const levelXpReward = won ? 50 : 10; // 👈 для user.xp оставляем 50/10
+    // XP для уровня персонажа
+    const levelXpReward = won ? 50 : 10;
 
     const statsUpdate = won
       ? {
@@ -82,6 +83,9 @@ export async function pvpResultHandler(req: any, res: any) {
       .set(statsUpdate)
       .where(eq(users.id, userId))
       .returning();
+
+    // 🏅 Проверяем бейджи в фоне (не блокирует ответ)
+    checkAndAwardBadges(userId).catch(console.error);
 
     return res.json({
       won: !!won,
