@@ -5,33 +5,45 @@
   --text-primary: #FFFFFF;
   --text-secondary: #8E929D;
   --text-muted: #555861;
-  
-  /* 👇 НЕОНОВО-ГОЛУБОЙ (основной акцент) */
+
+  /* Неоново-голубой (основной акцент) */
   --accent: #00e5ff;
   --accent-dim: #00b8cc;
   --accent-glow: rgba(0, 229, 255, 0.25);
   --accent-glow-strong: rgba(0, 229, 255, 0.6);
 
-  /* 👇 ИЗУМРУДНЫЙ (для успеха/доходов — менее кислотный) */
+  /* Изумрудный */
   --success: #00d97e;
   --success-dim: #00b368;
   --success-glow: rgba(0, 217, 126, 0.4);
   --success-glow-strong: rgba(0, 217, 126, 0.7);
 
-  /* 👇 КРАСНЫЙ (для ошибок/поражений) */
+  /* Красный */
   --danger: #ff4444;
   --danger-glow: rgba(255, 68, 68, 0.4);
 
-  /* 👇 ЗОЛОТОЙ (для наград/премиума) */
+  /* Золотой */
   --gold: #ffd700;
   --gold-dim: #ff8800;
-  
-  --nav-height: 72px;
+
+  /* Высота нижнего меню — синхронизирована с .bottom-nav (было 72px, реально 76px / 98px) */
+  --nav-height: 76px;
+
+  /* Safe-area */
   --safe-bottom: env(safe-area-inset-bottom, 20px);
+
+  /* Шрифт */
   --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  
-  /* Дефолтное значение (для SSR или если JS еще не загрузился) */
-  --tg-safe-top: 0px; 
+
+  /* Значение для основного контента — JS перезапишет на 85px на мобилке */
+  --tg-safe-top: 0px;
+}
+
+/* iPhone — меню выше */
+@media (max-width: 499px) {
+  :root {
+    --nav-height: 98px;
+  }
 }
 
 @keyframes fadeInDown {
@@ -73,7 +85,7 @@
   display: inline-block;
   font-weight: 900;
   font-family: Impact, 'Arial Black', sans-serif;
-  font-size: 1.05em; /* 👈 ОСТАВЛЯЕМ БОЛЬШИМ (как было) */
+  font-size: 1.05em;
   color: #ffd700;
   background: linear-gradient(180deg, #fff4b0 0%, #ffd700 40%, #ff8800 70%, #cc6600 100%);
   -webkit-background-clip: text;
@@ -84,19 +96,19 @@
   vertical-align: middle;
   line-height: 1;
   transition: filter 0.2s ease;
-  margin-left: 5px; /* 👈 ДОБАВЛЕНО: отступ от цифры (было 0) */
+  margin-left: 5px;
 }
 
 .currency-ruble.glow:hover {
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1)) drop-shadow(0 0 14px rgba(255, 136, 0, 0.8));
 }
 
-.currency-ruble.sm { 
-  font-size: 0.9em; /* оставляем как было */
+.currency-ruble.sm {
+  font-size: 0.9em;
   margin-left: 4px;
 }
 
-.currency-ruble.lg { 
-  font-size: 1.2em; /* оставляем как было */
+.currency-ruble.lg {
+  font-size: 1.2em;
   margin-left: 6px;
 }

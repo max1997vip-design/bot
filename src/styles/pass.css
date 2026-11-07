@@ -1,6 +1,8 @@
 /* src/styles/pass.css */
 
-/* Overlay — как history-overlay + safe-area сверху/снизу */
+/* ============================================================
+   OVERLAY — центрирование + safe-area + отступ под нижнее меню
+   ============================================================ */
 .pass-overlay {
   position: fixed;
   inset: 0;
@@ -12,25 +14,31 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  padding-top: calc(16px + var(--tg-safe-top, 0px));
-  padding-bottom: calc(16px + var(--tg-safe-bottom, 0px));
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(
+    16px + env(safe-area-inset-bottom, 0px) + var(--nav-height, 76px)
+  );
 }
 
-/* Контейнер — все 4 угла 24px, overflow hidden, flex-колонка */
+/* ============================================================
+   CONTENT — 24px со всех углов, overflow hidden, flex-колонка
+   ============================================================ */
 .pass-content {
   background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid rgba(0, 229, 255, 0.3);
   border-radius: 24px;
   width: 100%;
   max-width: 500px;
-  max-height: calc(100vh - 32px - var(--tg-safe-top, 0px) - var(--tg-safe-bottom, 0px));
+  max-height: calc(
+    100vh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--nav-height, 76px)
+  );
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 229, 255, 0.1);
   overflow: hidden;
 }
 
-/* Фиксированные секции не сжимаются */
+/* Фиксированные секции не сжимаются при длинном body */
 .pass-header,
 .pass-progress-section,
 .pass-premium-active,
@@ -39,6 +47,9 @@
   flex-shrink: 0;
 }
 
+/* ============================================================
+   HEADER
+   ============================================================ */
 .pass-header {
   display: flex;
   justify-content: space-between;
@@ -92,7 +103,9 @@
   color: var(--danger);
 }
 
-/* Прогресс */
+/* ============================================================
+   ПРОГРЕСС
+   ============================================================ */
 .pass-progress-section {
   padding: 16px 20px 12px;
 }
@@ -133,7 +146,9 @@
   box-shadow: 0 0 10px currentColor;
 }
 
-/* Премиум-статус / кнопка покупки */
+/* ============================================================
+   ПРЕМИУМ-СТАТУС / КНОПКА ПОКУПКИ
+   ============================================================ */
 .pass-premium-active {
   display: flex;
   align-items: center;
@@ -167,13 +182,19 @@
   letter-spacing: 1px;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
-  transition: transform 0.15s;
+  transition: transform 0.15s, opacity 0.15s;
 }
 
 .pass-buy-premium:active { transform: scale(0.97); }
-.pass-buy-premium:disabled { opacity: 0.5; cursor: not-allowed; }
+.pass-buy-premium:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 
-/* Табы */
+/* ============================================================
+   ТАБЫ
+   ============================================================ */
 .pass-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -217,10 +238,12 @@
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
 }
 
-/* Body — скролл + safe-area снизу */
+/* ============================================================
+   BODY — скролл + safe-area снизу + min-height:0
+   ============================================================ */
 .pass-body {
   padding: 16px 20px 20px;
-  padding-bottom: calc(20px + var(--tg-safe-bottom, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -234,6 +257,9 @@
 
 .pass-body::-webkit-scrollbar { display: none; }
 
+/* ============================================================
+   УРОВНИ
+   ============================================================ */
 .pass-level {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -301,7 +327,9 @@
   gap: 4px;
 }
 
-/* Награды */
+/* ============================================================
+   НАГРАДЫ
+   ============================================================ */
 .pass-reward {
   display: flex;
   align-items: center;
@@ -352,6 +380,9 @@
   text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
 
+/* ============================================================
+   КНОПКИ ЗАБРАТЬ
+   ============================================================ */
 .pass-claim-btn {
   padding: 8px 12px;
   border: none;
@@ -391,9 +422,17 @@
 
 .pass-claim-btn:disabled {
   cursor: not-allowed;
+  opacity: 0.55;
 }
 
-/* Модалка подтверждения — safe-area */
+.pass-claim-btn:disabled:not(.claimed):not(.ready):not(.ready-premium) {
+  background: rgba(255, 255, 255, 0.03);
+  color: #555;
+}
+
+/* ============================================================
+   МОДАЛКА ПОДТВЕРЖДЕНИЯ — safe-area + отступ меню
+   ============================================================ */
 .pass-confirm-overlay {
   position: fixed;
   inset: 0;
@@ -405,8 +444,8 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  padding-top: calc(16px + var(--tg-safe-top, 0px));
-  padding-bottom: calc(16px + var(--tg-safe-bottom, 0px));
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 .pass-confirm-box {
@@ -417,6 +456,10 @@
   text-align: center;
   max-width: 340px;
   width: 100%;
+  max-height: calc(
+    100vh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+  );
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.2);
 }
 
@@ -450,7 +493,7 @@
   font-weight: 900;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.15s, opacity 0.15s;
 }
 
 .pass-confirm-cancel {
@@ -468,4 +511,10 @@
 .pass-confirm-cancel:active,
 .pass-confirm-buy:active {
   transform: scale(0.97);
+}
+
+.pass-confirm-buy:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }

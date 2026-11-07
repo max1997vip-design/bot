@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Flag, Building2, Wrench, User } from 'lucide-react';
 import { useGameStore } from './store/gameStore';
 import { RaceScreen } from './components/RaceScreen';
 import { ProfileScreen } from './components/ProfileScreen';
@@ -10,7 +11,7 @@ import { CARS } from './config/cars';
 import WebApp from '@twa-dev/sdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import './styles/clan.css';
-import { getInitData } from './lib/telegram'; 
+import { getInitData } from './lib/telegram';
 
 type Tab = 'race' | 'city' | 'garage' | 'profile';
 
@@ -75,7 +76,10 @@ export default function App() {
     const isMobile = platform === 'ios' || platform === 'android';
 
     if (isMobile) {
-      document.documentElement.style.setProperty('--tg-safe-top', 'max(85px, env(safe-area-inset-top, 0px))');
+      document.documentElement.style.setProperty(
+        '--tg-safe-top',
+        'max(85px, env(safe-area-inset-top, 0px))'
+      );
     } else {
       document.documentElement.style.setProperty('--tg-safe-top', '0px');
     }
@@ -99,8 +103,7 @@ export default function App() {
       const startTime = Date.now();
 
       try {
-        // 👇 ИСПОЛЬЗУЕМ ХЕЛПЕР
-        const initData = getInitData(); 
+        const initData = getInitData();
         const startParam = webApp.initDataUnsafe?.start_param || '';
 
         const res = await fetch('/api/game?action=sync', {
@@ -121,7 +124,9 @@ export default function App() {
             data.equipped || { engine: null, tires: null, ecu: null, suspension: null }
           );
 
-          const lastDaily = data.user.lastDailyClaim ? new Date(data.user.lastDailyClaim).getTime() : 0;
+          const lastDaily = data.user.lastDailyClaim
+            ? new Date(data.user.lastDailyClaim).getTime()
+            : 0;
           const todayMidnight = getMskMidnight(0);
 
           if (lastDaily < todayMidnight) {
@@ -163,9 +168,7 @@ export default function App() {
 
   return (
     <>
-      <AnimatePresence>
-        {!isReady && <LoadingScreen />}
-      </AnimatePresence>
+      <AnimatePresence>{!isReady && <LoadingScreen />}</AnimatePresence>
 
       {isReady && (error || !user) && (
         <div className="app-error">
@@ -205,35 +208,65 @@ export default function App() {
             </main>
 
             <nav className="bottom-nav">
-              <button className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`} onClick={() => setActiveTab('race')}>
-                <span className="nav-icon">🏁</span>
+              <button
+                className={`nav-btn ${activeTab === 'race' ? 'active' : ''}`}
+                onClick={() => setActiveTab('race')}
+              >
+                <span className="nav-icon">
+                  <Flag size={24} strokeWidth={2.2} />
+                </span>
                 <span className="nav-label">Гонка</span>
               </button>
-              <button className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`} onClick={() => setActiveTab('city')}>
-                <span className="nav-icon">🏙️</span>
+              <button
+                className={`nav-btn ${activeTab === 'city' ? 'active' : ''}`}
+                onClick={() => setActiveTab('city')}
+              >
+                <span className="nav-icon">
+                  <Building2 size={24} strokeWidth={2.2} />
+                </span>
                 <span className="nav-label">Город</span>
               </button>
-              <button className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`} onClick={() => setActiveTab('garage')}>
-                <span className="nav-icon">🔧</span>
+              <button
+                className={`nav-btn ${activeTab === 'garage' ? 'active' : ''}`}
+                onClick={() => setActiveTab('garage')}
+              >
+                <span className="nav-icon">
+                  <Wrench size={24} strokeWidth={2.2} />
+                </span>
                 <span className="nav-label">Гараж</span>
               </button>
-              <button className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>
-                <span className="nav-icon">👤</span>
+              <button
+                className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => setActiveTab('profile')}
+              >
+                <span className="nav-icon">
+                  <User size={24} strokeWidth={2.2} />
+                </span>
                 <span className="nav-label">Профиль</span>
               </button>
             </nav>
 
-            {showAutoDaily && (
-              <DailyRewardModal onClose={() => setShowAutoDaily(false)} />
-            )}
+            {showAutoDaily && <DailyRewardModal onClose={() => setShowAutoDaily(false)} />}
 
             <AnimatePresence>
               {offlineEarnings > 0 && (
-                <motion.div className="offline-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <motion.div className="offline-card" initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 20 }}>
+                <motion.div
+                  className="offline-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <motion.div
+                    className="offline-card"
+                    initial={{ scale: 0.8, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.8, y: 20 }}
+                  >
                     <h2>С возвращением!</h2>
                     <p>Пока вас не было, механики заработали:</p>
-                    <div className="offline-amount">+{offlineEarnings.toLocaleString('ru-RU')} ₽</div>
+                    <div className="offline-amount">
+                      +{offlineEarnings.toLocaleString('ru-RU')} ₽
+                    </div>
                     <button onClick={() => setOfflineEarnings(0)}>Забрать</button>
                   </motion.div>
                 </motion.div>
