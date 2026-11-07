@@ -1,4 +1,4 @@
-// src/components/AchievementsScreen.tsx (начало файла)
+// src/components/AchievementsScreen.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -64,7 +64,7 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="achievements-screen" onClick={onClose}>
-      <motion.div 
+      <motion.div
         className="achievements-content"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -72,9 +72,10 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Шапка */}
         <div className="achievements-header">
           <h2>
-            <Trophy size={18} color="#ffd700" /> 
+            <Trophy size={18} color="#ffd700" />
             Достижения
             {totalClaimable > 0 && (
               <span style={{
@@ -110,7 +111,7 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
                 style={isActive ? { borderColor: meta.color, color: meta.color } : {}}
               >
                 {renderLucideIcon(meta.icon, 16, isActive ? meta.color : '#888')}
-                <span style={{ fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
                   {meta.name}
                 </span>
                 <span style={{ fontSize: '8px', color: '#666' }}>
@@ -130,16 +131,17 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
 
         {/* Прогресс категории */}
         <div className="achievements-progress-bar">
-          <div 
+          <div
             className="achievements-progress-fill"
-            style={{ 
+            style={{
               width: activeAchievements.length > 0 ? `${(activeUnlocked / activeAchievements.length) * 100}%` : '0%',
               background: `linear-gradient(90deg, ${CATEGORY_META[activeCategory].color}, ${CATEGORY_META[activeCategory].color}88)`,
               boxShadow: `0 0 10px ${CATEGORY_META[activeCategory].color}66`
-            }} 
+            }}
           />
         </div>
 
+        {/* Список достижений */}
         <div className="achievements-body">
           <AnimatePresence mode="wait">
             <motion.div
@@ -159,7 +161,7 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
               {activeAchievements.map((ach: any) => {
                 const isUnlocked = ach.isUnlocked;
                 const isClaimable = ach.isCompleted && !ach.isUnlocked;
-                const tier = (ach.tier || 1) as 1|2|3|4|5;
+                const tier = (ach.tier || 1) as 1 | 2 | 3 | 4 | 5;
                 const tierColor = TIER_META[tier]?.color || '#888';
 
                 let cardClass = 'achievement-card';
@@ -170,9 +172,9 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
                   <div key={ach.id} className={cardClass}>
                     <div className={`achievement-icon-wrapper ${isUnlocked ? 'unlocked' : ''} ${isClaimable ? 'claimable' : ''}`}>
                       {isUnlocked ? (
-                        <Check size={20} color="#00d97e" strokeWidth={3} />
+                        <Check size={20} color="var(--success)" strokeWidth={3} />
                       ) : isClaimable ? (
-                        renderLucideIcon(ach.icon, 20, '#ffd700')
+                        renderLucideIcon(ach.icon, 20, 'var(--gold)')
                       ) : (
                         <Lock size={18} color="#666" />
                       )}
@@ -180,7 +182,7 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
 
                     <div className="achievement-info">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span 
+                        <span
                           style={{
                             fontSize: '9px', fontWeight: 900, padding: '1px 6px',
                             borderRadius: 4, background: `${tierColor}22`,
@@ -194,9 +196,9 @@ export const AchievementsScreen = ({ onClose }: { onClose: () => void }) => {
                       </div>
                       <span className="achievement-desc">{ach.description}</span>
                       <span className="achievement-reward">
-                         {ach.reward?.toLocaleString('ru-RU') || 0} 
-                         <span className="currency-ruble sm" style={{ marginLeft: 4 }}>₽</span>
-                        </span>
+                        {ach.reward?.toLocaleString('ru-RU') || 0}
+                        <span className="currency-ruble sm" style={{ marginLeft: 4 }}>₽</span>
+                      </span>
                     </div>
 
                     {isUnlocked && <span className="achievement-status done">✓</span>}

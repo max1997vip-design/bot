@@ -83,9 +83,8 @@
   color: var(--accent);
 }
 
-/* 👇 Контент скроллится внутри */
 .referral-content {
-  padding: 16px 20px;
+  padding: 16px 20px 0; /* убрал нижний padding — его добавим в actions */
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -98,6 +97,7 @@
 }
 
 .referral-content::-webkit-scrollbar { display: none; }
+
 
 .referral-bonus-card {
   display: flex;
@@ -239,8 +239,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-top: auto;
-  padding-top: 8px;
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent 0%, #0a0a0a 30%, #0a0a0a 100%);
+  position: sticky;
+  bottom: 0;
+  margin-top: auto; /* 👈 прижимает к низу */
   flex-shrink: 0;
 }
 
@@ -280,3 +283,35 @@
 }
 
 .referral-btn-copy:active, .referral-btn-action:active { transform: scale(0.98); }
+
+/* ========== ДРУЗЬЯ ========== */
+.referral-friends-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  flex-shrink: 0;
+}
+
+.friends-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  font-family: Impact, sans-serif;
+}
+
+.friends-empty {
+  text-align: center;
+  padding: 12px 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.friends-empty p { margin: 0; }

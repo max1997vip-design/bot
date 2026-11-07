@@ -68,7 +68,7 @@ export const ProfileScreen = () => {
     <motion.div className="profile-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="profile-content">
         
-        {/* === ШАПКА === */}
+                        {/* === ШАПКА === */}
         <div className="profile-header">
           <div className="avatar-wrapper">
             {user.photoUrl ? (
@@ -78,10 +78,8 @@ export const ProfileScreen = () => {
             )}
             <div className="level-badge">LVL {level}</div>
           </div>
-          <div className="profile-header-info">
-            <h1 className="profile-name">{displayName}</h1>
-            {user.username && <p className="profile-username">@{user.username}</p>}
-          </div>
+          <h1 className="profile-name">{displayName}</h1>
+          {user.username && <p className="profile-username">@{user.username}</p>}
         </div>
 
         {/* XP-бар */}

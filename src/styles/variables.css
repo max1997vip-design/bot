@@ -73,7 +73,7 @@
   display: inline-block;
   font-weight: 900;
   font-family: Impact, 'Arial Black', sans-serif;
-  font-size: 1.05em;
+  font-size: 1.05em; /* 👈 ОСТАВЛЯЕМ БОЛЬШИМ (как было) */
   color: #ffd700;
   background: linear-gradient(180deg, #fff4b0 0%, #ffd700 40%, #ff8800 70%, #cc6600 100%);
   -webkit-background-clip: text;
@@ -84,15 +84,19 @@
   vertical-align: middle;
   line-height: 1;
   transition: filter 0.2s ease;
-}
-
-.currency-ruble + .currency-ruble {
-  margin-left: 2px;
+  margin-left: 5px; /* 👈 ДОБАВЛЕНО: отступ от цифры (было 0) */
 }
 
 .currency-ruble.glow:hover {
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1)) drop-shadow(0 0 14px rgba(255, 136, 0, 0.8));
 }
 
-.currency-ruble.sm { font-size: 0.9em; }
-.currency-ruble.lg { font-size: 1.2em; }
+.currency-ruble.sm { 
+  font-size: 0.9em; /* оставляем как было */
+  margin-left: 4px;
+}
+
+.currency-ruble.lg { 
+  font-size: 1.2em; /* оставляем как было */
+  margin-left: 6px;
+}
