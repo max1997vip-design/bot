@@ -3,6 +3,7 @@ import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { eq } from 'drizzle-orm';
+import { checkAndAwardBadges } from './badges.js'; // 👈 ДОБАВЛЕНО
 
 const CAR_PRICES: Record<string, number> = {
   // Старые машины
@@ -61,9 +62,8 @@ export async function buyCarHandler(req: any, res: any) {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 👇 Если у пользователя нет массива ownedCars, даем ему базовую ВАЗ 2107
     const owned = user.ownedCars || ['vaz-2107'];
-    
+
     if (owned.includes(carId)) {
       return res.status(400).json({ error: 'У вас уже есть эта машина' });
     }
@@ -75,12 +75,14 @@ export async function buyCarHandler(req: any, res: any) {
     const newBalance = user.balance - price;
     const newOwnedCars = [...owned, carId];
 
-    // 👇 ИСПРАВЛЕНА ОШИБКА С ДВОЙНЫМ .update()
     const [updated] = await db
       .update(users)
       .set({ balance: newBalance, ownedCars: newOwnedCars })
       .where(eq(users.id, userId))
       .returning();
+
+    // 🏅 Проверяем бейджи в фоне (не блокирует ответ)
+    checkAndAwardBadges(userId).catch(console.error);
 
     return res.status(200).json({
       success: true,

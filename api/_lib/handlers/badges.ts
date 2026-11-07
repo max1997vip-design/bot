@@ -4,7 +4,7 @@ import {
   users, userBadges, clanMembers, ownedCars, seasonProcessed,
 } from '../schema.js';
 import { validateInitData } from '../telegram.js';
-import { eq, and, desc, sql, isNull, not } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { getCurrentSeasonId, getPrevSeasonId } from '../../../src/config/seasons.js';
 
 // ============================================================
@@ -15,8 +15,15 @@ export async function checkAndAwardBadges(userId: number) {
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) return;
 
-    const owned = await db.select().from(ownedCars).where(eq(ownedCars.userId, userId));
+    // 👇 Машины из ОБОИХ источников (JSONB users.ownedCars + таблица owned_cars)
+    const ownedFromTable = await db
+      .select()
+      .from(ownedCars)
+      .where(eq(ownedCars.userId, userId));
+    const ownedFromJson = user.ownedCars || [];
+    const totalOwned = Math.max(ownedFromTable.length, ownedFromJson.length);
 
+    // Уже имеющиеся бейджи
     const existing = await db
       .select({ badgeId: userBadges.badgeId })
       .from(userBadges)
@@ -25,22 +32,39 @@ export async function checkAndAwardBadges(userId: number) {
 
     const toAdd: string[] = [];
 
-    if ((user.totalWins || 0) >= 100 && !have.has('champion')) toAdd.push('champion');
-    if ((user.totalEarned || 0) >= 1_000_000_000 && !have.has('billionaire')) toAdd.push('billionaire');
-    if ((user.totalClicks || 0) >= 100_000 && !have.has('click_master')) toAdd.push('click_master');
-    if (owned.length >= 10 && !have.has('collector')) toAdd.push('collector');
-
+    // 🏆 Чемпион
+    if ((user.totalWins || 0) >= 100 && !have.has('champion')) {
+      toAdd.push('champion');
+    }
+    // 💰 Миллиардер
+    if ((user.totalEarned || 0) >= 1_000_000_000 && !have.has('billionaire')) {
+      toAdd.push('billionaire');
+    }
+    // ⚡ Кликер-маньяк
+    if ((user.totalClicks || 0) >= 100_000 && !have.has('click_master')) {
+      toAdd.push('click_master');
+    }
+    // 💎 Коллекционер (10+ машин)
+    if (totalOwned >= 10 && !have.has('collector')) {
+      toAdd.push('collector');
+    }
+    // 👑 Клан-лидер
     const leadership = await db
       .select()
       .from(clanMembers)
       .where(and(eq(clanMembers.userId, userId), eq(clanMembers.role, 'leader')));
-    if (leadership.length > 0 && !have.has('clan_leader')) toAdd.push('clan_leader');
-
-    if ((user.dailyStreak || 0) >= 30 && !have.has('streak_30')) toAdd.push('streak_30');
-
-    // Легенда — 5+ других бейджей
+    if (leadership.length > 0 && !have.has('clan_leader')) {
+      toAdd.push('clan_leader');
+    }
+    // 🔥 Стрик 30
+    if ((user.dailyStreak || 0) >= 30 && !have.has('streak_30')) {
+      toAdd.push('streak_30');
+    }
+    // 🌟 Легенда (5+ других бейджей)
     const othersCount = have.size + toAdd.length;
-    if (othersCount >= 5 && !have.has('legend')) toAdd.push('legend');
+    if (othersCount >= 5 && !have.has('legend')) {
+      toAdd.push('legend');
+    }
 
     if (toAdd.length > 0) {
       for (const badgeId of toAdd) {
@@ -50,6 +74,7 @@ export async function checkAndAwardBadges(userId: number) {
           seasonId: '',
         }).onConflictDoNothing();
       }
+      console.log(`[checkAndAwardBadges] user ${userId} получил: ${toAdd.join(', ')}`);
     }
   } catch (e) {
     console.error('[checkAndAwardBadges]', e);
@@ -64,14 +89,12 @@ export async function processSeasonResetIfNeeded() {
   const prevSeason = getPrevSeasonId();
 
   try {
-    // Проверяем, обработан ли прошлый сезон
     const [processed] = await db
       .select()
       .from(seasonProcessed)
       .where(eq(seasonProcessed.seasonId, prevSeason));
 
     if (processed) {
-      // Уже обработан — ничего не делаем
       return { processed: false };
     }
 
@@ -136,10 +159,10 @@ export async function getMyBadgesHandler(req: any, res: any) {
     const valid = validateInitData(initData, process.env.BOT_TOKEN!);
     if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    // 🔄 Сначала — сезонная проверка (если нужно — сброс + выдача топ-3)
+    // 1. Сезонная проверка (если нужно — сброс + выдача топ-3)
     await processSeasonResetIfNeeded();
 
-    // 🏅 Затем — проверка «постоянных» бейджей
+    // 2. Проверка «постоянных» бейджей
     await checkAndAwardBadges(valid.user.id);
 
     const badges = await db
