@@ -2,7 +2,7 @@
 import { db } from '../db.js';
 import { users, achievements } from '../schema.js';
 import { validateInitData } from '../telegram.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import { ACHIEVEMENTS } from '../../../src/config/achievements.js';
 
 export async function claimAchievementHandler(req: any, res: any) {
@@ -28,20 +28,28 @@ export async function claimAchievementHandler(req: any, res: any) {
     if (!config.check(user)) return res.status(400).json({ error: 'Условие не выполнено' });
 
     // 4. Выдаем награду и записываем в БД
-    const newBalance = user.balance + config.reward;
-    const newTotalEarned = user.totalEarned + config.reward;
+    // 👇 XP за достижение (можно масштабировать по tier: 100 * tier)
+    const xpReward = 100;
 
-    await db.update(users).set({ 
-      balance: newBalance, 
-      totalEarned: newTotalEarned 
-    }).where(eq(users.id, user.id));
+    const [updated] = await db.update(users).set({ 
+      balance: sql`${users.balance} + ${config.reward}`,
+      totalEarned: sql`${users.totalEarned} + ${config.reward}`,
+      xp: sql`${users.xp} + ${xpReward}`,
+    }).where(eq(users.id, user.id)).returning();
 
     await db.insert(achievements).values({
       userId: user.id,
       achievementId: achievementId,
     });
 
-    return res.json({ success: true, newBalance, reward: config.reward });
+    return res.json({ 
+      success: true, 
+      newBalance: updated.balance,
+      newTotalEarned: updated.totalEarned, // 👈 возвращаем
+      xp: updated.xp, // 👈 возвращаем
+      reward: config.reward,
+      xpReward,
+    });
   } catch (e) {
     console.error('Claim achievement error:', e);
     return res.status(500).json({ error: 'Internal error' });

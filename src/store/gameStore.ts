@@ -170,6 +170,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         totalEarned: s.user.totalEarned + tapPower,
         totalClicks: (s.user.totalClicks || 0) + 1,
         earnedFromClicks: (s.user.earnedFromClicks || 0) + tapPower,
+        xp: (s.user.xp || 0) + 1,
       } : null,
       unsyncedTaps: s.unsyncedTaps + tapPower,
       unsyncedClicks: s.unsyncedClicks + 1,
@@ -653,6 +654,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             totalEarned: data.newTotalEarned + s.unsyncedTaps,
             totalClicks: data.totalClicks ?? s.user.totalClicks,
             earnedFromClicks: data.earnedFromClicks ?? s.user.earnedFromClicks,
+            xp: data.xp ?? s.user.xp,
           } : null
         }));
         if (data.droppedItem) {
@@ -769,6 +771,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           totalWins: data.totalWins ?? state.user.totalWins,
           totalLosses: data.totalLosses ?? state.user.totalLosses,
           earnedFromRaces: data.earnedFromRaces ?? state.user.earnedFromRaces,
+          xp: data.xp ?? state.user.xp,
         } : null
       }));
     } catch (e) {
@@ -831,7 +834,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch {}
   },
 
-  claimAchievement: async (id) => {
+    claimAchievement: async (id) => {
     const initData = getInitData();
     try {
       const res = await fetch('/api/game?action=claimAchievement', {
@@ -840,10 +843,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       });
       const data = await res.json();
       if (data.success) {
+        const currentUser = get().user;
         set((s) => ({
           balance: data.newBalance,
-          user: s.user ? { ...s.user, balance: data.newBalance } : null,
-          achievementsList: s.achievementsList.map(a => a.id === id ? { ...a, isUnlocked: true } : a)
+          user: currentUser
+            ? {
+                ...currentUser,
+                balance: data.newBalance,
+                totalEarned: data.newTotalEarned ?? currentUser.totalEarned,
+                xp: data.xp ?? currentUser.xp,
+              }
+            : null,
+          achievementsList: s.achievementsList.map(a => a.id === id ? { ...a, isUnlocked: true } : a),
         }));
         return true;
       }
@@ -908,7 +919,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (res.ok && data.success) {
         set((state) => ({
           balance: data.newBalance,
-          user: state.user ? { ...state.user, balance: data.newBalance, dailyStreak: data.dailyStreak, lastDailyClaim: data.lastDailyClaim } : null
+          user: state.user ? { ...state.user, balance: data.newBalance, dailyStreak: data.dailyStreak, xp: data.xp ?? state.user.xp, lastDailyClaim: data.lastDailyClaim } : null
         }));
         return true;
       }

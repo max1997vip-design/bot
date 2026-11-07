@@ -88,11 +88,12 @@ export function RaceScreen() {
   const upgradeClicker = useGameStore((s) => s.upgradeClicker);
   const upgradeOffline = useGameStore((s) => s.upgradeOffline);
 
-  const totalEarned = user?.totalEarned || 0;
-  const level = Math.floor(Math.sqrt(totalEarned / 50)) + 1;
-  const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
-  const xpNextLevel = Math.pow(level, 2) * 50;
-  const progress = Math.min(100, ((totalEarned - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100);
+  
+  const xp = user?.xp || 0;
+  const level = Math.floor(Math.sqrt(xp / 100)) + 1;
+  const xpCurrentLevel = Math.pow(level - 1, 2) * 100;
+  const xpNextLevel = Math.pow(level, 2) * 100;
+  const progress = Math.min(100, Math.max(0, ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100));
 
   const activeCarId = user?.activeCarId || 'vaz-2107';
   const activeCar = CARS[activeCarId] || CARS['vaz-2107'];

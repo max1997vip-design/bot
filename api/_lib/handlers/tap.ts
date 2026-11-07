@@ -51,7 +51,8 @@ export async function tapHandler(req: any, res: any) {
       totalClicks: sql`${users.totalClicks} + ${clicksToAdd}`,
       lastOnlineAt: new Date(),
       dailyQuests: quests,
-      weeklyPass: pass
+      weeklyPass: pass,
+      xp: sql`${users.xp} + ${clicksToAdd}`,
     }).where(eq(users.id, telegramId)).returning();
 
     let droppedItem = null;
@@ -79,6 +80,7 @@ export async function tapHandler(req: any, res: any) {
       newTotalEarned: updatedUser.totalEarned,
       totalClicks: updatedUser.totalClicks,
       earnedFromClicks: updatedUser.earnedFromClicks, // 👈 ДОБАВЛЕНО
+      xp: updatedUser.xp,
       droppedItem,
       quests,
       pass: updatedUser.weeklyPass

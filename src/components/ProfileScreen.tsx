@@ -14,9 +14,9 @@ import { getLeagueByPoints } from '../config/leagues';
 import '../styles/profile.css';
 
 const calcLevelInfo = (xp: number) => {
-  const level = Math.floor(Math.sqrt(xp / 50)) + 1;
-  const xpCurrentLevel = Math.pow(level - 1, 2) * 50;
-  const xpNextLevel = Math.pow(level, 2) * 50;
+  const level = Math.floor(Math.sqrt(xp / 100)) + 1;
+  const xpCurrentLevel = Math.pow(level - 1, 2) * 100;
+  const xpNextLevel = Math.pow(level, 2) * 100;
   const progress = Math.min(100, Math.max(0, ((xp - xpCurrentLevel) / (xpNextLevel - xpCurrentLevel)) * 100));
   return { level, xpCurrentLevel, xpNextLevel, progress };
 };
@@ -50,7 +50,7 @@ export const ProfileScreen = () => {
     );
   }
 
-  const { level, xpCurrentLevel, xpNextLevel, progress } = calcLevelInfo(user.totalEarned || 0);
+  const { level, xpCurrentLevel, xpNextLevel, progress } = calcLevelInfo(user.xp || 0);
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Гонщик';
   const activeCar = CARS[user.activeCarId] || CARS['vaz-2107'];
   const league = getLeagueByPoints(user.leaguePoints || 0);
@@ -86,7 +86,9 @@ export const ProfileScreen = () => {
         <div className="xp-section">
           <div className="xp-labels">
             <span className="xp-label-title">ОПЫТ</span>
-            <span className="xp-label-value">{Math.max(0, Math.floor(user.totalEarned - xpCurrentLevel))} / {xpNextLevel - xpCurrentLevel} XP</span>
+            <span className="xp-label-value">
+              {Math.max(0, Math.floor((user.xp || 0) - xpCurrentLevel))} / {xpNextLevel - xpCurrentLevel} XP
+            </span>
           </div>
           <div className="xp-bar">
             <div className="xp-bar-fill" style={{ width: `${progress}%` }} />

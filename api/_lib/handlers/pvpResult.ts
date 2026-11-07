@@ -60,6 +60,7 @@ export async function pvpResultHandler(req: any, res: any) {
           totalWins: sql`${users.totalWins} + 1`,
           dailyQuests: quests,
           weeklyPass: pass,
+          xp: sql`${users.xp} + 50`,
         }
       : {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
@@ -71,6 +72,7 @@ export async function pvpResultHandler(req: any, res: any) {
           totalLosses: sql`${users.totalLosses} + 1`,
           dailyQuests: quests,
           weeklyPass: pass,
+          xp: sql`${users.xp} + 10`,
         };
 
     const [updated] = await db
@@ -89,6 +91,7 @@ export async function pvpResultHandler(req: any, res: any) {
       totalWins: updated.totalWins,
       totalLosses: updated.totalLosses,
       earnedFromRaces: updated.earnedFromRaces,
+      xp: updated.xp,
       quests,
       pass: updated.weeklyPass,
       clanTax,

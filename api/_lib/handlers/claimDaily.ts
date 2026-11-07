@@ -1,12 +1,13 @@
+// api/_lib/handlers/claimDaily.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 // Награды за 1-7 день
 const DAILY_REWARDS = [1000, 2500, 5000, 10000, 25000, 50000, 100000];
 
-// 👇 Вспомогательная функция для получения 00:00 по МСК (в формате UTC timestamp)
+// Вспомогательная функция для получения 00:00 по МСК (в формате UTC timestamp)
 const getMskMidnight = (offsetDays = 0) => {
   const now = new Date();
   const mskTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // Перевод в UTC+3
@@ -49,13 +50,19 @@ export async function claimDailyHandler(req: any, res: any) {
     }
 
     const reward = DAILY_REWARDS[newStreak - 1];
-    const now = new Date(); // Записываем текущее время (оно само сохранится в UTC)
+    const now = new Date();
+
+    // 👇 XP за ежедневный бонус
+    const XP_REWARD = 25;
 
     const [updated] = await db.update(users)
       .set({ 
-        balance: user.balance + reward, 
+        balance: sql`${users.balance} + ${reward}`, 
+        totalEarned: sql`${users.totalEarned} + ${reward}`, // 👈 награда тоже считается доходом
+        earnedFromBusiness: sql`${users.earnedFromBusiness} + ${reward}`, // 👈 относим к бизнесу (или можешь не трогать)
         dailyStreak: newStreak,
-        lastDailyClaim: now 
+        lastDailyClaim: now,
+        xp: sql`${users.xp} + ${XP_REWARD}`, // 👈 +25 XP
       })
       .where(eq(users.id, userId))
       .returning();
@@ -63,8 +70,11 @@ export async function claimDailyHandler(req: any, res: any) {
     return res.json({ 
       success: true, 
       newBalance: updated.balance, 
+      newTotalEarned: updated.totalEarned, // 👈 возвращаем на клиент
+      earnedFromBusiness: updated.earnedFromBusiness,
       dailyStreak: updated.dailyStreak, 
       lastDailyClaim: updated.lastDailyClaim,
+      xp: updated.xp, // 👈 возвращаем XP
       reward 
     });
   } catch (error) {
