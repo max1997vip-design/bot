@@ -16,12 +16,20 @@
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 10;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  
+  /* Убрана полоска скролла */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.admin-screen::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
   flex-shrink: 0;
 }
@@ -34,6 +42,7 @@
   letter-spacing: 3px;
   text-transform: uppercase;
   text-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+  flex-shrink: 0;
 }
 
 .admin-header .admin-badge {
@@ -46,6 +55,28 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 1px;
+  margin-right: auto;
+}
+
+.admin-close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.admin-close-btn:hover {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.4);
+  color: var(--danger);
 }
 
 /* ========== ВКЛАДКИ ========== */
@@ -56,7 +87,9 @@
   flex-shrink: 0;
   overflow-x: auto;
   padding-bottom: 4px;
+  scrollbar-width: none;
 }
+.admin-tabs::-webkit-scrollbar { display: none; }
 
 .admin-tab {
   padding: 10px 16px;
@@ -214,11 +247,14 @@
 }
 
 .admin-user-balance {
-  color: #00e5ff;
+  color: var(--gold);
   font-weight: 900;
   font-size: 12px;
   font-family: monospace;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .admin-user-actions {
@@ -317,18 +353,6 @@
   opacity: 0.4;
   cursor: not-allowed;
   transform: none !important;
-}
-
-/* ========== СКРОЛЛБАР ========== */
-.admin-screen::-webkit-scrollbar {
-  width: 4px;
-}
-.admin-screen::-webkit-scrollbar-track {
-  background: transparent;
-}
-.admin-screen::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.3);
-  border-radius: 2px;
 }
 
 /* ========== АДАПТАЦИЯ ========== */

@@ -1,8 +1,12 @@
 // src/components/CityScreen.tsx
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Flag, Castle, Coins, Building2, Dices, Package, ShoppingCart,
+  Wrench, Briefcase, Wrench as AdminWrench, X
+} from 'lucide-react';
 import { RacesScreen } from './RacesScreen';
-import { CarDealership } from './CarDealership'; 
+import { CarDealership } from './CarDealership';
 import { WorkshopScreen } from './WorkshopScreen';
 import { BusinessScreen } from './BusinessScreen';
 import { CasinoScreen } from './CasinoScreen';
@@ -24,7 +28,6 @@ export const CityScreen = () => {
   const [showClan, setShowClan] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showShop, setShowShop] = useState(false);
-  
   const [activeCase, setActiveCase] = useState<string | null>(null);
 
   const user = useGameStore((s) => s.user);
@@ -33,135 +36,117 @@ export const CityScreen = () => {
   const fetchTopBalance = async () => {
     setShowTopBalance(true);
     try {
-      const res = await fetch(`/api/game?action=leaderboard&type=balance`);
+      const res = await fetch('/api/game?action=leaderboard&type=balance');
       const data = await res.json();
       if (data.success) setTopBalanceData(data.players);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
+
+  // 👇 Список карточек города (легко расширять)
+  const cityCards = [
+    { id: 'track', title: 'Трек', desc: 'Гонки с ботами, PvP', icon: Flag, color: 'var(--accent)', action: () => setActiveLocation('track') },
+    { id: 'clans', title: 'Кланы', desc: 'Сообщество и бонусы', icon: Castle, color: '#ff8800', action: () => setShowClan(true), hidden: features.clans === false },
+    { id: 'leaderboard', title: 'Топ Баланса', desc: 'Самые богатые', icon: Coins, color: '#ffd700', action: fetchTopBalance },
+    { id: 'dealership', title: 'Автосалон', desc: 'Покупка машин', icon: Building2, color: 'var(--accent)', action: () => setShowDealership(true) },
+    { id: 'casino', title: 'Казино', desc: 'Испытай удачу', icon: Dices, color: '#ff4444', action: () => setShowCasino(true), hidden: features.casino === false },
+    { id: 'cases', title: 'Кейсы', desc: 'Бесплатный и другие', icon: Package, color: 'var(--gold)', action: () => setActiveCase('hourly') },
+    { id: 'shop', title: 'Магазин', desc: 'Покупка ₽', icon: ShoppingCart, color: '#ffd700', action: () => setShowShop(true), highlight: true },
+    { id: 'workshop', title: 'Мастерская', desc: 'Тюнинг и крафт', icon: Wrench, color: 'var(--accent)', action: () => setShowWorkshop(true), hidden: features.workshop === false },
+    { id: 'business', title: 'Бизнесы', desc: 'Пассивный доход', icon: Briefcase, color: 'var(--success)', action: () => setShowBusiness(true), hidden: features.business === false },
+    { id: 'admin', title: 'Админка', desc: 'Управление игрой', icon: AdminWrench, color: '#ff4444', action: () => setShowAdmin(true), hidden: !user?.isAdmin, admin: true },
+  ];
 
   return (
     <div className="city-screen">
       <AnimatePresence mode="wait">
         {activeLocation === 'menu' && (
-          <motion.div 
-            key="city-menu" 
-            className="city-hub" 
+          <motion.div
+            key="city-menu"
+            className="city-hub"
             initial={false}
-            animate={{ opacity: 1, y: 0 }} 
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
             <h2 className="city-title">ГОРОД</h2>
-            
+
             <div className="city-grid">
-              <div className="city-card" onClick={() => setActiveLocation('track')}>
-                <span className="city-icon">🏎️</span>
-                <h3>Трек</h3>
-                <p>Гонки с ботами, PvP</p>
-              </div>
-
-              {features.clans !== false && (
-                <div className="city-card" onClick={() => setShowClan(true)}>
-                  <span className="city-icon">🏰</span>
-                  <h3>Кланы</h3>
-                  <p>Сообщество и бонусы</p>
-                </div>
-              )}
-
-              <div className="city-card" onClick={fetchTopBalance}>
-                <span className="city-icon">💰</span>
-                <h3>Топ Баланса</h3>
-                <p>Самые богатые гонщики</p>
-              </div>
-
-              <div className="city-card" onClick={() => setShowDealership(true)}>
-                <span className="city-icon">🏢</span>
-                <h3>Автосалон</h3>
-                <p>Покупка новых машин</p>
-              </div>
-
-              {features.casino !== false && (
-                <div className="city-card" onClick={() => setShowCasino(true)}>
-                  <span className="city-icon">🎰</span>
-                  <h3>Казино</h3>
-                  <p>Испытай удачу</p>
-                </div>
-              )}
-
-              <div className="city-card" onClick={() => setActiveCase('hourly')}>
-                <div className="city-icon">📦</div>
-                <h3>Кейсы</h3>
-                <p>Бесплатный и другие</p>
-              </div>
-
-              <div className="city-card" onClick={() => setShowShop(true)} style={{ border: '1px solid #ffd700' }}>
-                <span className="city-icon">🛒</span>
-                <h3>Магазин</h3>
-                <p>Покупка ₽</p>
-              </div>
-
-              {features.workshop !== false && (
-                <div className="city-card" onClick={() => setShowWorkshop(true)}>
-                  <span className="city-icon">🔧</span>
-                  <h3>Мастерская</h3>
-                  <p>Тюнинг и крафт деталей</p>
-                </div>
-              )}
-
-              {features.business !== false && (
-                <div className="city-card" onClick={() => setShowBusiness(true)}>
-                  <span className="city-icon">💼</span>
-                  <h3>Бизнесы</h3>
-                  <p>Пассивный доход</p>
-                </div>
-              )}
-
-              {user?.isAdmin && (
-                <div className="city-card" onClick={() => setShowAdmin(true)} style={{ border: '1px solid #ff4444', background: 'rgba(255,68,68,0.1)' }}>
-                  <span className="city-icon">🛠️</span>
-                  <h3>Админка</h3>
-                  <p>Управление игрой</p>
-                </div>
-              )}
+              {cityCards.filter((c) => !c.hidden).map((card) => {
+                const Icon = card.icon;
+                return (
+                  <motion.div
+                    key={card.id}
+                    className={`city-card ${card.admin ? 'admin' : ''} ${card.highlight ? 'highlight' : ''}`}
+                    onClick={card.action}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <div className="city-card-icon" style={{ background: `${card.color}15`, border: `1px solid ${card.color}44` }}>
+                      <Icon size={24} color={card.color} />
+                    </div>
+                    <h3>{card.title}</h3>
+                    <p>{card.desc}</p>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
         {activeLocation === 'track' && (
-          <motion.div 
-            key="city-track" 
-            className="city-location" 
-            initial={{ x: '100%' }} 
-            animate={{ x: 0 }} 
-            exit={{ x: '100%' }} 
+          <motion.div
+            key="city-track"
+            className="city-location"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           >
-            <button className="back-to-city" onClick={() => setActiveLocation('menu')}>← Назад</button>
+            <button className="back-to-city" onClick={() => setActiveLocation('menu')}>
+              ← Назад
+            </button>
             <RacesScreen />
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Топ Баланса */}
       <AnimatePresence>
         {showTopBalance && (
-          <motion.div className="race-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div 
-              className="leaderboard-modal"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          <motion.div
+            className="race-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowTopBalance(false)}
+          >
+            <motion.div
+              className="race-modal-content"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="lb-header">
-                <h3>Топ Баланса</h3>
-                <button className="close-btn" onClick={() => setShowTopBalance(false)}>✕</button>
+              <div className="race-modal-header">
+                <h2>
+                  <Coins size={18} color="var(--gold)" /> ТОП БАЛАНСА
+                </h2>
+                <button className="race-modal-close" onClick={() => setShowTopBalance(false)}>
+                  ✕
+                </button>
               </div>
-              <div className="lb-list">
+              <div className="race-leaderboard">
                 {topBalanceData.map((p, i) => (
-                  <div key={p.id} className="lb-row">
-                    <span className="lb-rank">{i + 1}</span>
-                    <span className="lb-name">{p.firstName || 'Гонщик'}</span>
-                    <span className="lb-value">{p.balance.toLocaleString('ru-RU')} ₽</span>
+                  <div key={p.id} className="race-lb-row">
+                    <span className="race-lb-rank" style={{ color: i === 0 ? 'var(--gold)' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'var(--text-muted)' }}>
+                      #{i + 1}
+                    </span>
+                    <span className="race-lb-name">{p.firstName || 'Гонщик'}</span>
+                    <span className="race-lb-value">
+                      {p.balance.toLocaleString('ru-RU')} <span className="currency-ruble sm">₽</span>
+                    </span>
                   </div>
                 ))}
               </div>
@@ -174,14 +159,14 @@ export const CityScreen = () => {
       {showWorkshop && <WorkshopScreen onClose={() => setShowWorkshop(false)} />}
       {showBusiness && <BusinessScreen onClose={() => setShowBusiness(false)} />}
       {showCasino && <CasinoScreen onClose={() => setShowCasino(false)} />}
-      {showClan && <ClanScreen onClose={() => setShowClan(false)} />} 
+      {showClan && <ClanScreen onClose={() => setShowClan(false)} />}
       {showAdmin && <AdminScreen onClose={() => setShowAdmin(false)} />}
       {showShop && <ShopModal onClose={() => setShowShop(false)} />}
-      
-      <CaseModal 
-        isOpen={activeCase !== null} 
-        onClose={() => setActiveCase(null)} 
-        caseType={activeCase || 'hourly'} 
+
+      <CaseModal
+        isOpen={activeCase !== null}
+        onClose={() => setActiveCase(null)}
+        caseType={activeCase || 'hourly'}
       />
     </div>
   );

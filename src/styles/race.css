@@ -1,3 +1,5 @@
+/* src/styles/race.css */
+
 /* --- ЭКРАН КЛИКЕРА --- */
 .race-screen {
   position: absolute;
@@ -28,7 +30,7 @@
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 0; 
+  z-index: 0;
 }
 
 .race-background-overlay {
@@ -44,16 +46,17 @@
   z-index: 1;
 }
 
+/* --- ВЕРХНИЙ HUD --- */
 .race-top-ui {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   z-index: 2;
   position: absolute;
   top: calc(30px + var(--tg-safe-top, 0px));
   width: 100%;
-  max-width: 280px;
+  max-width: 300px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -62,32 +65,35 @@
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 12px;
+  gap: 4px;
   margin-bottom: 12px;
   font-variant-numeric: tabular-nums;
   position: relative;
   z-index: 2;
 }
 
+/* 👇 Баланс теперь золотой + Impact */
 .race-hud-coins {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--accent);
-  text-shadow: 0 0 12px rgba(0, 217, 126, 0.35);
+  font-size: 34px;
+  font-weight: 900;
+  font-family: Impact, Arial Black, sans-serif;
+  color: var(--gold);
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.8);
   letter-spacing: 0.5px;
+  line-height: 1;
 }
 
 .race-level-bar-wrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .race-level-text {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -100,7 +106,7 @@
 
 .race-xp-bar {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   overflow: hidden;
@@ -108,24 +114,24 @@
 
 .race-xp-fill {
   height: 100%;
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  box-shadow: 0 0 10px var(--accent-glow);
   border-radius: 10px;
   transition: width 0.3s ease-out;
 }
 
-/* --- КОНТЕЙНЕР МАШИНЫ (ИСПРАВЛЕН) --- */
+/* --- КОНТЕЙНЕР МАШИНЫ --- */
 .race-car-container {
   position: absolute;
-  bottom: 10%;
+  bottom: 12%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  width: 90%; 
-  max-width: 350px; /* 👈 Ограничили ширину */
-  max-height: 45%; /* 👈 Ограничили высоту */
+  width: 90%;
+  max-width: 350px;
+  max-height: 45%;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -150,49 +156,10 @@
   max-height: 100%;
   width: auto;
   height: auto;
-  object-fit: contain; /* 👈 Вписываем без искажений */
+  object-fit: contain;
   pointer-events: none;
   -webkit-user-drag: none;
-  /* Убрал transform: scaleY(1.05), так как 3/4 машины не нужно растягивать */
-}
-
-/* 👇 ИСПРАВЛЕНО: Увеличены радиусы эллипсов, чтобы свечение не сужалось на 9:16 */
-.headlight-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 70ms ease-out;
-  background:
-    radial-gradient(ellipse 12% 8% at var(--left-hl-x) var(--left-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%),
-    radial-gradient(ellipse 12% 8% at var(--right-hl-x) var(--right-hl-y), rgba(255, 250, 220, 1) 0%, transparent 85%);
-}
-
-.headlight-glow.flash { opacity: 1; }
-
-.headlight-halo {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 90ms ease-out;
-  background:
-    radial-gradient(ellipse 22% 16% at var(--left-hl-x) var(--left-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%),
-    radial-gradient(ellipse 22% 16% at var(--right-hl-x) var(--right-hl-y), rgba(255, 245, 200, 0.4) 0%, transparent 70%);
-}
-
-.headlight-halo.flash { opacity: 1; }
-
-.floating-text {
-  position: absolute;
-  color: var(--accent);
-  font-size: 32px;
-  font-weight: 900;
-  pointer-events: none;
-  z-index: 9999;
-  text-shadow: 0 0 15px var(--accent-glow-strong);
-  transform: translate(-50%, -50%);
-  font-variant-numeric: tabular-nums;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6)); /* 👈 тень вместо свечения фар */
 }
 
 .race-car-wrapper {
@@ -203,4 +170,212 @@
   align-items: center;
   justify-content: center;
   isolation: isolate;
+}
+
+/* ⚠️ Свечение фар УБРАНО — этих классов больше нет */
+
+/* --- КНОПКИ СБОКУ --- */
+.race-side-btn {
+  position: absolute;
+  z-index: 100;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.6));
+  color: var(--btn-color, var(--accent));
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+}
+
+.race-side-btn:active {
+  transform: scale(0.92);
+}
+
+.race-side-btn:hover {
+  border-color: var(--btn-color, var(--accent));
+  box-shadow: 0 4px 20px var(--btn-color, var(--accent-glow));
+}
+
+/* --- МОДАЛКА RACES --- */
+.race-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.race-modal-content {
+  background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-bottom: none;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.race-modal-content::-webkit-scrollbar { display: none; }
+
+.race-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.race-modal-header h2 {
+  margin: 0;
+  color: #fff;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.race-modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.race-modal-close:hover {
+  background: rgba(255, 68, 68, 0.15);
+  color: var(--danger);
+  border-color: rgba(255, 68, 68, 0.4);
+}
+
+/* --- КАРТОЧКИ УЛУЧШЕНИЙ --- */
+.race-upgrade-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.race-upgrade-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.race-upgrade-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.race-upgrade-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.race-upgrade-desc {
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.race-upgrade-level {
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.race-upgrade-buy {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 900;
+  font-size: 12px;
+  font-family: Impact, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.race-upgrade-buy:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 217, 126, 0.4);
+}
+
+/* --- ЛИДЕРБОРД --- */
+.race-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.race-lb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.race-lb-rank {
+  font-family: Impact, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  width: 36px;
+}
+
+.race-lb-name {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.race-lb-value {
+  color: var(--gold);
+  font-family: Impact, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
 }

@@ -1,4 +1,5 @@
 /* src/styles/city.css */
+
 .city-screen {
   position: relative;
   width: 100%;
@@ -7,46 +8,52 @@
 }
 
 .city-hub {
-  padding: 15px;
-  padding-top: calc(20px + var(--tg-safe-top));
+  padding: 16px;
+  padding-top: calc(16px + var(--tg-safe-top, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 100px);
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+
+.city-hub::-webkit-scrollbar { display: none; }
 
 .city-title {
-  font-size: 12px;
-  letter-spacing: 6px;
-  color: var(--text-secondary);
+  color: #fff;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
   text-align: center;
-  margin-bottom: 15px;
-  font-weight: 800;
+  margin: 0 0 20px;
+  text-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* Сетка в 3 колонки для компактности */
+/* 👇 2 колонки вместо 3 — крупнее и читабельнее */
 .city-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); 
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   width: 100%;
 }
 
 .city-card {
-  background: var(--bg-surface);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 12px 4px;
+  background: linear-gradient(135deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 4px;
+  align-items: flex-start;
+  gap: 6px;
   cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: all 0.2s ease;
+  text-align: left;
 }
 
 .city-card:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
   border-color: var(--accent);
 }
 
@@ -55,23 +62,43 @@
   cursor: not-allowed;
 }
 
-.city-icon {
-  font-size: 26px;
-  margin-bottom: 0;
+.city-card.highlight {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+}
+
+.city-card.admin {
+  border-color: rgba(255, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.08), #0a0a0a);
+}
+
+/* 👇 Иконка теперь в стилизованном контейнере */
+.city-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
 }
 
 .city-card h3 {
-  font-size: 12px;
-  font-weight: 800;
   color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin: 0;
+  font-family: Impact, Arial Black, sans-serif;
   line-height: 1.1;
 }
 
 .city-card p {
-  font-size: 9px;
   color: var(--text-secondary);
-  line-height: 1.2;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
   margin: 0;
 }
 
@@ -85,28 +112,28 @@
   flex-direction: column;
 }
 
-/* Кнопка "Назад" внутри локации */
+/* Кнопка "Назад" */
 .back-to-city {
   position: absolute;
   top: calc(20px + var(--tg-safe-top));
   left: 20px;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.65); /* Заменили blur на плотный фон для WebView2 */
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #fff;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   transition: background 0.2s;
+  backdrop-filter: blur(8px);
 }
 
 .back-to-city:active {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
 }
 
-/* Сдвигаем контент гонок вниз, чтобы кнопка "Назад" не перекрывала заголовок */
 .city-location .races-screen {
   padding-top: calc(70px + var(--tg-safe-top));
 }

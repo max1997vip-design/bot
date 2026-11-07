@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X, RefreshCw, TrendingUp, Users, Shield, AlertCircle } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import '../styles/admin.css';
 
@@ -36,7 +37,11 @@ interface AdminStats {
   totalLeague: number;
 }
 
-export const AdminScreen: React.FC = () => {
+interface AdminScreenProps {
+  onClose?: () => void; // 👈 добавили
+}
+
+export const AdminScreen: React.FC<AdminScreenProps> = ({ onClose }) => {
   const adminGetData = useGameStore((s) => s.adminGetData);
   const adminAction = useGameStore((s) => s.adminAction);
   const user = useGameStore((s) => s.user);
@@ -178,9 +183,16 @@ export const AdminScreen: React.FC = () => {
   if (!isAdmin) {
     return (
       <div className="admin-screen">
-        <div className="admin-header"><h2>Админ</h2></div>
+        <div className="admin-header">
+          <h2>Админ</h2>
+          {onClose && (
+            <button className="admin-close-btn" onClick={onClose}>
+              <X size={18} />
+            </button>
+          )}
+        </div>
         <div className="admin-card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
+          <AlertCircle size={48} color="#ff4444" style={{ marginBottom: 16 }} />
           <div style={{ color: '#ff4444', fontWeight: 900, fontSize: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Доступ запрещён
           </div>
@@ -192,10 +204,17 @@ export const AdminScreen: React.FC = () => {
   if (loading) {
     return (
       <div className="admin-screen">
-        <div className="admin-header"><h2>Админ</h2></div>
+        <div className="admin-header">
+          <h2>Админ</h2>
+          {onClose && (
+            <button className="admin-close-btn" onClick={onClose}>
+              <X size={18} />
+            </button>
+          )}
+        </div>
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-          Загрузка...
+          <RefreshCw size={32} style={{ marginBottom: 12, opacity: 0.5 }} />
+          <div>Загрузка...</div>
         </div>
       </div>
     );
@@ -206,14 +225,19 @@ export const AdminScreen: React.FC = () => {
       <div className="admin-header">
         <h2>Админ</h2>
         <span className="admin-badge">ADMIN</span>
+        {onClose && (
+          <button className="admin-close-btn" onClick={onClose}>
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       <div className="admin-tabs">
         {[
           { id: 'overview', label: '📊 Обзор' },
           { id: 'give', label: '💸 Выдать' },
-          { id: 'flags', label: `🚩 Флаги` },
-          { id: 'users', label: `👥 Игроки` },
+          { id: 'flags', label: '🚩 Флаги' },
+          { id: 'users', label: '👥 Игроки' },
         ].map((tab) => (
           <div
             key={tab.id}
@@ -258,11 +282,9 @@ export const AdminScreen: React.FC = () => {
 
             <div className="admin-card">
               <h3>Быстрые действия</h3>
-              <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
-                <button className="admin-btn primary" onClick={loadData}>
-                  🔄 Обновить данные
-                </button>
-              </div>
+              <button className="admin-btn primary" onClick={loadData} style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+                <RefreshCw size={16} /> Обновить данные
+              </button>
             </div>
           </motion.div>
         )}
@@ -288,9 +310,15 @@ export const AdminScreen: React.FC = () => {
                 <label className="admin-form-label">Тип валюты</label>
               </div>
               <div className="admin-currency-options">
-                <div className={`admin-currency-option ${giveType === 'balance' ? 'active' : ''}`} onClick={() => setGiveType('balance')}>💰 ₽ы</div>
-                <div className={`admin-currency-option ${giveType === 'stars' ? 'active' : ''}`} onClick={() => setGiveType('stars')}>⭐ Звёзды</div>
-                <div className={`admin-currency-option ${giveType === 'league' ? 'active' : ''}`} onClick={() => setGiveType('league')}>🏆 Лига</div>
+                <div className={`admin-currency-option ${giveType === 'balance' ? 'active' : ''}`} onClick={() => setGiveType('balance')}>
+                  ₽ Рубли
+                </div>
+                <div className={`admin-currency-option ${giveType === 'stars' ? 'active' : ''}`} onClick={() => setGiveType('stars')}>
+                  ⭐ Звёзды
+                </div>
+                <div className={`admin-currency-option ${giveType === 'league' ? 'active' : ''}`} onClick={() => setGiveType('league')}>
+                  🏆 Лига
+                </div>
               </div>
 
               <div className="admin-form-row">
@@ -383,7 +411,9 @@ export const AdminScreen: React.FC = () => {
                     </div>
                     <div className="admin-user-id">ID: {u.id}</div>
                   </div>
-                  <div className="admin-user-balance">{u.balance.toLocaleString()} 💰</div>
+                  <div className="admin-user-balance">
+                    {u.balance.toLocaleString()} <span className="currency-ruble sm">₽</span>
+                  </div>
                   <div className="admin-user-actions">
                     <button
                       className="admin-icon-btn"
