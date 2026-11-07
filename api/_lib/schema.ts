@@ -28,6 +28,7 @@ export const users = pgTable('users', {
   referralEarnings: bigint('referral_earnings', { mode: 'number' }).notNull().default(0),
   rating: integer('rating').notNull().default(100),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  casinoLossStreak: integer('casino_loss_streak').notNull().default(0),
   lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
   lastOnlineAt: timestamp('last_online_at').notNull().defaultNow(),
   totalClicks: integer('total_clicks').notNull().default(0),

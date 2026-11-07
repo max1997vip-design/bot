@@ -4,11 +4,11 @@ import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { logTransaction } from '../logger.js';
 import { eq, sql } from 'drizzle-orm';
-import { effectiveChance, CASINO_LIMITS } from '../../../src/config/casinoFair.js';
+import { effectiveChance, applyPityBonus, CASINO_LIMITS } from '../../../src/config/casinoFair.js';
 
 export async function flipCoinHandler(req: any, res: any) {
   try {
-    const { initData, betAmount, choice } = req.body; // choice: 'heads' | 'tails'
+    const { initData, betAmount, choice } = req.body;
     const valid = validateInitData(initData, process.env.BOT_TOKEN!);
     if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -26,39 +26,39 @@ export async function flipCoinHandler(req: any, res: any) {
     if (!user) return res.status(404).json({ error: 'User not found' });
     if (user.balance < bet) return res.status(400).json({ error: 'Недостаточно ₽' });
 
-    // 💰 Античит: эффективный шанс
+    // 💰 Античит + pity
     const baseChance = 0.5;
-    const winChance = effectiveChance(baseChance, bet);
+    const rawChance = effectiveChance(baseChance, bet);
+    const winChance = applyPityBonus(user.casinoLossStreak || 0, rawChance);
     const isWin = Math.random() < winChance;
 
-    // 🪙 Результат
     const result: 'heads' | 'tails' = isWin ? choice : choice === 'heads' ? 'tails' : 'heads';
 
-    // 💸 Начисление
     let newBalance = user.balance - bet;
     let payout = 0;
     if (isWin) {
-      const multiplier = 1.9;
-      payout = Math.floor(bet * multiplier);
+      payout = Math.floor(bet * 1.9);
       newBalance += payout;
     }
+
+    const newStreak = isWin ? 0 : Math.min(3, (user.casinoLossStreak || 0) + 1);
 
     const [updated] = await db
       .update(users)
       .set({
         balance: newBalance,
         totalEarned: isWin ? sql`${users.totalEarned} + ${payout}` : users.totalEarned,
+        casinoLossStreak: newStreak,
       })
       .where(eq(users.id, user.id))
       .returning();
 
-    // 📝 Лог
     if (isWin) {
       await logTransaction(
         user.id,
         payout - bet,
         'casino_coinflip',
-        `Монетка: выигрыш на ${choice === 'heads' ? 'орёл' : 'решку'} (+${payout.toLocaleString('ru-RU')} ₽)`
+        `Монетка: выигрыш (+${payout.toLocaleString('ru-RU')} ₽)`
       );
     } else {
       await logTransaction(
@@ -75,7 +75,8 @@ export async function flipCoinHandler(req: any, res: any) {
       isWin,
       payout,
       newBalance: updated.balance,
-      winChance, // 👈 возвращаем, чтобы UI показал
+      winChance,
+      lossStreak: newStreak,
       bet,
     });
   } catch (e) {

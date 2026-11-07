@@ -1,11 +1,13 @@
 // src/components/CasinoScreen.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coins, Dices, CircleDot, X, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  Coins, Dices, CircleDot, X, TrendingUp, TrendingDown, Sparkles, RotateCw,
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import WebApp from '@twa-dev/sdk';
 import { playSound } from '../utils/sound';
-import { effectiveChance } from '../config/casinoFair';
+import { effectiveChance, applyPityBonus } from '../config/casinoFair';
 import '../styles/casino.css';
 
 type GameTab = 'coinflip' | 'dice' | 'roulette';
@@ -24,189 +26,104 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
 
   const [activeTab, setActiveTab] = useState<GameTab>('coinflip');
 
-  // --- Монетка ---
+  // Монетка
   const [coinBet, setCoinBet] = useState<number | ''>('');
   const [coinChoice, setCoinChoice] = useState<'heads' | 'tails'>('heads');
   const [coinFlipping, setCoinFlipping] = useState(false);
-  const [coinResult, setCoinResult] = useState<{
-    isWin: boolean;
-    payout: number;
-    result: string;
-  } | null>(null);
+  const [coinResult, setCoinResult] = useState<{ isWin: boolean; payout: number; result: string } | null>(null);
 
-  // --- Кубик ---
+  // Кубик
   const [diceBet, setDiceBet] = useState<number | ''>('');
   const [diceGuess, setDiceGuess] = useState<number>(1);
   const [diceRolling, setDiceRolling] = useState(false);
-  const [diceResult, setDiceResult] = useState<{
-    roll: number;
-    isWin: boolean;
-    payout: number;
-  } | null>(null);
+  const [diceResult, setDiceResult] = useState<{ roll: number; isWin: boolean; payout: number } | null>(null);
 
-  // --- Рулетка ---
+  // Рулетка
   const [rouletteBet, setRouletteBet] = useState<number | ''>('');
   const [rouletteBetType, setRouletteBetType] = useState<'red' | 'black' | 'zero'>('red');
   const [rouletteSpinning, setRouletteSpinning] = useState(false);
-  const [rouletteResult, setRouletteResult] = useState<{
-    result: number;
-    color: 'red' | 'black' | 'zero';
-    isWin: boolean;
-    payout: number;
-  } | null>(null);
+  const [rouletteResult, setRouletteResult] = useState<{ result: number; color: 'red' | 'black' | 'zero'; isWin: boolean; payout: number } | null>(null);
 
   const [loading, setLoading] = useState(false);
 
   const balance = user?.balance || 0;
+  const lossStreak = (user as any)?.casinoLossStreak || 0;
 
-  // ============================
-  // ШАНСЫ (античит)
-  // ============================
-  const coinChance = effectiveChance(0.5, Number(coinBet) || 100) * 100;
-  const diceChance = effectiveChance(1 / 6, Number(diceBet) || 100) * 100;
-  const rouletteChance =
-    effectiveChance(
-      rouletteBetType === 'zero' ? 1 / 37 : 18 / 37,
-      Number(rouletteBet) || 100
-    ) * 100;
+  const coinChance = Math.min(1, applyPityBonus(lossStreak, effectiveChance(0.5, Number(coinBet) || 100))) * 100;
+  const diceChance = Math.min(1, applyPityBonus(lossStreak, effectiveChance(1 / 6, Number(diceBet) || 100))) * 100;
+  const rouletteChance = Math.min(1, applyPityBonus(lossStreak, effectiveChance(rouletteBetType === 'zero' ? 1 / 37 : 18 / 37, Number(rouletteBet) || 100))) * 100;
 
-  // ============================
-  // МОНЕТКА
-  // ============================
+  // ==================== МОНЕТКА ====================
   const handleCoinFlip = async () => {
-    if (!coinBet || coinBet < 100) {
-      WebApp.showAlert('Минимальная ставка 100 ₽');
-      return;
-    }
-    if (balance < coinBet) {
-      WebApp.showAlert('Недостаточно ₽!');
-      return;
-    }
-    setLoading(true);
-    setCoinResult(null);
-    setCoinFlipping(true);
-
+    if (!coinBet || coinBet < 100) { WebApp.showAlert('Минимальная ставка 100 ₽'); return; }
+    if (balance < coinBet) { WebApp.showAlert('Недостаточно ₽!'); return; }
+    setLoading(true); setCoinResult(null); setCoinFlipping(true);
     const res = await playCoinFlip(coinBet, coinChoice);
-
     setTimeout(() => {
-      setCoinFlipping(false);
-      setLoading(false);
+      setCoinFlipping(false); setLoading(false);
       if (res.success && res.isWin !== undefined && res.payout !== undefined && res.result) {
         setCoinResult({ isWin: res.isWin, payout: res.payout, result: res.result });
         playSound(res.isWin ? 'win' : 'click');
-      } else {
-        WebApp.showAlert(res.error || 'Ошибка');
-      }
+      } else { WebApp.showAlert(res.error || 'Ошибка'); }
     }, 1500);
   };
 
-  // ============================
-  // КУБИК
-  // ============================
+  // ==================== КУБИК ====================
   const handleDiceRoll = async () => {
-    if (!diceBet || diceBet < 100) {
-      WebApp.showAlert('Минимальная ставка 100 ₽');
-      return;
-    }
-    if (balance < diceBet) {
-      WebApp.showAlert('Недостаточно ₽!');
-      return;
-    }
-    setLoading(true);
-    setDiceResult(null);
-    setDiceRolling(true);
-
+    if (!diceBet || diceBet < 100) { WebApp.showAlert('Минимальная ставка 100 ₽'); return; }
+    if (balance < diceBet) { WebApp.showAlert('Недостаточно ₽!'); return; }
+    setLoading(true); setDiceResult(null); setDiceRolling(true);
     const res = await playDice(diceBet, diceGuess);
-
     setTimeout(() => {
-      setDiceRolling(false);
-      setLoading(false);
+      setDiceRolling(false); setLoading(false);
       if (res.success && res.roll !== undefined && res.isWin !== undefined) {
         setDiceResult({ roll: res.roll, isWin: res.isWin, payout: res.payout || 0 });
         playSound(res.isWin ? 'win' : 'click');
-      } else {
-        WebApp.showAlert(res.error || 'Ошибка');
-      }
+      } else { WebApp.showAlert(res.error || 'Ошибка'); }
     }, 1500);
   };
 
-  // ============================
-  // РУЛЕТКА
-  // ============================
+  // ==================== РУЛЕТКА ====================
   const handleSpinRoulette = async () => {
-    if (!rouletteBet || rouletteBet < 100) {
-      WebApp.showAlert('Минимальная ставка 100 ₽');
-      return;
-    }
-    if (balance < rouletteBet) {
-      WebApp.showAlert('Недостаточно ₽!');
-      return;
-    }
-    setLoading(true);
-    setRouletteResult(null);
-    setRouletteSpinning(true);
-
+    if (!rouletteBet || rouletteBet < 100) { WebApp.showAlert('Минимальная ставка 100 ₽'); return; }
+    if (balance < rouletteBet) { WebApp.showAlert('Недостаточно ₽!'); return; }
+    setLoading(true); setRouletteResult(null); setRouletteSpinning(true);
     const res = await playRoulette(rouletteBet, rouletteBetType);
-
     setTimeout(() => {
-      setRouletteSpinning(false);
-      setLoading(false);
+      setRouletteSpinning(false); setLoading(false);
       if (res.success && res.result !== undefined && res.color && res.isWin !== undefined) {
-        setRouletteResult({
-          result: res.result,
-          color: res.color,
-          isWin: res.isWin,
-          payout: res.payout || 0,
-        });
+        setRouletteResult({ result: res.result, color: res.color, isWin: res.isWin, payout: res.payout || 0 });
         playSound(res.isWin ? 'win' : 'click');
-      } else {
-        WebApp.showAlert(res.error || 'Ошибка');
-      }
+      } else { WebApp.showAlert(res.error || 'Ошибка'); }
     }, 2500);
   };
 
-  // ============================
-  // Универсальный ввод ставки
-  // ============================
-  const renderBetInput = (
-    bet: number | '',
-    setBet: (v: number | '') => void,
-    disabled: boolean
-  ) => (
+  const renderBetInput = (bet: number | '', setBet: (v: number | '') => void, disabled: boolean) => (
     <>
-      <input
-        type="number"
-        value={bet}
-        onChange={(e) => setBet(e.target.value === '' ? '' : Number(e.target.value))}
-        disabled={disabled}
-        placeholder="Сумма ставки..."
-        className="casino-bet-input"
-      />
+      <div className="casino-bet-display">
+        <span className="casino-bet-currency">₽</span>
+        <input
+          type="number"
+          value={bet}
+          onChange={(e) => setBet(e.target.value === '' ? '' : Number(e.target.value))}
+          disabled={disabled}
+          placeholder="0"
+          className="casino-bet-input"
+        />
+      </div>
       <div className="casino-quick-bets">
         {QUICK_BETS.map((qb) => (
-          <button
-            key={qb}
-            onClick={() => setBet(qb)}
-            disabled={disabled}
-            className="casino-quick-bet-btn"
-          >
-            {qb >= 1000 ? `${qb / 1000}k` : qb}
+          <button key={qb} onClick={() => setBet(qb)} disabled={disabled} className="casino-quick-bet-btn">
+            {qb >= 1000 ? `${qb / 1000}K` : qb}
           </button>
         ))}
-        <button
-          onClick={() => setBet(balance)}
-          disabled={disabled}
-          className="casino-quick-bet-btn max"
-        >
+        <button onClick={() => setBet(balance)} disabled={disabled} className="casino-quick-bet-btn max">
           MAX
         </button>
       </div>
     </>
   );
 
-  // ============================
-  // Рендер
-  // ============================
   return (
     <div className="casino-overlay" onClick={onClose}>
       <motion.div
@@ -217,16 +134,24 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Декоративные свечения */}
+        <div className="casino-aura" />
+        <div className="casino-glow-top" />
+
         {/* HEADER */}
         <div className="casino-header">
           <div className="casino-header-title">
-            <div className="casino-header-icon">
-              <Dices size={22} color="#ff4444" />
-            </div>
+            <motion.div
+              className="casino-header-icon"
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Dices size={22} color="#ffd700" />
+            </motion.div>
             <div>
               <h2 className="casino-header-name">КАЗИНО</h2>
               <span className="casino-header-balance">
-                Баланс: {balance.toLocaleString('ru-RU')} ₽
+                <Coins size={11} /> {balance.toLocaleString('ru-RU')} ₽
               </span>
             </div>
           </div>
@@ -242,30 +167,31 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
             onClick={() => setActiveTab('coinflip')}
             disabled={loading}
           >
-            <Coins size={14} />
-            МОНЕТКА
+            <div className="casino-tab-icon"><Coins size={16} /></div>
+            <span>МОНЕТКА</span>
           </button>
           <button
             className={`casino-tab ${activeTab === 'dice' ? 'active' : ''}`}
             onClick={() => setActiveTab('dice')}
             disabled={loading}
           >
-            <Dices size={14} />
-            КУБИК
+            <div className="casino-tab-icon"><Dices size={16} /></div>
+            <span>КУБИК</span>
           </button>
           <button
             className={`casino-tab ${activeTab === 'roulette' ? 'active' : ''}`}
             onClick={() => setActiveTab('roulette')}
             disabled={loading}
           >
-            <CircleDot size={14} />
-            РУЛЕТКА
+            <div className="casino-tab-icon"><CircleDot size={16} /></div>
+            <span>РУЛЕТКА</span>
           </button>
         </div>
 
         {/* BODY */}
         <div className="casino-body">
           <AnimatePresence mode="wait">
+
             {/* ============ МОНЕТКА ============ */}
             {activeTab === 'coinflip' && (
               <motion.div
@@ -275,19 +201,23 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                 exit={{ opacity: 0, y: -10 }}
                 className="casino-game"
               >
-                {/* Визуал */}
+                {/* 3D-монета */}
                 <div className="coin-stage">
                   <motion.div
-                    className="coin"
-                    animate={
-                      coinFlipping
-                        ? { rotateY: [0, 720, 1440], scale: [1, 1.5, 1] }
-                        : { rotateY: 0, scale: 1 }
-                    }
+                    className="coin-3d"
+                    animate={coinFlipping ? { rotateY: [0, 720, 1440], scale: [1, 1.3, 1] } : { rotateY: 0, scale: 1 }}
                     transition={{ duration: 1.5, ease: 'easeInOut' }}
                   >
-                    <Coins size={56} color="#ffd700" />
+                    <div className="coin-face coin-front">
+                      <Coins size={48} color="#7a5a00" strokeWidth={2.5} />
+                      <span className="coin-face-label">ОРЁЛ</span>
+                    </div>
+                    <div className="coin-face coin-back">
+                      <Sparkles size={48} color="#7a5a00" strokeWidth={2.5} />
+                      <span className="coin-face-label">РЕШКА</span>
+                    </div>
                   </motion.div>
+                  <div className="coin-shadow" />
                 </div>
 
                 {/* Результат */}
@@ -295,20 +225,16 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                   {coinResult && !coinFlipping && (
                     <motion.div
                       className={`casino-result ${coinResult.isWin ? 'win' : 'lose'}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      {coinResult.isWin ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                      {coinResult.isWin ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                       <div className="casino-result-text">
                         <strong>{coinResult.isWin ? 'ПОБЕДА!' : 'ПРОИГРЫШ'}</strong>
-                        <span>
-                          Выпало: {coinResult.result === 'heads' ? 'ОРЁЛ' : 'РЕШКА'}
-                        </span>
+                        <span>Выпало: {coinResult.result === 'heads' ? 'ОРЁЛ' : 'РЕШКА'}</span>
                         <span className="casino-result-amount">
-                          {coinResult.isWin
-                            ? `+${coinResult.payout.toLocaleString('ru-RU')} ₽`
-                            : `-${coinBet.toLocaleString('ru-RU')} ₽`}
+                          {coinResult.isWin ? `+${coinResult.payout.toLocaleString('ru-RU')} ₽` : `-${coinBet.toLocaleString('ru-RU')} ₽`}
                         </span>
                       </div>
                     </motion.div>
@@ -318,19 +244,19 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                 {/* Выбор стороны */}
                 <div className="casino-choice-row">
                   <button
-                    className={`casino-choice-btn ${coinChoice === 'heads' ? 'active gold' : ''}`}
+                    className={`casino-choice-btn ${coinChoice === 'heads' ? 'active' : ''}`}
                     onClick={() => setCoinChoice('heads')}
                     disabled={loading}
                   >
-                    <Coins size={18} />
+                    <Coins size={20} />
                     ОРЁЛ
                   </button>
                   <button
-                    className={`casino-choice-btn ${coinChoice === 'tails' ? 'active gold' : ''}`}
+                    className={`casino-choice-btn ${coinChoice === 'tails' ? 'active' : ''}`}
                     onClick={() => setCoinChoice('tails')}
                     disabled={loading}
                   >
-                    <CircleDot size={18} />
+                    <Sparkles size={20} />
                     РЕШКА
                   </button>
                 </div>
@@ -346,12 +272,10 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                   >
                     {coinFlipping ? 'КРУТИМ...' : 'СДЕЛАТЬ СТАВКУ'}
                   </button>
-                  <div className="casino-info">
-                    Коэффициент выигрыша: <strong>×1.9</strong>
-                  </div>
                   <div className="casino-chance">
                     🎯 Шанс победы: <strong>{coinChance.toFixed(1)}%</strong>
-                    {coinBet && Number(coinBet) > 10_000 && (
+                    {lossStreak > 0 && <span className="casino-chance-bonus">+{lossStreak * 15}% за серию</span>}
+                    {coinBet && Number(coinBet) > 50_000 && lossStreak === 0 && (
                       <span className="casino-chance-warning">(понижен)</span>
                     )}
                   </div>
@@ -368,21 +292,24 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                 exit={{ opacity: 0, y: -10 }}
                 className="casino-game"
               >
-                {/* Визуал */}
+                {/* 3D-кубик */}
                 <div className="dice-stage">
                   <motion.div
-                    className="dice-cube"
+                    className="dice-3d"
                     animate={
                       diceRolling
-                        ? { rotate: [0, 180, 360, 540], scale: [1, 1.2, 1.3, 1.2] }
+                        ? { rotate: [0, 180, 360, 540, 720], scale: [1, 1.15, 1.25, 1.15, 1] }
                         : { rotate: 0, scale: 1 }
                     }
                     transition={{ duration: 1.5, ease: 'easeInOut' }}
                   >
-                    <span className="dice-value">
-                      {diceRolling ? '?' : diceResult?.roll ?? '?'}
-                    </span>
+                    <div className="dice-face">
+                      <span className="dice-number">
+                        {diceRolling ? '?' : diceResult?.roll ?? '?'}
+                      </span>
+                    </div>
                   </motion.div>
+                  <div className="dice-shadow" />
                 </div>
 
                 {/* Результат */}
@@ -390,20 +317,16 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                   {diceResult && !diceRolling && (
                     <motion.div
                       className={`casino-result ${diceResult.isWin ? 'win' : 'lose'}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      {diceResult.isWin ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                      {diceResult.isWin ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                       <div className="casino-result-text">
                         <strong>{diceResult.isWin ? 'ПОБЕДА!' : 'ПРОИГРЫШ'}</strong>
-                        <span>
-                          Выпало: {diceResult.roll} (загадано: {diceGuess})
-                        </span>
+                        <span>Выпало: {diceResult.roll} (загадано: {diceGuess})</span>
                         <span className="casino-result-amount">
-                          {diceResult.isWin
-                            ? `+${diceResult.payout.toLocaleString('ru-RU')} ₽`
-                            : `-${diceBet.toLocaleString('ru-RU')} ₽`}
+                          {diceResult.isWin ? `+${diceResult.payout.toLocaleString('ru-RU')} ₽` : `-${diceBet.toLocaleString('ru-RU')} ₽`}
                         </span>
                       </div>
                     </motion.div>
@@ -435,12 +358,10 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                   >
                     {diceRolling ? 'БРОСАЕМ...' : 'БРОСИТЬ КУБИК'}
                   </button>
-                  <div className="casino-info">
-                    Коэффициент выигрыша: <strong>×5.5</strong>
-                  </div>
                   <div className="casino-chance">
                     🎯 Шанс победы: <strong>{diceChance.toFixed(1)}%</strong>
-                    {diceBet && Number(diceBet) > 10_000 && (
+                    {lossStreak > 0 && <span className="casino-chance-bonus">+{lossStreak * 15}% за серию</span>}
+                    {diceBet && Number(diceBet) > 50_000 && lossStreak === 0 && (
                       <span className="casino-chance-warning">(понижен)</span>
                     )}
                   </div>
@@ -457,7 +378,7 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                 exit={{ opacity: 0, y: -10 }}
                 className="casino-game"
               >
-                {/* Визуал */}
+                {/* Рулетка с шариком */}
                 <div className="roulette-stage">
                   <motion.div
                     className="roulette-wheel"
@@ -470,10 +391,12 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                           {rouletteResult.result}
                         </span>
                       ) : (
-                        <span className="roulette-result-num">?</span>
+                        <RotateCw size={32} color="#ffd700" className="roulette-spin-icon" />
                       )}
                     </div>
+                    <div className="roulette-center" />
                   </motion.div>
+                  <div className="roulette-shadow" />
                 </div>
 
                 {/* Результат */}
@@ -481,25 +404,19 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                   {rouletteResult && !rouletteSpinning && (
                     <motion.div
                       className={`casino-result ${rouletteResult.isWin ? 'win' : 'lose'}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      {rouletteResult.isWin ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                      {rouletteResult.isWin ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
                       <div className="casino-result-text">
                         <strong>{rouletteResult.isWin ? 'ПОБЕДА!' : 'ПРОИГРЫШ'}</strong>
                         <span>
                           Выпало: {rouletteResult.result}{' '}
-                          {rouletteResult.color === 'red'
-                            ? '(КРАСНОЕ)'
-                            : rouletteResult.color === 'black'
-                            ? '(ЧЁРНОЕ)'
-                            : '(ЗЕРО)'}
+                          {rouletteResult.color === 'red' ? '(КРАСНОЕ)' : rouletteResult.color === 'black' ? '(ЧЁРНОЕ)' : '(ЗЕРО)'}
                         </span>
                         <span className="casino-result-amount">
-                          {rouletteResult.isWin
-                            ? `+${rouletteResult.payout.toLocaleString('ru-RU')} ₽`
-                            : `-${rouletteBet.toLocaleString('ru-RU')} ₽`}
+                          {rouletteResult.isWin ? `+${rouletteResult.payout.toLocaleString('ru-RU')} ₽` : `-${rouletteBet.toLocaleString('ru-RU')} ₽`}
                         </span>
                       </div>
                     </motion.div>
@@ -509,9 +426,7 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                 {/* Выбор */}
                 <div className="casino-roulette-choices">
                   <button
-                    className={`casino-roulette-btn red ${
-                      rouletteBetType === 'red' ? 'active' : ''
-                    }`}
+                    className={`casino-roulette-btn red ${rouletteBetType === 'red' ? 'active' : ''}`}
                     onClick={() => setRouletteBetType('red')}
                     disabled={loading}
                   >
@@ -519,9 +434,7 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                     <span>×2</span>
                   </button>
                   <button
-                    className={`casino-roulette-btn black ${
-                      rouletteBetType === 'black' ? 'active' : ''
-                    }`}
+                    className={`casino-roulette-btn black ${rouletteBetType === 'black' ? 'active' : ''}`}
                     onClick={() => setRouletteBetType('black')}
                     disabled={loading}
                   >
@@ -529,9 +442,7 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                     <span>×2</span>
                   </button>
                   <button
-                    className={`casino-roulette-btn green ${
-                      rouletteBetType === 'zero' ? 'active' : ''
-                    }`}
+                    className={`casino-roulette-btn green ${rouletteBetType === 'zero' ? 'active' : ''}`}
                     onClick={() => setRouletteBetType('zero')}
                     disabled={loading}
                   >
@@ -553,7 +464,8 @@ export const CasinoScreen: React.FC<CasinoProps> = ({ onClose }) => {
                   </button>
                   <div className="casino-chance">
                     🎯 Шанс победы: <strong>{rouletteChance.toFixed(1)}%</strong>
-                    {rouletteBet && Number(rouletteBet) > 10_000 && (
+                    {lossStreak > 0 && <span className="casino-chance-bonus">+{lossStreak * 15}% за серию</span>}
+                    {rouletteBet && Number(rouletteBet) > 50_000 && lossStreak === 0 && (
                       <span className="casino-chance-warning">(понижен)</span>
                     )}
                   </div>

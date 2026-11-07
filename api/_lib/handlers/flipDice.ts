@@ -4,7 +4,7 @@ import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
 import { logTransaction } from '../logger.js';
 import { eq, sql } from 'drizzle-orm';
-import { effectiveChance, CASINO_LIMITS } from '../../../src/config/casinoFair.js';
+import { effectiveChance, applyPityBonus, CASINO_LIMITS } from '../../../src/config/casinoFair.js';
 
 export async function flipDiceHandler(req: any, res: any) {
   try {
@@ -28,9 +28,10 @@ export async function flipDiceHandler(req: any, res: any) {
     if (!user) return res.status(404).json({ error: 'User not found' });
     if (user.balance < bet) return res.status(400).json({ error: 'Недостаточно ₽' });
 
-    // 💰 Античит: эффективный шанс
+    // 💰 Античит + pity
     const baseChance = 1 / 6;
-    const winChance = effectiveChance(baseChance, bet);
+    const rawChance = effectiveChance(baseChance, bet);
+    const winChance = applyPityBonus(user.casinoLossStreak || 0, rawChance);
     const isWin = Math.random() < winChance;
 
     // 🎲 Результат
@@ -38,25 +39,25 @@ export async function flipDiceHandler(req: any, res: any) {
     if (isWin) {
       roll = guessNum;
     } else {
-      // Выбираем число 1-6, но НЕ guessNum
       const others = [1, 2, 3, 4, 5, 6].filter((n) => n !== guessNum);
       roll = others[Math.floor(Math.random() * others.length)];
     }
 
-    // 💸 Начисление
     let newBalance = user.balance - bet;
     let payout = 0;
     if (isWin) {
-      const multiplier = 5.5;
-      payout = Math.floor(bet * multiplier);
+      payout = Math.floor(bet * 5.5);
       newBalance += payout;
     }
+
+    const newStreak = isWin ? 0 : Math.min(3, (user.casinoLossStreak || 0) + 1);
 
     const [updated] = await db
       .update(users)
       .set({
         balance: newBalance,
         totalEarned: isWin ? sql`${users.totalEarned} + ${payout}` : users.totalEarned,
+        casinoLossStreak: newStreak,
       })
       .where(eq(users.id, user.id))
       .returning();
@@ -85,6 +86,7 @@ export async function flipDiceHandler(req: any, res: any) {
       payout,
       newBalance: updated.balance,
       winChance,
+      lossStreak: newStreak,
       bet,
     });
   } catch (e) {

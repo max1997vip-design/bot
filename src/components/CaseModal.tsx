@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clapperboard, Gift, Trophy, Gem, Diamond, Star,
-  X, Package, Cog, Disc, Cpu, Wrench, Sparkles, Coins,
+  X, Package, Cog, Disc, Cpu, Wrench, Sparkles, Coins, Play,
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { ITEMS } from '../config/items';
@@ -173,7 +173,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
       : true;
 
   const ActiveCaseIcon = CASE_ICON_MAP[caseConfig.iconName] || Gift;
-  const activeAccent = caseConfig.accentColor;
+  const accent = caseConfig.accentColor;
 
   return (
     <div className="case-overlay" onClick={onClose}>
@@ -184,31 +184,32 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
         exit={{ opacity: 0, scale: 0.92, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={(e) => e.stopPropagation()}
-        style={{ '--case-accent': activeAccent } as React.CSSProperties}
+        style={{ '--case-accent': accent } as React.CSSProperties}
       >
-        {/* Декоративное свечение */}
-        <div
-          className="case-glow"
-          style={{
-            background: `radial-gradient(circle at top, ${activeAccent}30 0%, transparent 70%)`,
-          }}
-        />
+        {/* Внешнее свечение — меняется с акцентом кейса */}
+        <div className="case-aura" />
+        <div className="case-glow-top" />
 
         {/* HEADER */}
         <div className="case-header">
           <div className="case-header-title">
-            <div
+            <motion.div
               className="case-header-icon"
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
               style={{
-                background: `${activeAccent}20`,
-                borderColor: `${activeAccent}66`,
-                boxShadow: `0 0 20px ${activeAccent}44`,
+                background: `linear-gradient(135deg, ${accent}30, ${accent}10)`,
+                borderColor: `${accent}66`,
+                boxShadow: `0 0 24px ${accent}55, inset 0 0 16px ${accent}22`,
+                color: accent,
               }}
             >
-              <ActiveCaseIcon size={22} color={activeAccent} />
-            </div>
+              <ActiveCaseIcon size={22} />
+            </motion.div>
             <div>
-              <h2 className="case-header-name">{caseConfig.name} кейс</h2>
+              <h2 className="case-header-name" style={{ color: accent }}>
+                {caseConfig.name} кейс
+              </h2>
               <span className="case-header-sub">
                 {caseConfig.currency === 'ad'
                   ? 'БЕСПЛАТНО ЗА РЕКЛАМУ'
@@ -250,8 +251,8 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
                     ? {
                         borderColor: cfg.accentColor,
                         color: cfg.accentColor,
-                        boxShadow: `0 0 16px ${cfg.accentColor}44, inset 0 0 12px ${cfg.accentColor}15`,
-                        background: `linear-gradient(135deg, ${cfg.accentColor}18, transparent)`,
+                        background: `linear-gradient(135deg, ${cfg.accentColor}22, ${cfg.accentColor}05)`,
+                        boxShadow: `0 0 20px ${cfg.accentColor}55, inset 0 0 12px ${cfg.accentColor}22`,
                       }
                     : {}
                 }
@@ -264,52 +265,77 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
         </div>
 
         {/* REEL */}
-        <div className="case-reel-container" ref={reelRef}>
-          <div className="case-reel-pointer" />
-          <div className="case-reel-glow" style={{ background: `radial-gradient(circle, ${activeAccent}44, transparent 70%)` }} />
-          {reelItems.length > 0 ? (
-            <motion.div
-              className="case-reel"
-              key={activeCase + (reelItems[45] || '')}
-              initial={{ x: 0 }}
-              animate={{ x: targetX }}
-              transition={{ duration: 4.5, ease: [0.15, 0.85, 0.25, 1] }}
-            >
-              {reelItems.map((itemId, index) => {
-                const d = getItemData(itemId);
-                const Icon = d.IconComponent;
-                return (
-                  <div
-                    key={index}
-                    className={`case-reel-item rarity-${d.rarity}`}
-                    style={{
-                      borderColor: `${d.accent}88`,
-                      boxShadow: `inset 0 0 20px ${d.accent}22, 0 0 12px ${d.accent}33`,
-                    }}
-                  >
-                    <div className="item-icon" style={{ color: d.accent }}>
-                      <Icon size={30} />
-                    </div>
-                    <span className="item-name">{d.name}</span>
-                  </div>
-                );
-              })}
-            </motion.div>
-          ) : (
-            <div className="case-placeholder">
+        <div className="case-reel-wrapper">
+          {/* Золотые «стрелки» сверху/снизу у указателя */}
+          <div className="case-reel-pointer-arrow top" style={{ borderTopColor: accent }} />
+          <div className="case-reel-pointer-arrow bottom" style={{ borderBottomColor: accent }} />
+
+          <div className="case-reel-container" ref={reelRef}>
+            <div
+              className="case-reel-pointer"
+              style={{
+                background: accent,
+                boxShadow: `0 0 20px ${accent}, 0 0 40px ${accent}`,
+              }}
+            />
+            <div
+              className="case-reel-glow"
+              style={{
+                background: `radial-gradient(circle, ${accent}55 0%, transparent 70%)`,
+              }}
+            />
+            {reelItems.length > 0 ? (
               <motion.div
-                className="case-placeholder-icon"
-                animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ color: activeAccent }}
+                className="case-reel"
+                key={activeCase + (reelItems[45] || '')}
+                initial={{ x: 0 }}
+                animate={{ x: targetX }}
+                transition={{ duration: 4.5, ease: [0.15, 0.85, 0.25, 1] }}
               >
-                <Sparkles size={44} />
+                {reelItems.map((itemId, index) => {
+                  const d = getItemData(itemId);
+                  const Icon = d.IconComponent;
+                  return (
+                    <div
+                      key={index}
+                      className={`case-reel-item rarity-${d.rarity}`}
+                      style={{
+                        borderColor: `${d.accent}99`,
+                        boxShadow: `inset 0 0 24px ${d.accent}22, 0 0 14px ${d.accent}44`,
+                      }}
+                    >
+                      <div className="item-icon" style={{ color: d.accent }}>
+                        <Icon size={30} />
+                      </div>
+                      <span className="item-name">{d.name}</span>
+                    </div>
+                  );
+                })}
               </motion.div>
-              <div style={{ color: activeAccent, fontSize: 13, fontWeight: 800, letterSpacing: 1 }}>
-                ИСПЫТАЙ УДАЧУ
+            ) : (
+              <div className="case-placeholder">
+                <motion.div
+                  className="case-placeholder-icon"
+                  animate={{ y: [0, -12, 0], rotate: [0, 6, -6, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ color: accent }}
+                >
+                  <Sparkles size={48} />
+                </motion.div>
+                <div
+                  style={{
+                    color: accent,
+                    fontSize: 12,
+                    fontWeight: 900,
+                    letterSpacing: 2,
+                    textShadow: `0 0 16px ${accent}`,
+                  }}
+                >
+                  ИСПЫТАЙ УДАЧУ
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* RESULT */}
@@ -317,26 +343,39 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
           {wonItem && !isOpening && (
             <motion.div
               key="result"
-              initial={{ opacity: 0, scale: 0.7, y: 20 }}
+              initial={{ opacity: 0, scale: 0.5, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-              className={`case-result case-result-${getItemData(wonItem.id).rarity}`}
-              style={{ borderColor: `${getItemData(wonItem.id).accent}66` }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: 'spring', damping: 14, stiffness: 200 }}
+              className="case-result"
             >
               <div className="case-result-label">ВЫ ПОЛУЧИЛИ</div>
-              <div
-                className="case-result-icon"
-                style={{
-                  background: `${getItemData(wonItem.id).accent}22`,
-                  borderColor: `${getItemData(wonItem.id).accent}88`,
-                  boxShadow: `0 0 30px ${getItemData(wonItem.id).accent}66`,
-                  color: getItemData(wonItem.id).accent,
-                }}
-              >
-                {(() => {
-                  const Icon = getItemData(wonItem.id).IconComponent;
-                  return <Icon size={36} />;
-                })()}
+              <div className="case-result-icon-wrapper">
+                <motion.div
+                  className="case-result-icon-halo"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{
+                    background: `radial-gradient(circle, ${getItemData(wonItem.id).accent}88, transparent 70%)`,
+                  }}
+                />
+                <motion.div
+                  className="case-result-icon"
+                  initial={{ rotate: -180, scale: 0 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ type: 'spring', damping: 12, stiffness: 180 }}
+                  style={{
+                    background: `linear-gradient(135deg, ${getItemData(wonItem.id).accent}40, ${getItemData(wonItem.id).accent}10)`,
+                    borderColor: `${getItemData(wonItem.id).accent}aa`,
+                    boxShadow: `0 0 40px ${getItemData(wonItem.id).accent}88, inset 0 0 20px ${getItemData(wonItem.id).accent}33`,
+                    color: getItemData(wonItem.id).accent,
+                  }}
+                >
+                  {(() => {
+                    const Icon = getItemData(wonItem.id).IconComponent;
+                    return <Icon size={40} />;
+                  })()}
+                </motion.div>
               </div>
               <div
                 className="case-result-name"
@@ -352,7 +391,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
           )}
         </AnimatePresence>
 
-        {/* ACTION BUTTON */}
+        {/* ACTION */}
         <button
           className={`case-btn-primary ${canAfford || caseConfig.currency === 'ad' ? 'ready' : ''}`}
           onClick={handleOpenClick}
@@ -365,24 +404,28 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
           style={
             canAfford || caseConfig.currency === 'ad'
               ? {
-                  background: `linear-gradient(135deg, ${activeAccent}, ${activeAccent}99)`,
-                  boxShadow: `0 6px 30px ${activeAccent}66, inset 0 1px 0 rgba(255,255,255,0.25)`,
+                  background: `linear-gradient(135deg, ${accent}, ${accent}aa)`,
+                  boxShadow: `0 8px 32px ${accent}88, inset 0 1px 0 rgba(255,255,255,0.3)`,
                   color: '#000',
                 }
               : undefined
           }
         >
-          {isOpening
-            ? 'КРУТИМ...'
-            : isWatchingAd
-            ? 'ЗАГРУЗКА РЕКЛАМЫ...'
-            : caseConfig.currency === 'ad' && timeLeft > 0
-            ? `ЖДАТЬ ${formatTime(timeLeft)}`
-            : caseConfig.currency === 'ad'
-            ? '▶ СМОТРЕТЬ РЕКЛАМУ'
-            : caseConfig.currency === 'stars'
-            ? `ОТКРЫТЬ ЗА ${caseConfig.price} ⭐`
-            : `ОТКРЫТЬ ЗА ${caseConfig.price.toLocaleString('ru-RU')} ₽`}
+          {isOpening ? (
+            'КРУТИМ...'
+          ) : isWatchingAd ? (
+            'ЗАГРУЗКА РЕКЛАМЫ...'
+          ) : caseConfig.currency === 'ad' && timeLeft > 0 ? (
+            `ЖДАТЬ ${formatTime(timeLeft)}`
+          ) : caseConfig.currency === 'ad' ? (
+            <>
+              <Play size={16} style={{ marginRight: 6 }} /> СМОТРЕТЬ РЕКЛАМУ
+            </>
+          ) : caseConfig.currency === 'stars' ? (
+            `ОТКРЫТЬ ЗА ${caseConfig.price} ⭐`
+          ) : (
+            `ОТКРЫТЬ ЗА ${caseConfig.price.toLocaleString('ru-RU')} ₽`
+          )}
         </button>
       </motion.div>
     </div>
