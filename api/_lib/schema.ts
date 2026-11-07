@@ -1,7 +1,7 @@
 // api/_lib/schema.ts
 import {
   pgTable, bigint, text, integer, timestamp, boolean, jsonb, uuid, primaryKey, uniqueIndex,
-  numeric,  // 👈 ДОБАВЛЕНО
+  numeric,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -36,7 +36,6 @@ export const users = pgTable('users', {
   totalRaces: integer('total_races').notNull().default(0),
   totalWins: integer('total_wins').notNull().default(0),
   totalLosses: integer('total_losses').notNull().default(0),
-  mode: text('mode').notNull().default('online'),
 
   clickLevel: integer('click_level').notNull().default(1),
   offlineLevel: integer('offline_level').notNull().default(1),
@@ -197,7 +196,7 @@ export const userBadges = pgTable('user_badges', {
 }));
 
 // ============================================================
-// СЕЗОНЫ (флаг обработки)
+// СЕЗОНЫ
 // ============================================================
 export const seasonProcessed = pgTable('season_processed', {
   seasonId: text('season_id').primaryKey(),
