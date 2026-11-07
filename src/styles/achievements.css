@@ -8,8 +8,9 @@
   -webkit-backdrop-filter: blur(12px);
   z-index: 10000;
   display: flex;
+  align-items: center;        /* 👈 центр */
   justify-content: center;
-  align-items: flex-end;
+  padding: 16px;              /* 👈 отступ от краёв */
   animation: achFadeIn 0.2s ease-out;
 }
 
@@ -17,26 +18,22 @@
 
 .achievements-content {
   background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-bottom: none;
-  border-radius: 24px;
+  border: 1px solid rgba(255, 215, 0, 0.3); /* 👈 со всех сторон */
+  border-radius: 24px;                       /* 👈 все 4 угла */
   width: 100%;
   max-width: 500px;
-  max-height: 92vh;
-  height: 92vh;
+  max-height: calc(100vh - 32px);            /* 👈 не больше экрана */
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  margin-bottom: 8px;
 }
 
 .achievements-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 56px 24px 16px;
+  padding: 20px 24px 16px; /* 👈 без safe-area (модалка по центру) */
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
   position: relative;
@@ -88,10 +85,9 @@
   color: #ff4444;
 }
 
-/* 👇 ЕДИНСТВЕННЫЙ .achievements-body — внизу дубликата НЕТ */
+/* 👇 BODY — скролл внутри, без гигантского padding-bottom */
 .achievements-body {
-  padding: 12px 20px 120px; /* 👈 120px! */
-  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); /* 👈 safe-area */
+  padding: 16px 20px 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -279,7 +275,7 @@
   box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
 }
 
-/* ========== ТАБЫ КАТЕГОРИЙ (горизонтальный скролл) ========== */
+/* ========== ТАБЫ КАТЕГОРИЙ ========== */
 .achievements-tabs {
   display: flex;
   gap: 6px;

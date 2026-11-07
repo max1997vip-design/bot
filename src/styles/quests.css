@@ -8,27 +8,22 @@
   -webkit-backdrop-filter: blur(8px);
   z-index: 10000;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 16px;
 }
 
 .quest-content {
   background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid rgba(255, 215, 0, 0.3);
-  border-bottom: none;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
+  border-radius: 24px;
   width: 100%;
   max-width: 500px;
-  height: 92vh;
-  max-height: 92vh;
+  max-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.1);
   overflow: hidden;
-  padding-bottom: 0;
-  margin-bottom: 0;
 }
 
 .quest-header {
@@ -85,8 +80,7 @@
 }
 
 .quest-body {
-  padding: 16px 20px 120px;
-  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 20px 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;

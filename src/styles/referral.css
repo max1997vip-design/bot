@@ -3,32 +3,27 @@
 .referral-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 10000;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: flex-end;
+  padding: 16px;
 }
 
 .referral-container {
   background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
   border: 1px solid rgba(0, 229, 255, 0.3);
-  border-bottom: none;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
+  border-radius: 24px;
   width: 100%;
   max-width: 500px;
-  /* 👇 Ключевой фикс: не фиксируем height, а max-height и flex */
-  height: 92vh;
-  max-height: 92vh;
+  max-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -10px 40px rgba(0, 229, 255, 0.1);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  animation: slideUp 0.3s ease-out;
-  overflow: hidden; /* 👈 обрезаем всё, что вылазит */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 229, 255, 0.1);
+  overflow: hidden;
 }
 
 @keyframes slideUp {
@@ -84,7 +79,7 @@
 }
 
 .referral-content {
-  padding: 16px 20px 0; /* убрал нижний padding — его добавим в actions */
+  padding: 16px 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
