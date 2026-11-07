@@ -1,6 +1,6 @@
 // src/config/achievements.ts
 
-export type AchievementCategory = 'wealth' | 'racer' | 'clicker' | 'collector' | 'legend';
+export type AchievementCategory = 'wealth' | 'racer' | 'clicker' | 'collector' | 'legend' | 'level';
 export type AchievementTier = 1 | 2 | 3 | 4 | 5;
 
 export interface AchievementConfig {
@@ -9,7 +9,7 @@ export interface AchievementConfig {
   tier: AchievementTier;
   name: string;
   description: string;
-  icon: string; // 👈 имя lucide-иконки (например, 'Coins', 'Trophy', 'Car')
+  icon: string;
   reward: number;
   check: (user: any) => boolean;
 }
@@ -21,6 +21,7 @@ export const CATEGORY_META: Record<AchievementCategory, { name: string; icon: st
   clicker:   { name: 'Кликер',       icon: 'MousePointerClick', color: '#00d97e' },
   collector: { name: 'Коллекционер', icon: 'Car',              color: '#ff8800' },
   legend:    { name: 'Легенда',      icon: 'Star',             color: '#ff00ff' },
+  level:     { name: 'Уровень',      icon: 'TrendingUp',       color: '#00e5ff' }, // 👈 НОВОЕ
 };
 
 // ============= TIER META =============
@@ -31,6 +32,9 @@ export const TIER_META: Record<AchievementTier, { name: string; color: string }>
   4: { name: 'Платина', color: '#00e5ff' },
   5: { name: 'Легенда', color: '#ff00ff' },
 };
+
+// Хелпер: расчёт уровня по XP
+const calcLevel = (xp: number) => Math.floor(Math.sqrt(xp / 100)) + 1;
 
 // ============= ВСЕ ДОСТИЖЕНИЯ =============
 export const ACHIEVEMENTS: AchievementConfig[] = [
@@ -186,7 +190,7 @@ export const ACHIEVEMENTS: AchievementConfig[] = [
   },
   {
     id: 'legend_4', category: 'legend', tier: 4,
-    name: 'Вице-президент', description: 'Внести 1,000,000 вклада в клан',
+    name: 'Вице-президент', description: 'Внести 1,000,000 ₽ вклада в клан',
     icon: 'Shield', reward: 15_000_000,
     check: (user) => (user.clanContribution || 0) >= 1_000_000,
   },
@@ -199,5 +203,37 @@ export const ACHIEVEMENTS: AchievementConfig[] = [
       (user.totalClicks || 0) >= 10_000 &&
       (user.totalWins || 0) >= 100 &&
       (user.ownedCars || []).length >= 10,
+  },
+
+  // ========== 📈 УРОВЕНЬ (НОВОЕ) ==========
+  {
+    id: 'level_1', category: 'level', tier: 1,
+    name: 'Десятка', description: 'Достичь 10 уровня',
+    icon: 'TrendingUp', reward: 50_000,
+    check: (user) => calcLevel(user.xp || 0) >= 10,
+  },
+  {
+    id: 'level_2', category: 'level', tier: 2,
+    name: 'Двадцатка', description: 'Достичь 20 уровня',
+    icon: 'TrendingUp', reward: 500_000,
+    check: (user) => calcLevel(user.xp || 0) >= 20,
+  },
+  {
+    id: 'level_3', category: 'level', tier: 3,
+    name: 'Тридцатка', description: 'Достичь 30 уровня',
+    icon: 'TrendingUp', reward: 5_000_000,
+    check: (user) => calcLevel(user.xp || 0) >= 30,
+  },
+  {
+    id: 'level_4', category: 'level', tier: 4,
+    name: 'Сороковка', description: 'Достичь 40 уровня',
+    icon: 'TrendingUp', reward: 50_000_000,
+    check: (user) => calcLevel(user.xp || 0) >= 40,
+  },
+  {
+    id: 'level_5', category: 'level', tier: 5,
+    name: 'Полтинник', description: 'Достичь 50 уровня',
+    icon: 'TrendingUp', reward: 500_000_000,
+    check: (user) => calcLevel(user.xp || 0) >= 50,
   },
 ];

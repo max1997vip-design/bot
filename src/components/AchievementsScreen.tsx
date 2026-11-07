@@ -7,7 +7,7 @@ import {
   Pointer, Zap, Flame, Rocket, Sparkles,
   Flag, Gauge, Medal, Award,
   Car, CarFront, CarTaxiFront, Warehouse,
-  Wrench, Cog, Hammer, Shield, Star,
+  Wrench, Cog, Hammer, Shield, Star, TrendingUp,
 } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import WebApp from '@twa-dev/sdk';
@@ -19,7 +19,7 @@ const ICON_MAP: Record<string, any> = {
   Pointer, Zap, Flame, Rocket, Sparkles,
   Flag, Gauge, Trophy, Medal, Award,
   Car, CarFront, CarTaxiFront, Warehouse,
-  Wrench, Cog, Hammer, Shield, Star,
+  Wrench, Cog, Hammer, Shield, Star, TrendingUp,
 };
 
 const renderLucideIcon = (name: string, size = 20, color = 'currentColor') => {
