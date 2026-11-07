@@ -55,7 +55,7 @@ interface GameState {
   user: UserData | null;
   balance: number;
   unsyncedTaps: number;
-  unsyncedClicks: number; // 👈 считаем клики отдельно от ₽
+  unsyncedClicks: number;
   isSyncing: boolean;
   tapCountInSecond: number;
   lastTapSecond: number;
@@ -74,6 +74,7 @@ interface GameState {
   lastReadClanMessageId: string | null;
   clanBoss: any | null;
   bossDamageStats: any[];
+  referrals: any[];
 
   upgradePart: (itemId: string, type: 'level' | 'gold' | 'red') => Promise<boolean>;
   claimUpgrade: (itemId: string) => Promise<boolean>;
@@ -88,7 +89,8 @@ interface GameState {
   fetchClans: () => Promise<void>;
   fetchClanMessages: () => Promise<void>;
   sendClanMessage: (message: string) => Promise<boolean>;
-  markClanChatAsRead: () => void;  
+  markClanChatAsRead: () => void;
+  fetchReferrals: () => Promise<void>;
   
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
@@ -148,31 +150,31 @@ export const useGameStore = create<GameState>((set, get) => ({
   clanBoss: null,
   bossDamageStats: [],
 
+  referrals: [], // 👈 ДОБАВЛЕНО
+
   setUser: (user, inventory, equipped) => set({ user, balance: user.balance, inventory, equipped }),
 
-  // В gameStore.ts — метод tap()
-tap: () => {
-  const state = get(); const now = Date.now();
-  const tapPower = state.user?.clickLevel || 1; 
-  
-  let newTapCount = state.tapCountInSecond; let lastSecond = state.lastTapSecond;
-  if (now - lastSecond > 1000) { newTapCount = 1; lastSecond = now; } 
-  else { if (newTapCount >= 15) return; newTapCount += 1; }
-  
-  set((s) => ({
-    tapCountInSecond: newTapCount, lastTapSecond: lastSecond,
-    balance: s.balance + tapPower,
-    user: s.user ? { 
-      ...s.user, 
-      totalEarned: s.user.totalEarned + tapPower,
-      totalClicks: (s.user.totalClicks || 0) + 1,
-      // 👇 ДОБАВЛЕНО: сразу обновляем earnedFromClicks
-      earnedFromClicks: (s.user.earnedFromClicks || 0) + tapPower,
-    } : null,
-    unsyncedTaps: s.unsyncedTaps + tapPower,
-    unsyncedClicks: s.unsyncedClicks + 1,
-  }));
-},
+  tap: () => {
+    const state = get(); const now = Date.now();
+    const tapPower = state.user?.clickLevel || 1; 
+    
+    let newTapCount = state.tapCountInSecond; let lastSecond = state.lastTapSecond;
+    if (now - lastSecond > 1000) { newTapCount = 1; lastSecond = now; } 
+    else { if (newTapCount >= 15) return; newTapCount += 1; }
+    
+    set((s) => ({
+      tapCountInSecond: newTapCount, lastTapSecond: lastSecond,
+      balance: s.balance + tapPower,
+      user: s.user ? { 
+        ...s.user, 
+        totalEarned: s.user.totalEarned + tapPower,
+        totalClicks: (s.user.totalClicks || 0) + 1,
+        earnedFromClicks: (s.user.earnedFromClicks || 0) + tapPower,
+      } : null,
+      unsyncedTaps: s.unsyncedTaps + tapPower,
+      unsyncedClicks: s.unsyncedClicks + 1,
+    }));
+  },
 
   openCase: async (caseType) => {
     const initData = getInitData();
@@ -213,6 +215,21 @@ tap: () => {
       const data = await res.json();
       if (data.success) set({ history: data.history });
     } catch (e) { console.error(e); }
+  },
+
+  fetchReferrals: async () => { // 👈 ДОБАВЛЕНО
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=getReferrals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) set({ referrals: data.referrals });
+    } catch (e) {
+      console.error('[fetchReferrals]', e);
+    }
   },
 
   fetchClan: async () => {
@@ -476,30 +493,28 @@ tap: () => {
     } catch { return false; }
   },
 
-  // В gameStore.ts — collectIncome
-collectIncome: async () => {
-  const initData = getInitData();
-  try {
-    const res = await fetch('/api/game?action=collectIncome', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      set((s) => ({
-        balance: data.newBalance,
-        user: s.user ? { 
-          ...s.user, 
-          balance: data.newBalance, 
-          businesses: data.businesses,
-          // 👇 ДОБАВЛЕНО: доход с бизнеса
-          earnedFromBusiness: data.earnedFromBusiness ?? s.user.earnedFromBusiness,
-        } : null
-      }));
-      return { success: true, collected: data.collected };
-    }
-    return { success: false };
-  } catch { return { success: false }; }
+  collectIncome: async () => {
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=collectIncome', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance,
+          user: s.user ? { 
+            ...s.user, 
+            balance: data.newBalance, 
+            businesses: data.businesses,
+            earnedFromBusiness: data.earnedFromBusiness ?? s.user.earnedFromBusiness,
+          } : null
+        }));
+        return { success: true, collected: data.collected };
+      }
+      return { success: false };
+    } catch { return { success: false }; }
   },
 
   upgradePart: async (itemId, type) => {
@@ -616,42 +631,40 @@ collectIncome: async () => {
     } catch { return false; }
   },
 
-// В gameStore.ts — метод syncTaps() — добавь earnedFromClicks в set
-syncTaps: async () => {
-  const { unsyncedTaps, unsyncedClicks, isSyncing } = get();
-  if (unsyncedTaps === 0 || isSyncing) return;
-  const tapsToSend = unsyncedTaps;
-  const clicksToSend = unsyncedClicks;
-  set({ unsyncedTaps: 0, unsyncedClicks: 0, isSyncing: true });
-  try {
-    const initData = getInitData();
-    const res = await fetch('/api/game?action=tap', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData, amount: tapsToSend, clicks: clicksToSend }),
-    });
-    if (!res.ok) throw new Error('Ошибка сервера');
-    const data = await res.json();
-    if (data.success) {
-      set((s) => ({
-        balance: data.newBalance + s.unsyncedTaps,
-        user: s.user ? { 
-          ...s.user, 
-          totalEarned: data.newTotalEarned + s.unsyncedTaps,
-          totalClicks: data.totalClicks ?? s.user.totalClicks,
-          // 👇 ДОБАВЛЕНО: подтягиваем с сервера
-          earnedFromClicks: data.earnedFromClicks ?? s.user.earnedFromClicks,
-        } : null
-      }));
-      if (data.droppedItem) {
-        set((s) => ({ inventory: [...s.inventory, data.droppedItem.id], lastDroppedItem: data.droppedItem }));
+  syncTaps: async () => {
+    const { unsyncedTaps, unsyncedClicks, isSyncing } = get();
+    if (unsyncedTaps === 0 || isSyncing) return;
+    const tapsToSend = unsyncedTaps;
+    const clicksToSend = unsyncedClicks;
+    set({ unsyncedTaps: 0, unsyncedClicks: 0, isSyncing: true });
+    try {
+      const initData = getInitData();
+      const res = await fetch('/api/game?action=tap', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, amount: tapsToSend, clicks: clicksToSend }),
+      });
+      if (!res.ok) throw new Error('Ошибка сервера');
+      const data = await res.json();
+      if (data.success) {
+        set((s) => ({
+          balance: data.newBalance + s.unsyncedTaps,
+          user: s.user ? { 
+            ...s.user, 
+            totalEarned: data.newTotalEarned + s.unsyncedTaps,
+            totalClicks: data.totalClicks ?? s.user.totalClicks,
+            earnedFromClicks: data.earnedFromClicks ?? s.user.earnedFromClicks,
+          } : null
+        }));
+        if (data.droppedItem) {
+          set((s) => ({ inventory: [...s.inventory, data.droppedItem.id], lastDroppedItem: data.droppedItem }));
+        }
       }
-    }
-  } catch (error) {
-    set((state) => ({ 
-      unsyncedTaps: state.unsyncedTaps + tapsToSend,
-      unsyncedClicks: state.unsyncedClicks + clicksToSend,
-    }));
-  } finally { set({ isSyncing: false }); }
+    } catch (error) {
+      set((state) => ({ 
+        unsyncedTaps: state.unsyncedTaps + tapsToSend,
+        unsyncedClicks: state.unsyncedClicks + clicksToSend,
+      }));
+    } finally { set({ isSyncing: false }); }
   },
 
   setCarColor: (color) => set({ carColor: color }),
@@ -719,52 +732,52 @@ syncTaps: async () => {
   },
 
   reportPvpResult: async ({ won, ratingDelta, coinsDelta, playerStats }) => {
-  const { user } = get();
-  if (!user) return;
-  
-  console.log('[PVP] Sending:', { won, ratingDelta, coinsDelta, playerStats });
-
-  const prevBalance = user.balance;
-  const prevRating = user.rating;
-
-  const initData = getInitData();
-  try {
-    const res = await fetch('/api/game?action=pvpResult', {
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData, won, ratingDelta, coinsDelta, playerStats }),
-    });
-
-    console.log('[PVP] Response status:', res.status);
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('[PVP] Server error:', errorText);
-      throw new Error(`Server error: ${res.status}`);
-    }
-
-    const data = await res.json();
-    console.log('[PVP] Response data:', data);
+    const { user } = get();
+    if (!user) return;
     
-    set((state) => ({
-      balance: data.newBalance ?? state.balance,
-      user: state.user ? { 
-        ...state.user, 
-        balance: data.newBalance ?? state.user.balance, 
-        rating: data.newRating ?? state.user.rating,
-        totalRaces: data.totalRaces ?? state.user.totalRaces,
-        totalWins: data.totalWins ?? state.user.totalWins,
-        totalLosses: data.totalLosses ?? state.user.totalLosses,
-        earnedFromRaces: data.earnedFromRaces ?? state.user.earnedFromRaces,
-      } : null
-    }));
-  } catch (e) {
-    console.error('[PVP] Fetch error:', e);
-    set((state) => ({
-      balance: prevBalance,
-      user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null
-    }));
-  }
+    console.log('[PVP] Sending:', { won, ratingDelta, coinsDelta, playerStats });
+
+    const prevBalance = user.balance;
+    const prevRating = user.rating;
+
+    const initData = getInitData();
+    try {
+      const res = await fetch('/api/game?action=pvpResult', {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData, won, ratingDelta, coinsDelta, playerStats }),
+      });
+
+      console.log('[PVP] Response status:', res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('[PVP] Server error:', errorText);
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log('[PVP] Response data:', data);
+      
+      set((state) => ({
+        balance: data.newBalance ?? state.balance,
+        user: state.user ? { 
+          ...state.user, 
+          balance: data.newBalance ?? state.user.balance, 
+          rating: data.newRating ?? state.user.rating,
+          totalRaces: data.totalRaces ?? state.user.totalRaces,
+          totalWins: data.totalWins ?? state.user.totalWins,
+          totalLosses: data.totalLosses ?? state.user.totalLosses,
+          earnedFromRaces: data.earnedFromRaces ?? state.user.earnedFromRaces,
+        } : null
+      }));
+    } catch (e) {
+      console.error('[PVP] Fetch error:', e);
+      set((state) => ({
+        balance: prevBalance,
+        user: state.user ? { ...state.user, balance: prevBalance, rating: prevRating } : null
+      }));
+    }
   },
 
   buyCar: async (carId, price) => {

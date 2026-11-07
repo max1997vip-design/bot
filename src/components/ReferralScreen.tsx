@@ -1,5 +1,5 @@
 // src/components/ReferralScreen.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import { useGameStore } from '../store/gameStore';
 import { motion } from 'framer-motion';
@@ -10,7 +10,13 @@ const BOT_NAME = 'kliker_one_bot';
 
 export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
+  const referrals = useGameStore((s) => s.referrals);
+  const fetchReferrals = useGameStore((s) => s.fetchReferrals);
   
+  useEffect(() => {
+    fetchReferrals();
+  }, [fetchReferrals]);
+
   if (!user) return null;
 
   const referralEarnings = user.referralEarnings || 0;
@@ -33,7 +39,6 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
       <div className="referral-container">
-        {/* Шапка */}
         <div className="referral-topbar">
           <button className="referral-back" onClick={onClose}>
             <ArrowLeft size={18} />
@@ -42,9 +47,7 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
           <div style={{ width: 36 }} />
         </div>
 
-        {/* Контент */}
         <div className="referral-content">
-          {/* Бонус */}
           <div className="referral-bonus-card">
             <div className="bonus-icon"><Gift size={32} color="var(--accent)" /></div>
             <div className="bonus-text">
@@ -53,7 +56,6 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
             </div>
           </div>
 
-          {/* Заработано */}
           <div className="referral-earnings-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <TrendingUp size={16} color="var(--success)" />
@@ -65,7 +67,6 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
             </span>
           </div>
 
-          {/* Как это работает */}
           <div className="referral-how-it-works">
             <h4>Как это работает?</h4>
             <div className="how-step">
@@ -82,25 +83,53 @@ export const ReferralScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
             </div>
           </div>
 
-          {/* Ссылка */}
           <div className="referral-link-box" onClick={handleCopy}>
             <span className="link-text">{refLink}</span>
             <Copy size={16} color="var(--accent)" style={{ flexShrink: 0, marginLeft: 8 }} />
           </div>
 
-          {/* 👇 Блок "Приглашённые друзья" — заполняет пустоту */}
+          {/* 👇 БЛОК ДРУЗЕЙ */}
           <div className="referral-friends-card">
             <div className="friends-header">
               <UserPlus size={16} color="var(--accent)" />
               <span>Приглашённые друзья</span>
+              <span className="friends-count">{referrals.length}</span>
             </div>
-            <div className="friends-empty">
-              <Users size={32} color="var(--text-muted)" />
-              <p>Пока никого нет.<br />Отправь ссылку первым!</p>
-            </div>
+
+            {referrals.length === 0 ? (
+              <div className="friends-empty">
+                <Users size={32} color="var(--text-muted)" />
+                <p>Пока никого нет.<br />Отправь ссылку первым!</p>
+              </div>
+            ) : (
+              <div className="friends-list">
+                {referrals.map((ref: any) => (
+                  <div key={ref.id} className="friend-row">
+                    {ref.photoUrl ? (
+                      <img src={ref.photoUrl} alt="" className="friend-avatar" />
+                    ) : (
+                      <div className="friend-avatar-placeholder">
+                        {(ref.firstName?.[0] || 'Г').toUpperCase()}
+                      </div>
+                    )}
+                    <div className="friend-info">
+                      <div className="friend-name">
+                        {[ref.firstName, ref.lastName].filter(Boolean).join(' ') || ref.username || 'Гонщик'}
+                      </div>
+                      <div className="friend-date">
+                        С {new Date(ref.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                    <div className="friend-earned">
+                      {Math.floor((ref.totalEarned || 0) * 0.01).toLocaleString('ru-RU')}
+                      <span className="currency-ruble sm" style={{ marginLeft: 2 }}>₽</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Кнопки внизу */}
           <div className="referral-actions">
             <button onClick={handleCopy} className="referral-btn-copy">
               <Copy size={16} />

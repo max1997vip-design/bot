@@ -306,12 +306,98 @@
   font-family: Impact, sans-serif;
 }
 
+.friends-count {
+  margin-left: auto;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: Impact, sans-serif;
+}
+
 .friends-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   text-align: center;
-  padding: 12px 0;
+  padding: 16px 0;
   color: var(--text-secondary);
   font-size: 11px;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .friends-empty p { margin: 0; }
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.friend-avatar, .friend-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.friend-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a2035 0%, #0a0a0a 100%);
+  color: var(--accent);
+  font-weight: 900;
+  font-size: 13px;
+  font-family: Impact, sans-serif;
+}
+
+.friend-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.friend-name {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-date {
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.friend-earned {
+  color: var(--success);
+  font-family: Impact, sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-shadow: 0 0 8px var(--success-glow);
+}

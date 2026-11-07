@@ -33,6 +33,7 @@ import { buyPremiumHandler } from './_lib/handlers/buyPremium.js';
 import { getAchievementsHandler } from './_lib/handlers/getAchievements.js';
 import { claimAchievementHandler } from './_lib/handlers/claimAchievement.js';
 import { getClansHandler } from './_lib/handlers/getClans.js';
+import { getReferralsHandler } from './_lib/handlers/getReferrals.js';
 import { addLeaguePointsHandler } from './_lib/handlers/addLeaguePoints.js';
 import { getClanMessagesHandler, sendClanMessageHandler } from './_lib/handlers/clanChat.js';
 import { getClanBossHandler, attackClanBossHandler } from './_lib/handlers/clanBoss.js';
@@ -86,6 +87,7 @@ export default async function handler(req: any, res: any) {
     case 'clanAction': return clanActionHandler(req, res);
     case 'admin': return adminHandler(req, res);
     case 'getHistory': return getHistoryHandler(req, res);
+    case 'getReferrals': return getReferralsHandler(req, res);
     case 'getAchievements': return getAchievementsHandler(req, res);
     case 'claimAchievement': return claimAchievementHandler(req, res);
     case 'buyPremium': return buyPremiumHandler(req, res);
