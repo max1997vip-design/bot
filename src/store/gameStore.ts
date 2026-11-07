@@ -816,21 +816,25 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   upgradeClicker: async () => {
-    const initData = getInitData();
-    try {
-      const res = await fetch('/api/game?action=upgradeClicker', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        set((s) => ({
-          balance: data.newBalance,
-          user: s.user ? { ...s.user, balance: data.newBalance, clickLevel: data.newClickLevel } : null
-        }));
-      }
-    } catch (e) { console.error(e); }
-  },
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=upgradeClicker', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { 
+          ...s.user, 
+          balance: data.newBalance, 
+          clickLevel: data.newClickLevel, // 👈 обновляем уровень
+        } : null,
+      }));
+    }
+  } catch (e) { console.error(e); }
+},
 
   getAchievements: async () => {
     const initData = getInitData();
@@ -873,21 +877,25 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   
   upgradeOffline: async () => {
-    const initData = getInitData();
-    try {
-      const res = await fetch('/api/game?action=upgradeOffline', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        set((s) => ({
-          balance: data.newBalance,
-          user: s.user ? { ...s.user, balance: data.newBalance, offlineLevel: data.newOfflineLevel } : null
-        }));
-      }
-    } catch (e) { console.error(e); }
-  },
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=upgradeOffline', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set((s) => ({
+        balance: data.newBalance,
+        user: s.user ? { 
+          ...s.user, 
+          balance: data.newBalance, 
+          offlineLevel: data.newOfflineLevel, // 👈 обновляем уровень
+        } : null,
+      }));
+    }
+  } catch (e) { console.error(e); }
+},
 
   sellItem: async (itemId) => {
     const state = get();

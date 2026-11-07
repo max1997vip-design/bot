@@ -1,0 +1,437 @@
+/* src/styles/pass.css */
+
+.pass-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pass-content {
+  background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 229, 255, 0.1);
+  overflow: hidden;
+}
+
+.pass-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.pass-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.6), transparent);
+}
+
+.pass-header h2 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 15px var(--accent-glow);
+  font-family: Impact, Arial Black, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pass-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.pass-close:hover {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.4);
+  color: var(--danger);
+}
+
+/* Прогресс */
+.pass-progress-section {
+  padding: 16px 20px 12px;
+  flex-shrink: 0;
+}
+
+.pass-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.pass-progress-level {
+  color: var(--accent);
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.pass-progress-xp {
+  color: #fff;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pass-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pass-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Премиум */
+.pass-premium-active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 0 20px 12px;
+  color: var(--gold);
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.pass-buy-premium {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-dim));
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  margin: 0 20px 12px;
+  color: #000;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.pass-buy-premium:active { transform: scale(0.97); }
+.pass-buy-premium:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Табы */
+.pass-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 20px 12px;
+  flex-shrink: 0;
+}
+
+.pass-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #888;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.pass-tab.active {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Body */
+.pass-body {
+  padding: 0 20px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: none;
+}
+
+.pass-body::-webkit-scrollbar { display: none; }
+
+.pass-level {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.pass-level.unlocked {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(0, 229, 255, 0.02));
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+.pass-level.premium.unlocked {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(255, 215, 0, 0.02));
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.pass-level-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pass-level-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #666;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pass-level-badge.unlocked {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  color: #000;
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.pass-level-title {
+  flex: 1;
+  color: #fff;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.pass-level-req {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Награды */
+.pass-reward {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.pass-reward.free {
+  background: rgba(0, 229, 255, 0.05);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+}
+
+.pass-reward.premium {
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.pass-reward-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pass-reward-label {
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pass-reward-value {
+  color: #fff;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.pass-reward-value.gold {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.pass-claim-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  color: #666;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.pass-claim-btn.ready {
+  background: linear-gradient(90deg, var(--success), var(--success-dim));
+  color: #000;
+  box-shadow: 0 4px 12px var(--success-glow);
+}
+
+.pass-claim-btn.ready-premium {
+  background: linear-gradient(90deg, var(--gold), var(--gold-dim));
+  color: #000;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.pass-claim-btn.claimed {
+  background: transparent;
+  color: var(--success);
+  border: 1px solid rgba(0, 217, 126, 0.4);
+}
+
+/* Модалка подтверждения */
+.pass-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pass-confirm-box {
+  background: linear-gradient(180deg, #141a2e 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 24px;
+  padding: 32px 24px 24px;
+  text-align: center;
+  max-width: 340px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.2);
+}
+
+.pass-confirm-box h3 {
+  color: #fff;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 18px;
+  letter-spacing: 1.5px;
+  margin: 16px 0 8px;
+}
+
+.pass-confirm-box p {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 0 24px;
+}
+
+.pass-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pass-confirm-cancel, .pass-confirm-buy {
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-family: Impact, Arial Black, sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.pass-confirm-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.pass-confirm-buy {
+  background: linear-gradient(90deg, var(--gold), var(--gold-dim));
+  color: #000;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+}
+
+.pass-confirm-cancel:active, .pass-confirm-buy:active {
+  transform: scale(0.97);
+}

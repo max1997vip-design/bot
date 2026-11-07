@@ -26,9 +26,9 @@ export async function pvpResultHandler(req: any, res: any) {
     }
 
     const pass = getOrCreatePass(user.weeklyPass);
-    if (won) {
-      pass.xp += 50;
-    }
+    const xpMultiplier = pass.isPremium ? 5 : 1;
+    const xpReward = won ? 50 : 10;
+    pass.xp += xpReward * xpMultiplier;
 
     let clanTax = 0;
     if (safeCoins > 0) {

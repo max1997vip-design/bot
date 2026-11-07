@@ -88,7 +88,6 @@ export function RaceScreen() {
   const upgradeClicker = useGameStore((s) => s.upgradeClicker);
   const upgradeOffline = useGameStore((s) => s.upgradeOffline);
 
-  
   const xp = user?.xp || 0;
   const level = Math.floor(Math.sqrt(xp / 100)) + 1;
   const xpCurrentLevel = Math.pow(level - 1, 2) * 100;
@@ -256,10 +255,10 @@ export function RaceScreen() {
             >
               <motion.div
                 className="race-modal-content"
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="race-modal-header">
@@ -271,7 +270,6 @@ export function RaceScreen() {
                   </button>
                 </div>
 
-                {/* 👇 ОБЁРНУТО В race-modal-body для скролла */}
                 <div className="race-modal-body">
                   <div className="race-upgrade-card">
                     <div className="race-upgrade-icon" style={{ background: 'rgba(0,217,126,0.15)', border: '1px solid rgba(0,217,126,0.3)' }}>
@@ -285,8 +283,8 @@ export function RaceScreen() {
                       </div>
                     </div>
                     <button
-                      onClick={() => {
-                        upgradeClicker();
+                      onClick={async () => {
+                        await upgradeClicker();
                         playSound('coin');
                       }}
                       disabled={balance < clickCost}
@@ -312,8 +310,8 @@ export function RaceScreen() {
                       </div>
                     </div>
                     <button
-                      onClick={() => {
-                        upgradeOffline();
+                      onClick={async () => {
+                        await upgradeOffline();
                         playSound('coin');
                       }}
                       disabled={balance < offlineCost}
@@ -327,7 +325,6 @@ export function RaceScreen() {
                     </button>
                   </div>
                 </div>
-                {/* 👆 КОНЕЦ race-modal-body */}
               </motion.div>
             </motion.div>
           )}

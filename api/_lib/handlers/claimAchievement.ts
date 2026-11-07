@@ -2,6 +2,7 @@
 import { db } from '../db.js';
 import { users, achievements } from '../schema.js';
 import { validateInitData } from '../telegram.js';
+import { getOrCreatePass } from '../pass.js';
 import { eq, sql, and } from 'drizzle-orm';
 import { ACHIEVEMENTS } from '../../../src/config/achievements.js';
 
@@ -30,11 +31,15 @@ export async function claimAchievementHandler(req: any, res: any) {
     // 4. Выдаем награду и записываем в БД
     // 👇 XP за достижение (можно масштабировать по tier: 100 * tier)
     const xpReward = 100;
+    const pass = getOrCreatePass(user.weeklyPass); // 👈 нужен import
+    const xpMultiplier = pass.isPremium ? 5 : 1;
+    pass.xp += xpReward * xpMultiplier;
 
-    const [updated] = await db.update(users).set({ 
-      balance: sql`${users.balance} + ${config.reward}`,
-      totalEarned: sql`${users.totalEarned} + ${config.reward}`,
-      xp: sql`${users.xp} + ${xpReward}`,
+    const [updated] = await db.update(users).set({
+    balance: sql`${users.balance} + ${config.reward}`,
+    totalEarned: sql`${users.totalEarned} + ${config.reward}`,
+    xp: sql`${users.xp} + ${xpReward}`,
+    weeklyPass: pass,
     }).where(eq(users.id, user.id)).returning();
 
     await db.insert(achievements).values({

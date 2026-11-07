@@ -1,6 +1,7 @@
 // api/_lib/handlers/claimDaily.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
+import { getOrCreatePass } from '../pass.js';
 import { validateInitData } from '../telegram.js';
 import { eq, sql } from 'drizzle-orm';
 
@@ -52,20 +53,20 @@ export async function claimDailyHandler(req: any, res: any) {
     const reward = DAILY_REWARDS[newStreak - 1];
     const now = new Date();
 
-    // 👇 XP за ежедневный бонус
     const XP_REWARD = 25;
+    const pass = getOrCreatePass(user.weeklyPass); // 👈 нужен import
+    const xpMultiplier = pass.isPremium ? 5 : 1;
+    pass.xp += XP_REWARD * xpMultiplier;
 
-    const [updated] = await db.update(users)
-      .set({ 
-        balance: sql`${users.balance} + ${reward}`, 
-        totalEarned: sql`${users.totalEarned} + ${reward}`, // 👈 награда тоже считается доходом
-        earnedFromBusiness: sql`${users.earnedFromBusiness} + ${reward}`, // 👈 относим к бизнесу (или можешь не трогать)
-        dailyStreak: newStreak,
-        lastDailyClaim: now,
-        xp: sql`${users.xp} + ${XP_REWARD}`, // 👈 +25 XP
-      })
-      .where(eq(users.id, userId))
-      .returning();
+    const [updated] = await db.update(users).set({
+    balance: sql`${users.balance} + ${reward}`,
+    totalEarned: sql`${users.totalEarned} + ${reward}`,
+    earnedFromBusiness: sql`${users.earnedFromBusiness} + ${reward}`,
+    dailyStreak: newStreak,
+    lastDailyClaim: now,
+    xp: sql`${users.xp} + ${XP_REWARD}`,
+    weeklyPass: pass, // 👈
+    }).where(eq(users.id, userId)).returning();
 
     return res.json({ 
       success: true, 

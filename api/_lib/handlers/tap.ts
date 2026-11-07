@@ -14,7 +14,9 @@ export async function tapHandler(req: any, res: any) {
   if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
 
   const telegramId = validatedData.user.id;
-  if (typeof amount !== 'number' || amount <= 0 || amount > 10000) return res.status(400).json({ error: 'Invalid amount' });
+  if (typeof amount !== 'number' || amount <= 0 || amount > 10000) {
+    return res.status(400).json({ error: 'Invalid amount' });
+  }
 
   const clicksToAdd = typeof clicks === 'number' && clicks > 0 ? clicks : amount;
 
@@ -22,7 +24,7 @@ export async function tapHandler(req: any, res: any) {
     const [user] = await db.select().from(users).where(eq(users.id, telegramId));
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Пассивный доход с рефералов
+    // Реферальный бонус (1%)
     if (user.referredBy && amount > 0) {
       const referralBonus = Math.floor(amount * 0.01);
       if (referralBonus > 0) {
@@ -30,8 +32,8 @@ export async function tapHandler(req: any, res: any) {
           balance: sql`${users.balance} + ${referralBonus}`,
           totalEarned: sql`${users.totalEarned} + ${referralBonus}`,
           referralEarnings: sql`${users.referralEarnings} + ${referralBonus}`,
-          // 👇 реферальный бонус тоже считается доходом (можно отнести к кликам, т.к. это % от кликов)
-          earnedFromClicks: sql`${users.earnedFromClicks} + ${referralBonus}`
+          earnedFromClicks: sql`${users.earnedFromClicks} + ${referralBonus}`,
+          xp: sql`${users.xp} + 1`,
         }).where(eq(users.id, user.referredBy));
       }
     }
@@ -40,23 +42,22 @@ export async function tapHandler(req: any, res: any) {
     quests.progress.click_1000 = Math.min(1000, (quests.progress.click_1000 || 0) + amount);
 
     const pass = getOrCreatePass(user.weeklyPass);
-    const xpMultiplier = pass.isPremium ? 3 : 1;
+    const xpMultiplier = pass.isPremium ? 5 : 1; // 👈 x5
     pass.xp += amount * xpMultiplier;
 
-    // 👇 Обновляем баланс, квесты, пропуск и СТАТИСТИКУ
     const [updatedUser] = await db.update(users).set({
       balance: sql`${users.balance} + ${amount}`,
       totalEarned: sql`${users.totalEarned} + ${amount}`,
-      earnedFromClicks: sql`${users.earnedFromClicks} + ${amount}`, // 👈 ДОБАВЛЕНО
+      earnedFromClicks: sql`${users.earnedFromClicks} + ${amount}`,
       totalClicks: sql`${users.totalClicks} + ${clicksToAdd}`,
+      xp: sql`${users.xp} + ${clicksToAdd}`,
       lastOnlineAt: new Date(),
       dailyQuests: quests,
-      weeklyPass: pass,
-      xp: sql`${users.xp} + ${clicksToAdd}`,
+      weeklyPass: pass, // 👈
     }).where(eq(users.id, telegramId)).returning();
 
     let droppedItem = null;
-    
+
     if (Math.random() < 0.05) {
       const roll = Math.random() * 100;
       let selectedRarity = 'common';
@@ -74,16 +75,16 @@ export async function tapHandler(req: any, res: any) {
       }
     }
 
-        return res.status(200).json({
+    return res.status(200).json({
       success: true,
       newBalance: updatedUser.balance,
       newTotalEarned: updatedUser.totalEarned,
       totalClicks: updatedUser.totalClicks,
-      earnedFromClicks: updatedUser.earnedFromClicks, // 👈 ДОБАВЛЕНО
+      earnedFromClicks: updatedUser.earnedFromClicks,
       xp: updatedUser.xp,
       droppedItem,
       quests,
-      pass: updatedUser.weeklyPass
+      pass: updatedUser.weeklyPass,
     });
   } catch (error) {
     console.error('Tap error:', error);
