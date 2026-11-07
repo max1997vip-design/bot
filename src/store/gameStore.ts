@@ -966,18 +966,26 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   claimQuest: async (questId) => {
-    const initData = getInitData();
-    try {
-      const res = await fetch('/api/game?action=claimQuest', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData, questId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        set((state) => ({ balance: data.newBalance, user: state.user ? { ...state.user, balance: data.newBalance } : null }));
-        return data.quests;
-      }
-      return null;
-    } catch (e) { return null; }
-  }
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=claimQuest', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, questId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set((state) => ({
+        balance: data.newBalance,
+        user: state.user ? {
+          ...state.user,
+          balance: data.newBalance,
+          totalEarned: data.newTotalEarned ?? state.user.totalEarned,
+          xp: data.xp ?? state.user.xp, // 👈 XP
+        } : null,
+      }));
+      return data.quests;
+    }
+    return null;
+  } catch (e) { return null; }
+},
 }));

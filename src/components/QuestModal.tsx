@@ -1,16 +1,25 @@
+// src/components/QuestModal.tsx
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  MousePointerClick, Flag, Coins, Zap, Trophy, X, Check
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import WebApp from '@twa-dev/sdk';
 import { playSound } from '../utils/sound';
+import '../styles/quests.css';
 
 interface Props {
   onClose: () => void;
 }
 
+// 👇 5 заданий с XP
 const QUESTS_INFO = [
-  { id: 'click_1000', title: 'Кликер', desc: 'Сделайте 1000 кликов', target: 1000, reward: 5000, icon: '👆' },
-  { id: 'win_3', title: 'Гонщик', desc: 'Выиграйте 3 гонки', target: 3, reward: 15000, icon: '🏎️' },
-  { id: 'sell_5', title: 'Барахолка', desc: 'Продайте 5 предметов', target: 5, reward: 5000, icon: '💰' },
+  { id: 'click_1000', title: 'Кликер',        desc: 'Сделай 1000 кликов',    target: 1000, reward: 5000,  rewardXp: 25,  icon: MousePointerClick, color: '#00e5ff' },
+  { id: 'win_3',      title: 'Гонщик',        desc: 'Выиграй 3 гонки',        target: 3,    reward: 15000, rewardXp: 50,  icon: Flag,              color: '#ffd700' },
+  { id: 'sell_5',     title: 'Барахолка',     desc: 'Продай 5 предметов',     target: 5,    reward: 5000,  rewardXp: 15,  icon: Coins,             color: '#00d97e' },
+  { id: 'click_5000', title: 'Кликер-мастер', desc: 'Сделай 5000 кликов',     target: 5000, reward: 25000, rewardXp: 100, icon: Zap,               color: '#ff8800' },
+  { id: 'win_5',      title: 'Чемпион',       desc: 'Выиграй 5 гонок',        target: 5,    reward: 50000, rewardXp: 150, icon: Trophy,            color: '#ff4444' },
 ];
 
 export const QuestModal: React.FC<Props> = ({ onClose }) => {
@@ -27,11 +36,8 @@ export const QuestModal: React.FC<Props> = ({ onClose }) => {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
-          setQuests(data.quests);
-        } else {
-          setError(true);
-        }
+        if (data.success) setQuests(data.quests);
+        else setError(true);
       })
       .catch(() => setError(true));
   }, []);
@@ -42,82 +48,107 @@ export const QuestModal: React.FC<Props> = ({ onClose }) => {
     if (newQuests) {
       setQuests(newQuests);
       playSound('coin');
+      WebApp.HapticFeedback?.notificationOccurred('success');
     }
     setLoadingId(null);
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.9)', zIndex: 1000,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px'
-    }}>
-      <div style={{ background: '#1a1a1a', borderRadius: '20px', padding: '25px', width: '100%', maxWidth: '400px', border: '1px solid rgba(255,215,0,0.3)', position: 'relative' }}>
-        
-        <button onClick={onClose} style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}>✕</button>
-        
-        <h2 style={{ color: '#ffd700', textAlign: 'center', margin: '0 0 20px 0' }}>📋 Ежедневные задания</h2>
-        
-        {/* Состояния загрузки и ошибки */}
-        {!quests && !error && (
-          <div style={{ textAlign: 'center', color: '#aaa', padding: '20px 0' }}>
-            Загрузка заданий...
-          </div>
-        )}
+    <div className="quest-overlay" onClick={onClose}>
+      <motion.div
+        className="quest-content"
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="quest-header">
+          <h2>
+            <Trophy size={18} color="var(--gold)" /> ЕЖЕДНЕВНЫЕ ЗАДАНИЯ
+          </h2>
+          <button className="quest-close" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
 
-        {error && (
-          <div style={{ textAlign: 'center', color: '#ff4444', padding: '20px 0' }}>
-            Ошибка загрузки. Попробуйте позже.
-          </div>
-        )}
+        <div className="quest-body">
+          {!quests && !error && (
+            <div style={{ textAlign: 'center', color: '#666', padding: '40px 0' }}>
+              Загрузка заданий...
+            </div>
+          )}
 
-        {/* Список квестов */}
-        {quests && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {QUESTS_INFO.map(q => {
-              const progress = quests.progress?.[q.id] || 0;
-              const isCompleted = progress >= q.target;
-              const isClaimed = quests.claimed?.[q.id];
-              const progressPercent = Math.min(100, (progress / q.target) * 100);
+          {error && (
+            <div style={{ textAlign: 'center', color: 'var(--danger)', padding: '40px 0' }}>
+              Ошибка загрузки. Попробуй позже.
+            </div>
+          )}
 
-              return (
-                <div key={q.id} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '15px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '24px' }}>{q.icon}</span>
-                      <div>
-                        <div style={{ color: 'white', fontWeight: 'bold' }}>{q.title}</div>
-                        <div style={{ color: '#888', fontSize: '12px' }}>{q.desc}</div>
-                      </div>
-                    </div>
-                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{q.reward} ₽</div>
+          {quests && QUESTS_INFO.map((q) => {
+            const progress = quests.progress?.[q.id] || 0;
+            const isCompleted = progress >= q.target;
+            const isClaimed = quests.claimed?.[q.id];
+            const progressPercent = Math.min(100, (progress / q.target) * 100);
+            const Icon = q.icon;
+
+            return (
+              <div key={q.id} className={`quest-card ${isCompleted ? 'completed' : ''} ${isClaimed ? 'claimed' : ''}`}>
+                <div className="quest-icon-wrapper" style={{ background: `${q.color}15`, borderColor: `${q.color}44` }}>
+                  {isClaimed ? (
+                    <Check size={22} color="var(--success)" strokeWidth={3} />
+                  ) : (
+                    <Icon size={22} color={q.color} />
+                  )}
+                </div>
+
+                <div className="quest-info">
+                  <div className="quest-title-row">
+                    <span className="quest-title">{q.title}</span>
+                    <span className="quest-reward">
+                      +{q.reward.toLocaleString('ru-RU')} <span className="currency-ruble sm">₽</span>
+                      <span className="quest-reward-xp">+{q.rewardXp} XP</span>
+                    </span>
                   </div>
+                  <div className="quest-desc">{q.desc}</div>
 
-                  <div style={{ width: '100%', height: '8px', background: '#333', borderRadius: '4px', marginBottom: '10px', overflow: 'hidden' }}>
-                    <div style={{ width: `${progressPercent}%`, height: '100%', background: isCompleted ? '#00d97e' : '#ffd700', transition: 'width 0.3s' }} />
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#aaa', fontSize: '12px' }}>{progress} / {q.target}</span>
-                    <button
-                      onClick={() => handleClaim(q.id)}
-                      disabled={!isCompleted || isClaimed || loadingId === q.id}
+                  <div className="quest-progress-bar">
+                    <div
+                      className="quest-progress-fill"
                       style={{
-                        background: isClaimed ? 'transparent' : isCompleted ? '#00d97e' : 'transparent',
-                        color: isClaimed ? '#555' : isCompleted ? 'black' : '#888',
-                        border: isClaimed ? 'none' : isCompleted ? 'none' : '1px solid #444',
-                        padding: '6px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: (isCompleted && !isClaimed) ? 'pointer' : 'not-allowed'
+                        width: `${progressPercent}%`,
+                        background: isCompleted
+                          ? 'linear-gradient(90deg, var(--success), var(--success-dim))'
+                          : `linear-gradient(90deg, ${q.color}, ${q.color}88)`,
+                        boxShadow: `0 0 8px ${isCompleted ? 'var(--success-glow)' : `${q.color}66`}`,
                       }}
-                    >
-                      {isClaimed ? 'ПОЛУЧЕНО' : loadingId === q.id ? '...' : isCompleted ? 'ЗАБРАТЬ' : 'В ПРОЦЕССЕ'}
-                    </button>
+                    />
+                  </div>
+
+                  <div className="quest-footer">
+                    <span className="quest-progress-text">
+                      {progress.toLocaleString('ru-RU')} / {q.target.toLocaleString('ru-RU')}
+                    </span>
+                    {isClaimed ? (
+                      <span className="quest-status done">ПОЛУЧЕНО</span>
+                    ) : isCompleted ? (
+                      <button
+                        className="quest-claim-btn"
+                        onClick={() => handleClaim(q.id)}
+                        disabled={loadingId === q.id}
+                      >
+                        {loadingId === q.id ? '...' : 'ЗАБРАТЬ'}
+                      </button>
+                    ) : (
+                      <span className="quest-status progress">В ПРОЦЕССЕ</span>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
     </div>
   );
 };

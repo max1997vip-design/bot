@@ -1,7 +1,8 @@
+// api/_lib/handlers/claimQuest.ts
 import { db } from '../db.js';
 import { users } from '../schema.js';
 import { validateInitData } from '../telegram.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { getOrCreateQuests, QUESTS_CONFIG } from '../quests.js';
 
 export async function claimQuestHandler(req: any, res: any) {
@@ -27,14 +28,25 @@ export async function claimQuestHandler(req: any, res: any) {
 
     // Начисляем награду
     quests.claimed[questId] = true;
-    const newBalance = user.balance + config.reward;
-    const newTotalEarned = (user.totalEarned || 0) + config.reward;
 
     const [updated] = await db.update(users)
-      .set({ balance: newBalance, totalEarned: newTotalEarned, dailyQuests: quests })
-      .where(eq(users.id, userId)).returning();
+      .set({
+        balance: sql`${users.balance} + ${config.reward}`,
+        totalEarned: sql`${users.totalEarned} + ${config.reward}`,
+        xp: sql`${users.xp} + ${config.rewardXp}`, // 👈 + XP за квест
+        dailyQuests: quests,
+      })
+      .where(eq(users.id, userId))
+      .returning();
 
-    return res.json({ success: true, newBalance: updated.balance, quests });
+    return res.json({
+      success: true,
+      newBalance: updated.balance,
+      newTotalEarned: updated.totalEarned,
+      xp: updated.xp, // 👈 возвращаем XP
+      rewardXp: config.rewardXp,
+      quests,
+    });
   } catch (error) {
     console.error('claimQuest error:', error);
     return res.status(500).json({ success: false, error: 'Internal server error' });
