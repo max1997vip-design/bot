@@ -7,6 +7,13 @@ import { PASS_LEVELS, PassLevel } from '../config/pass';
 import { playSound } from '../utils/sound';
 import '../styles/pass.css';
 
+const EMPTY_PASS = {
+  xp: 0,
+  isPremium: false,
+  claimed: [] as number[],
+  claimedPremium: [] as number[],
+};
+
 export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const user = useGameStore((s) => s.user);
   const getPass = useGameStore((s) => s.getPass);
@@ -20,14 +27,11 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     getPass();
   }, [getPass]);
 
-  const pass = user?.weeklyPass || {
-    xp: 0,
-    isPremium: false,
-    claimed: [] as number[],
-    claimedPremium: [] as number[],
-  };
+  const pass = user?.weeklyPass ?? EMPTY_PASS;
   const currentXp = pass.xp || 0;
-  const isPremium = pass.isPremium || false; // 👈 ДОБАВЛЕНО
+  const isPremium = pass.isPremium || false;
+  const claimed = pass.claimed || [];
+  const claimedPremium = pass.claimedPremium || [];
 
   const handleClaim = async (level: number, track: 'free' | 'premium') => {
     setLoading(`${level}_${track}`);
@@ -45,13 +49,23 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     if (result.success) {
       playSound('coin');
     } else {
-      alert(`❌ Ошибка: ${result.error}`);
+      alert(`Ошибка: ${result.error}`);
     }
   };
 
-  const nextLevel = PASS_LEVELS.find(l => currentXp < l.xpReq) || PASS_LEVELS[PASS_LEVELS.length - 1];
+  const maxedOut = !PASS_LEVELS.some((l) => currentXp < l.xpReq);
+  const nextLevel =
+    PASS_LEVELS.find((l) => currentXp < l.xpReq) || PASS_LEVELS[PASS_LEVELS.length - 1];
   const prevXpReq = nextLevel.level === 1 ? 0 : PASS_LEVELS[nextLevel.level - 2].xpReq;
-  const progressPercent = Math.min(100, ((currentXp - prevXpReq) / (nextLevel.xpReq - prevXpReq)) * 100);
+  const progressPercent = maxedOut
+    ? 100
+    : Math.min(
+        100,
+        ((currentXp - prevXpReq) / (nextLevel.xpReq - prevXpReq)) * 100
+      );
+  const displayLevel = maxedOut
+    ? PASS_LEVELS[PASS_LEVELS.length - 1].level
+    : nextLevel.level - 1;
 
   return (
     <div className="pass-overlay" onClick={onClose}>
@@ -61,6 +75,7 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+        style={{ willChange: 'transform' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка */}
@@ -76,9 +91,10 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {/* Прогресс-бар */}
         <div className="pass-progress-section">
           <div className="pass-progress-header">
-            <span className="pass-progress-level">УР. {nextLevel.level - 1}</span>
+            <span className="pass-progress-level">УР. {displayLevel}</span>
             <span className="pass-progress-xp">
-              {currentXp.toLocaleString('ru-RU')} / {nextLevel.xpReq.toLocaleString('ru-RU')} XP
+              {currentXp.toLocaleString('ru-RU')} /{' '}
+              {nextLevel.xpReq.toLocaleString('ru-RU')} XP
             </span>
           </div>
           <div className="pass-progress-bar">
@@ -114,16 +130,14 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {/* Табы */}
         <div className="pass-tabs">
           <button
-            className={`pass-tab ${activeTab === 'free' ? 'active' : ''}`}
+            className={`pass-tab free ${activeTab === 'free' ? 'active' : ''}`}
             onClick={() => setActiveTab('free')}
-            style={activeTab === 'free' ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : {}}
           >
             БЕСПЛАТНО
           </button>
           <button
-            className={`pass-tab ${activeTab === 'premium' ? 'active' : ''}`}
+            className={`pass-tab premium ${activeTab === 'premium' ? 'active' : ''}`}
             onClick={() => setActiveTab('premium')}
-            style={activeTab === 'premium' ? { borderColor: 'var(--gold)', color: 'var(--gold)' } : {}}
           >
             <Crown size={14} /> ПРЕМИУМ
           </button>
@@ -132,10 +146,11 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         {/* Список уровней */}
         <div className="pass-body">
           {PASS_LEVELS.map((lvl: PassLevel) => {
-            const isFreeClaimed = (pass.claimed as number[]).includes(lvl.level);
+            const isFreeClaimed = claimed.includes(lvl.level);
             const canClaimFree = currentXp >= lvl.xpReq && !isFreeClaimed;
-            const isPremiumClaimed = (pass.claimedPremium as number[] | undefined)?.includes(lvl.level) ?? false;
-            const canClaimPremium = currentXp >= lvl.xpReq && !isPremiumClaimed && isPremium;
+            const isPremiumClaimed = claimedPremium.includes(lvl.level);
+            const canClaimPremium =
+              currentXp >= lvl.xpReq && !isPremiumClaimed && isPremium;
             const isUnlocked = currentXp >= lvl.xpReq;
 
             const showFree = activeTab === 'free';
@@ -144,11 +159,17 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             return (
               <div
                 key={lvl.level}
-                className={`pass-level ${isUnlocked ? 'unlocked' : 'locked'} ${isPremium ? 'premium' : ''}`}
+                className={`pass-level ${isUnlocked ? 'unlocked' : 'locked'} ${
+                  isPremium ? 'premium' : ''
+                }`}
               >
                 <div className="pass-level-header">
                   <div className={`pass-level-badge ${isUnlocked ? 'unlocked' : ''}`}>
-                    {isUnlocked ? <Check size={14} color="#000" strokeWidth={3} /> : lvl.level}
+                    {isUnlocked ? (
+                      <Check size={14} color="#000" strokeWidth={3} />
+                    ) : (
+                      lvl.level
+                    )}
                   </div>
                   <div className="pass-level-title">УРОВЕНЬ {lvl.level}</div>
                   <div className="pass-level-req">
@@ -163,15 +184,28 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       <div className="pass-reward-label">БЕСПЛАТНО</div>
                       <div className="pass-reward-value">
                         {lvl.reward.toLocaleString('ru-RU')}
-                        <span className="currency-ruble sm" style={{ marginLeft: 4 }}>₽</span>
+                        <span
+                          className="currency-ruble sm"
+                          style={{ marginLeft: 4 }}
+                        >
+                          ₽
+                        </span>
                       </div>
                     </div>
                     <button
-                      className={`pass-claim-btn ${isFreeClaimed ? 'claimed' : canClaimFree ? 'ready' : ''}`}
+                      className={`pass-claim-btn ${
+                        isFreeClaimed ? 'claimed' : canClaimFree ? 'ready' : ''
+                      }`}
                       onClick={() => handleClaim(lvl.level, 'free')}
                       disabled={!canClaimFree || loading === `${lvl.level}_free`}
                     >
-                      {isFreeClaimed ? '✓ ПОЛУЧЕНО' : loading === `${lvl.level}_free` ? '...' : canClaimFree ? 'ЗАБРАТЬ' : 'ЗАКРЫТО'}
+                      {isFreeClaimed
+                        ? '✓ ПОЛУЧЕНО'
+                        : loading === `${lvl.level}_free`
+                        ? '...'
+                        : canClaimFree
+                        ? 'ЗАБРАТЬ'
+                        : 'ЗАКРЫТО'}
                     </button>
                   </div>
                 )}
@@ -184,15 +218,47 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       </div>
                       <div className="pass-reward-value gold">
                         {(lvl.reward * 3).toLocaleString('ru-RU')}
-                        <span className="currency-ruble sm" style={{ marginLeft: 4 }}>₽</span>
+                        <span
+                          className="currency-ruble sm"
+                          style={{ marginLeft: 4 }}
+                        >
+                          ₽
+                        </span>
                       </div>
                     </div>
                     <button
-                      className={`pass-claim-btn ${isPremiumClaimed ? 'claimed' : canClaimPremium ? 'ready-premium' : ''}`}
-                      onClick={() => handleClaim(lvl.level, 'premium')}
-                      disabled={!canClaimPremium || loading === `${lvl.level}_premium`}
+                      className={`pass-claim-btn ${
+                        isPremiumClaimed
+                          ? 'claimed'
+                          : canClaimPremium
+                          ? 'ready-premium'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        if (!isPremium) {
+                          setShowBuyConfirm(true);
+                          return;
+                        }
+                        handleClaim(lvl.level, 'premium');
+                      }}
+                      disabled={
+                        isPremium &&
+                        (!canClaimPremium || loading === `${lvl.level}_premium`)
+                      }
                     >
-                      {isPremiumClaimed ? '✓ ПОЛУЧЕНО' : !isPremium ? '🔒 КУПИ' : loading === `${lvl.level}_premium` ? '...' : canClaimPremium ? 'ЗАБРАТЬ' : 'НЕТ XP'}
+                      {isPremiumClaimed ? (
+                        '✓ ПОЛУЧЕНО'
+                      ) : !isPremium ? (
+                        <>
+                          <Lock size={12} /> КУПИТЬ
+                        </>
+                      ) : loading === `${lvl.level}_premium` ? (
+                        '...'
+                      ) : canClaimPremium ? (
+                        'ЗАБРАТЬ'
+                      ) : (
+                        'НЕТ XP'
+                      )}
                     </button>
                   </div>
                 )}
@@ -223,11 +289,18 @@ export const PassScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <h3>КУПИТЬ ПРЕМИУМ?</h3>
               <p>500,000 ₽ за х3 награды</p>
               <div className="pass-confirm-actions">
-                <button className="pass-confirm-cancel" onClick={() => setShowBuyConfirm(false)}>
+                <button
+                  className="pass-confirm-cancel"
+                  onClick={() => setShowBuyConfirm(false)}
+                >
                   ОТМЕНА
                 </button>
-                <button className="pass-confirm-buy" onClick={handleBuyPremium}>
-                  КУПИТЬ
+                <button
+                  className="pass-confirm-buy"
+                  onClick={handleBuyPremium}
+                  disabled={loading === 'buy'}
+                >
+                  {loading === 'buy' ? '...' : 'КУПИТЬ'}
                 </button>
               </div>
             </motion.div>
