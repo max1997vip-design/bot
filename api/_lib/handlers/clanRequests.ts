@@ -358,3 +358,77 @@ export async function cancelApplicationHandler(req: any, res: any) {
     return res.status(500).json({ error: 'Internal error' });
   }
 }
+
+// ============================================================
+// 8. Поиск игроков (без клана) по username/имени — для приглашений
+// ============================================================
+export async function searchPlayersHandler(req: any, res: any) {
+  try {
+    const { initData, query } = req.body;
+    const valid = validateInitData(initData, process.env.BOT_TOKEN!);
+    if (!valid?.user) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Проверяем, что вызывающий в клане и роль >= officer
+    const myMembership = await db.select().from(clanMembers).where(eq(clanMembers.userId, valid.user.id));
+    if (myMembership.length === 0) return res.status(403).json({ error: 'Вы не в клане' });
+    if (myMembership[0].role === 'member') return res.status(403).json({ error: 'Недостаточно прав' });
+
+    const cleanQuery = (query || '').replace(/^@/, '').trim().toLowerCase();
+    if (cleanQuery.length < 2) return res.status(400).json({ error: 'Минимум 2 символа' });
+
+    // Ищем игроков, которые НЕ в клане
+    const players = await db
+      .select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        level: users.level,
+        xp: users.xp,
+      })
+      .from(users)
+      .where(
+        and(
+          // username ILIKE %query% OR firstName ILIKE %query%
+          or(
+            sql`LOWER(${users.username}) LIKE ${`%${cleanQuery}%`}`,
+            sql`LOWER(${users.firstName}) LIKE ${`%${cleanQuery}%`}`
+          ),
+          // И НЕ в клане
+          sql`NOT EXISTS (
+            SELECT 1 FROM ${clanMembers} 
+            WHERE ${clanMembers.userId} = ${users.id}
+          )`,
+          // И это не я
+          sql`${users.id} != ${valid.user.id}`
+        )
+      )
+      .limit(20);
+
+    // Проверяем, кому уже отправлено приглашение
+    const myClanId = myMembership[0].clanId;
+    const existingInvites = await db
+      .select({ userId: clanRequests.userId })
+      .from(clanRequests)
+      .where(
+        and(
+          eq(clanRequests.clanId, myClanId),
+          eq(clanRequests.direction, 'invite'),
+          eq(clanRequests.status, 'pending')
+        )
+      );
+    const invitedIds = new Set(existingInvites.map(e => e.userId));
+
+    return res.json({
+      success: true,
+      players: players.map(p => ({
+        ...p,
+        invited: invitedIds.has(p.id),
+      })),
+    });
+  } catch (e) {
+    console.error('[searchPlayers]', e);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+}

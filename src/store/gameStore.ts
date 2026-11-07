@@ -80,6 +80,7 @@ interface GameState {
   clanBoss: any | null;
   bossDamageStats: any[];
   referrals: any[];
+  searchPlayers: (query: string) => Promise<{ id: number; username: string | null; firstName: string | null; lastName: string | null; photoUrl: string | null; level: number; xp: number; invited: boolean }[]>;
 
   // 👇 МЕТОД: забрать награду за уровень
   claimLevelReward: () => Promise<{
@@ -453,6 +454,20 @@ inviteToClan: async (targetUsername) => {
   } catch {
     return { success: false, error: 'Ошибка сети' };
   }
+},
+
+searchPlayers: async (query) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=searchPlayers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, query }),
+    });
+    const data = await res.json();
+    if (data.success) return data.players;
+    return [];
+  } catch { return []; }
 },
 
 getMyClanRequests: async () => {

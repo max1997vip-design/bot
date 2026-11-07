@@ -47,6 +47,7 @@ import {
   getClanApplicationsHandler,
   respondToApplicationHandler,
   cancelApplicationHandler,
+  searchPlayersHandler,  
 } from './_lib/handlers/clanRequests.js';
 
 export default async function handler(req: any, res: any) {
@@ -117,6 +118,7 @@ export default async function handler(req: any, res: any) {
     case 'getClanApplications': return getClanApplicationsHandler(req, res);
     case 'respondToApplication': return respondToApplicationHandler(req, res);
     case 'cancelApplication': return cancelApplicationHandler(req, res);
+    case 'searchPlayers': return searchPlayersHandler(req, res);
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

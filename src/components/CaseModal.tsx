@@ -1,8 +1,13 @@
 // src/components/CaseModal.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Clapperboard, Gift, Trophy, Gem, Diamond, Star,
+  X, Package, Cog, Disc, Cpu, Wrench, Sparkles,
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { ITEMS } from '../config/items'; 
+import { ITEMS } from '../config/items';
+import { CASES, CASE_KEYS, CaseConfig } from '../config/cases';
 import WebApp from '@twa-dev/sdk';
 import { playSound } from '../utils/sound';
 import { useAdsgram } from '../hooks/useAdsgram';
@@ -14,68 +19,16 @@ interface CaseModalProps {
   caseType: string;
 }
 
-const CASE_ITEMS: Record<string, any> = {
-  hourly: { name: 'Рекламный', price: 0, icon: '🎬', currency: 'ad', cooldown: 3600000 },
-  silver: { name: 'Серебряный', price: 25000, icon: '🎁', currency: 'coins' },
-  gold: { name: 'Золотой', price: 100000, icon: '🏆', currency: 'coins' },
-  platinum: { name: 'Платиновый', price: 500000, icon: '₽', currency: 'coins' },
-  diamond: { name: 'Алмазный', price: 2000000, icon: '💠', currency: 'coins' },
-  star_premium: { name: 'Звездный', price: 50, icon: '⭐', currency: 'stars' }
-};
+const CASE_ICON_MAP = {
+  Clapperboard, Gift, Trophy, Gem, Diamond, Star,
+} as const;
 
-const CASE_ITEMS_POOL = {
-  hourly: [
-    'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000', 'coins_5000',
-    'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000',
-    'coins_20000', 'coins_20000', 'coins_20000',
-    'engine_2', 'engine_2', 'engine_2',
-    'tires_2', 'tires_2',
-    'ecu_2', 'ecu_2'
-  ],
-  silver: [
-    'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000', 'coins_10000',
-    'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000', 'coins_25000',
-    'coins_40000', 'coins_40000', 'coins_40000',
-    'engine_2', 'engine_2', 'engine_2',
-    'tires_2', 'tires_2',
-    'ecu_1', 'ecu_1'
-  ],
-  gold: [
-    'coins_50000', 'coins_50000', 'coins_50000', 'coins_50000', 'coins_50000',
-    'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000', 'coins_100000',
-    'coins_150000', 'coins_150000', 'coins_150000',
-    'engine_3', 'engine_3', 'engine_3',
-    'ecu_3', 'ecu_3',
-    'susp_3', 'susp_3'
-  ],
-  platinum: [
-    'coins_250000', 'coins_250000', 'coins_250000', 'coins_250000', 'coins_250000',
-    'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000', 'coins_500000',
-    'coins_750000', 'coins_750000', 'coins_750000',
-    'engine_4', 'engine_4', 'engine_4',
-    'tires_4', 'tires_4',
-    'ecu_4', 'ecu_4', // 👈 Добавлена прошивка
-    'susp_4', 'susp_4'
-  ],
-  diamond: [
-    'coins_1000000', 'coins_1000000', 'coins_1000000', 'coins_1000000', 'coins_1000000',
-    'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000',
-    'coins_3000000', 'coins_3000000', 'coins_3000000',
-    'engine_5', 'engine_5', 
-    'tires_5', 'tires_5',
-    'ecu_5', 'ecu_5', // 👈 Добавлена прошивка
-    'susp_5'
-  ],
-  star_premium: [
-    'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000', 'coins_2000000',
-    'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000', 'coins_5000000',
-    'coins_10000000', 'coins_10000000', 'coins_10000000',
-    'engine_5', 'engine_5', 'engine_5',
-    'tires_5', 'tires_5',
-    'ecu_5', // 👈 Добавлена прошивка
-    'susp_5'
-  ]
-};
+const SLOT_ICON_MAP = {
+  engine: Cog,
+  tires: Disc,
+  ecu: Cpu,
+  suspension: Wrench,
+} as const;
 
 export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseModalProps) {
   const [activeCase, setActiveCase] = useState(initialCaseType || 'hourly');
@@ -85,7 +38,7 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [pendingAdOpen, setPendingAdOpen] = useState(false);
   const [targetX, setTargetX] = useState(0);
-  
+
   const reelRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef({ isWatchingAd, pendingAdOpen, activeCase });
   useEffect(() => {
@@ -94,21 +47,22 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
 
   const balance = useGameStore((s) => s.balance);
   const user = useGameStore((s) => s.user);
-  const openCase = useGameStore((s) => s.openCase); 
+  const openCase = useGameStore((s) => s.openCase);
 
-  const caseConfig = CASE_ITEMS[activeCase];
-  const itemsPool = CASE_ITEMS_POOL[activeCase as keyof typeof CASE_ITEMS_POOL];
+  const caseConfig: CaseConfig = CASES[activeCase];
+  const itemsPool = caseConfig.items;
 
   const [timeLeft, setTimeLeft] = useState(0);
   useEffect(() => {
-    if (activeCase !== 'hourly' || !user?.lastAdCaseAt) return;
+    if (caseConfig.currency !== 'ad' || !user?.lastAdCaseAt) return;
+    const cd = caseConfig.cooldownMs || 3600000;
     const interval = setInterval(() => {
       const last = new Date(user.lastAdCaseAt!).getTime();
-      const remaining = Math.max(0, (last + 3600000) - Date.now());
+      const remaining = Math.max(0, last + cd - Date.now());
       setTimeLeft(remaining);
     }, 1000);
     return () => clearInterval(interval);
-  }, [activeCase, user?.lastAdCaseAt]);
+  }, [caseConfig, user?.lastAdCaseAt]);
 
   const formatTime = (ms: number) => {
     const m = Math.floor(ms / 60000);
@@ -119,26 +73,26 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
   const executeCaseOpening = async (caseTypeToOpen: string) => {
     setIsOpening(true);
     setWonItem(null);
-    setReelItems([]); 
+    setReelItems([]);
     playSound('click');
 
     try {
       const res = await openCase(caseTypeToOpen);
-      
+
       if (res.success && res.wonItem) {
-        const pool = CASE_ITEMS_POOL[caseTypeToOpen as keyof typeof CASE_ITEMS_POOL];
-        const newReel = Array.from({ length: 50 }, () => 
-          pool[Math.floor(Math.random() * pool.length)]
+        const pool = CASES[caseTypeToOpen]?.items || [];
+        const poolIds = pool.map((p) => p.id);
+        const newReel = Array.from({ length: 50 }, () =>
+          poolIds[Math.floor(Math.random() * poolIds.length)]
         );
         newReel[45] = res.wonItem.id;
-        
+
         setReelItems(newReel);
         setWonItem(res.wonItem);
 
         const containerWidth = reelRef.current ? reelRef.current.offsetWidth : 300;
         const ITEM_WIDTH = 100;
-        const exactX = (containerWidth / 2) - (45 * ITEM_WIDTH + 45);
-        
+        const exactX = containerWidth / 2 - (45 * ITEM_WIDTH + 45);
         setTargetX(exactX);
 
         setTimeout(() => {
@@ -148,44 +102,46 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
         }, 4200);
       } else {
         setIsOpening(false);
-        WebApp.showAlert(res.error || "Не удалось открыть кейс.");
+        WebApp.showAlert(res.error || 'Не удалось открыть кейс.');
       }
-    } catch (e) {
+    } catch {
       setIsOpening(false);
-      WebApp.showAlert("Ошибка соединения с сервером.");
+      WebApp.showAlert('Ошибка соединения с сервером.');
     }
   };
 
   const showAd = useAdsgram({
-    blockId: '55486', 
+    blockId: '55486',
     onReward: async () => {
       setIsWatchingAd(false);
       setPendingAdOpen(false);
-      setTimeout(() => {
-        executeCaseOpening(stateRef.current.activeCase);
-      }, 100);
+      setTimeout(() => executeCaseOpening(stateRef.current.activeCase), 100);
     },
-    onError: (err) => {
+    onError: () => {
       setIsWatchingAd(false);
       setPendingAdOpen(false);
-      WebApp.showAlert("Реклама не была просмотрена до конца. Попробуйте позже.");
+      WebApp.showAlert('Реклама не была просмотрена до конца. Попробуйте позже.');
     },
   });
 
   const getItemData = (id: string) => {
     if (id.startsWith('coins_')) {
       const amount = id.split('_')[1];
-      return { name: `${Number(amount).toLocaleString('ru-RU')} ₽`, icon: '₽', rarity: 'common' };
+      return {
+        name: `${Number(amount).toLocaleString('ru-RU')} ₽`,
+        IconComponent: null as any,
+        slot: null as any,
+        rarity: 'common',
+      };
     }
-    const item = (ITEMS as any)[id];
-    
-    let icon = '📦';
-    if (item?.slot === 'engine') icon = '⚙️';
-    else if (item?.slot === 'tires') icon = '🛞';
-    else if (item?.slot === 'ecu') icon = '💻';
-    else if (item?.slot === 'suspension') icon = '🧲';
-
-    return { name: item?.name || 'Неизвестный предмет', icon, rarity: item?.rarity || 'common' };
+    const item = ITEMS[id];
+    const IconComponent = item ? SLOT_ICON_MAP[item.slot] : Package;
+    return {
+      name: item?.name || 'Неизвестный предмет',
+      IconComponent,
+      slot: item?.slot ?? null,
+      rarity: item?.rarity || 'common',
+    };
   };
 
   const handleOpenClick = () => {
@@ -202,94 +158,166 @@ export function CaseModal({ isOpen, onClose, caseType: initialCaseType }: CaseMo
 
   if (!isOpen) return null;
 
-  const canAfford = caseConfig.currency === 'coins' ? balance >= caseConfig.price : 
-                    caseConfig.currency === 'stars' ? (user?.starsBalance || 0) >= caseConfig.price : true;
+  const canAfford =
+    caseConfig.currency === 'coins'
+      ? balance >= caseConfig.price
+      : caseConfig.currency === 'stars'
+      ? (user?.starsBalance || 0) >= caseConfig.price
+      : true;
+
+  const ActiveCaseIcon = CASE_ICON_MAP[caseConfig.iconName] || Gift;
 
   return (
-    <div className="case-overlay">
-      <motion.div 
+    <div className="case-overlay" onClick={onClose}>
+      <motion.div
         className="case-modal"
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        
+        {/* Шапка */}
         <div className="case-header">
-          <h2>Открытие Кейсов</h2>
-          <button className="case-close-btn" onClick={onClose} disabled={isOpening}>✕</button>
+          <h2>
+            <ActiveCaseIcon size={18} color={caseConfig.accentColor} />
+            ОТКРЫТИЕ КЕЙСОВ
+          </h2>
+          <button
+            className="case-close-btn"
+            onClick={onClose}
+            disabled={isOpening}
+            aria-label="Закрыть"
+          >
+            <X size={18} />
+          </button>
         </div>
 
+        {/* Табы */}
         <div className="case-tabs">
-          {Object.keys(CASE_ITEMS).map((key) => (
-            <button
-              key={key}
-              className={`case-tab ${activeCase === key ? 'active' : ''} ${CASE_ITEMS[key].currency === 'ad' ? 'ad-tab' : ''}`}
-              onClick={() => { setActiveCase(key); setReelItems([]); setWonItem(null); }}
-              disabled={isOpening}
-            >
-              {CASE_ITEMS[key].icon} {CASE_ITEMS[key].name}
-            </button>
-          ))}
+          {CASE_KEYS.map((key) => {
+            const cfg = CASES[key];
+            const Icon = CASE_ICON_MAP[cfg.iconName] || Gift;
+            const isActive = activeCase === key;
+            const isAd = cfg.currency === 'ad';
+            return (
+              <button
+                key={key}
+                className={`case-tab ${isActive ? 'active' : ''} ${isAd ? 'ad-tab' : ''}`}
+                onClick={() => {
+                  setActiveCase(key);
+                  setReelItems([]);
+                  setWonItem(null);
+                }}
+                disabled={isOpening}
+                style={
+                  isActive
+                    ? { borderColor: cfg.accentColor, color: cfg.accentColor }
+                    : {}
+                }
+              >
+                <Icon size={14} color={isActive ? cfg.accentColor : 'currentColor'} />
+                {cfg.name}
+              </button>
+            );
+          })}
         </div>
 
+        {/* Рулетка */}
         <div className="case-reel-container" ref={reelRef}>
           <div className="case-reel-pointer" />
           {reelItems.length > 0 ? (
-            <motion.div 
+            <motion.div
               className="case-reel"
-              key={activeCase + reelItems[45]}
+              key={activeCase + (reelItems[45] || '')}
               initial={{ x: 0 }}
               animate={{ x: targetX }}
               transition={{ duration: 4.5, ease: [0.1, 0.8, 0.2, 1] }}
             >
               {reelItems.map((itemId, index) => {
-                const itemData = getItemData(itemId);
+                const d = getItemData(itemId);
+                const Icon = d.IconComponent;
                 return (
-                  <div key={index} className={`case-reel-item rarity-${itemData.rarity}`}>
-                    <div className="item-icon">{itemData.icon}</div>
-                    <span className="item-name">{itemData.name}</span>
+                  <div
+                    key={index}
+                    className={`case-reel-item rarity-${d.rarity}`}
+                  >
+                    <div className="item-icon">
+                      {Icon ? (
+                        <Icon size={32} color="currentColor" />
+                      ) : (
+                        <span className="item-icon-coin">₽</span>
+                      )}
+                    </div>
+                    <span className="item-name">{d.name}</span>
                   </div>
                 );
               })}
             </motion.div>
           ) : (
-            /* 👇 НОВЫЙ ПЛЕЙСХОЛДЕР */
             <div className="case-placeholder">
-              <div className="case-placeholder-icon">🎁</div>
-              <div>Испытай свою удачу</div>
+              <motion.div
+                className="case-placeholder-icon"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Sparkles size={40} color={caseConfig.accentColor} />
+              </motion.div>
+              <div style={{ color: caseConfig.accentColor }}>
+                Испытай свою удачу
+              </div>
             </div>
           )}
         </div>
 
+        {/* Результат + кнопка */}
         <div className="case-actions">
-          
           <AnimatePresence mode="wait">
             {wonItem && !isOpening && (
-              <motion.div 
+              <motion.div
                 key="result"
-                initial={{ opacity: 0, scale: 0.8, y: 15 }} 
+                initial={{ opacity: 0, scale: 0.8, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 className="case-result"
               >
                 <h3>Вы получили:</h3>
-                <div className="result-item-name">{getItemData(wonItem.id).name}</div>
+                <div className="result-item-name">
+                  {getItemData(wonItem.id).name}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <button 
-            className={`case-btn-primary ${canAfford || caseConfig.currency === 'ad' ? 'ready' : ''}`}
-            onClick={handleOpenClick} 
-            disabled={(!canAfford && caseConfig.currency !== 'ad') || isOpening || isWatchingAd || (caseConfig.currency === 'ad' && timeLeft > 0)}
+          <button
+            className={`case-btn-primary ${
+              canAfford || caseConfig.currency === 'ad' ? 'ready' : ''
+            }`}
+            onClick={handleOpenClick}
+            disabled={
+              (!canAfford && caseConfig.currency !== 'ad') ||
+              isOpening ||
+              isWatchingAd ||
+              (caseConfig.currency === 'ad' && timeLeft > 0)
+            }
+            style={
+              canAfford || caseConfig.currency === 'ad'
+                ? {
+                    background: `linear-gradient(135deg, ${caseConfig.accentColor}, ${caseConfig.accentColor}99)`,
+                  }
+                : undefined
+            }
           >
-            {isOpening ? 'Крутим...' : 
-             isWatchingAd ? 'Загрузка рекламы...' :
-             caseConfig.currency === 'ad' && timeLeft > 0 ? `Ждать ${formatTime(timeLeft)}` :
-             caseConfig.currency === 'ad' ? '🎬 Смотреть рекламу (Бесплатно)' :
-             caseConfig.currency === 'stars' ? `Открыть за ${caseConfig.price} ⭐` :
-             `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} ₽`}
+            {isOpening
+              ? 'Крутим...'
+              : isWatchingAd
+              ? 'Загрузка рекламы...'
+              : caseConfig.currency === 'ad' && timeLeft > 0
+              ? `Ждать ${formatTime(timeLeft)}`
+              : caseConfig.currency === 'ad'
+              ? 'СМОТРЕТЬ РЕКЛАМУ (БЕСПЛАТНО)'
+              : caseConfig.currency === 'stars'
+              ? `Открыть за ${caseConfig.price} ⭐`
+              : `Открыть за ${caseConfig.price.toLocaleString('ru-RU')} ₽`}
           </button>
-
         </div>
       </motion.div>
     </div>
