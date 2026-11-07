@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+  padding-top: calc(16px + var(--tg-safe-top, 0px));
 }
 
 .pass-content {
@@ -19,7 +20,7 @@
   border-radius: 24px;
   width: 100%;
   max-width: 500px;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 32px - var(--tg-safe-top, 0px)); /* 👈 */
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 229, 255, 0.1);

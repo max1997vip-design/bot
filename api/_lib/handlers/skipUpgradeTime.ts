@@ -26,19 +26,15 @@ export async function skipUpgradeTimeHandler(req: any, res: any) {
       return res.status(400).json({ error: 'Улучшение уже завершено' });
     }
 
-    // Ограничиваем максимум 15 минутами за один просмотр
     const safeReduce = Math.min(Math.max(0, reduceMs || MAX_REDUCE_MS), MAX_REDUCE_MS);
-
-    // Уменьшаем таймер
     const newUpgradingUntil = Math.max(Date.now(), currentUpg.upgradingUntil - safeReduce);
+
     partUpg[itemId] = {
       ...currentUpg,
       upgradingUntil: newUpgradingUntil,
     };
 
-    await db.update(users).set({ partUpgrades: partUpg }).where(eq(users.id, user.id));
-
-    // Если таймер теперь в прошлом — автоматически применяем результат
+    // Если таймер теперь в прошлом — применяем результат
     let applied = false;
     if (newUpgradingUntil <= Date.now()) {
       if (currentUpg.upgradeType === 'level') partUpg[itemId].level += 1;
@@ -46,12 +42,13 @@ export async function skipUpgradeTimeHandler(req: any, res: any) {
       if (currentUpg.upgradeType === 'red') partUpg[itemId].redStars += 1;
       partUpg[itemId].upgradingUntil = null;
       partUpg[itemId].upgradeType = null;
-      await db.update(users).set({ partUpgrades: partUpg }).where(eq(users.id, user.id));
       applied = true;
     }
 
-    return res.json({ 
-      success: true, 
+    await db.update(users).set({ partUpgrades: partUpg }).where(eq(users.id, user.id));
+
+    return res.json({
+      success: true,
       partUpgrades: partUpg,
       applied,
       reducedMs: safeReduce,

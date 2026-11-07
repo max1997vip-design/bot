@@ -102,6 +102,7 @@ interface GameState {
   sendClanMessage: (message: string) => Promise<boolean>;
   markClanChatAsRead: () => void;
   fetchReferrals: () => Promise<void>;
+  skipUpgradeTime: (itemId: string, reduceMs?: number) => Promise<boolean>;
   
   setUser: (user: UserData, inventory: string[], equipped: Record<string, string | null>) => void;
   tap: () => void;
@@ -924,6 +925,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ balance: state.balance, inventory: state.inventory, user: state.user });
       return false;
     }
+  },
+
+  skipUpgradeTime: async (itemId: string, reduceMs = 15 * 60 * 1000) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=skipUpgradeTime', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, itemId, reduceMs }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set((s) => ({
+        user: s.user ? { ...s.user, partUpgrades: data.partUpgrades } : null,
+      }));
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error('[skipUpgradeTime]', e);
+    return false;
+  }
   },
 
   claimDaily: async () => {

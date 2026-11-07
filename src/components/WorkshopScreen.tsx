@@ -1,8 +1,8 @@
 // src/components/WorkshopScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Wrench, Hammer, X, Check, Timer, Zap, Cog, Disc, Cpu,
+  Wrench, Hammer, X, Check, Timer, Cog, Disc, Cpu,
   TrendingUp, Sparkles, Play
 } from 'lucide-react';
 import { useGameStore, PartUpgrade } from '../store/gameStore';
@@ -19,13 +19,6 @@ const SLOT_ICONS: Record<ItemSlot, any> = {
   suspension: Wrench,
 };
 
-const SLOT_NAMES: Record<ItemSlot, string> = {
-  engine: 'Двигатель',
-  tires: 'Шины',
-  ecu: 'Прошивка',
-  suspension: 'Подвеска',
-};
-
 const AD_REDUCE_MS = 15 * 60 * 1000; // 15 минут
 
 type TabId = 'upgrade' | 'craft';
@@ -38,11 +31,14 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
   const claimUpgrade = useGameStore((s) => s.claimUpgrade);
   const craftItem = useGameStore((s) => s.craftItem);
   const skipUpgradeTime = useGameStore((s) => s.skipUpgradeTime);
+
   const [loading, setLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('upgrade');
   const [now, setNow] = useState(Date.now());
 
-  // 👇 Тик для обновления таймеров
+  // 👇 REF для рекламы (как в CaseModal)
+  const adStateRef = useRef<{ pendingItemId: string | null }>({ pendingItemId: null });
+
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
@@ -77,24 +73,23 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
     playSound('coin');
   };
 
-  // 👇 Реклама за ускорение
-  const handleSkipWithAd = (itemId: string) => {
-    // Сохраняем itemId для колбэка
-    currentAdItemRef.current = itemId;
-    showAd();
-  };
-
-  const currentAdItemRef = React.useRef<string | null>(null);
-
+  // 👇 Реклама (аналог CaseModal)
   const showAd = useAdsgram({
-    blockId: '55486', // тот же что в CaseModal
+    blockId: '55486',
     onReward: async () => {
-      const itemId = currentAdItemRef.current;
-      if (!itemId) return;
+      const itemId = adStateRef.current.pendingItemId;
+      console.log('[Workshop] Ad reward, item:', itemId);
+
+      if (!itemId) {
+        console.warn('[Workshop] No pending item!');
+        adStateRef.current = { pendingItemId: null };
+        return;
+      }
 
       setLoading(`skip_${itemId}`);
       const success = await skipUpgradeTime(itemId, AD_REDUCE_MS);
       setLoading(null);
+      adStateRef.current = { pendingItemId: null };
 
       if (success) {
         playSound('coin');
@@ -102,13 +97,19 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
       } else {
         WebApp.showAlert('Не удалось ускорить улучшение');
       }
-      currentAdItemRef.current = null;
     },
-    onError: () => {
+    onError: (err) => {
+      console.error('[Workshop] Ad error:', err);
       WebApp.showAlert('Реклама не была просмотрена до конца');
-      currentAdItemRef.current = null;
+      adStateRef.current = { pendingItemId: null };
     },
   });
+
+  const handleSkipWithAd = (itemId: string) => {
+    console.log('[Workshop] Starting ad for:', itemId);
+    adStateRef.current = { pendingItemId: itemId };
+    showAd();
+  };
 
   const formatTimeLeft = (ms: number) => {
     const totalSec = Math.floor(ms / 1000);
@@ -183,11 +184,11 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                     const item = ITEMS[itemId];
                     if (!item) return null;
 
-                    const upg = partUpgrades[itemId] || { 
-                      level: 0, goldStars: 0, redStars: 0, 
-                      upgradingUntil: null, upgradeType: null 
+                    const upg = partUpgrades[itemId] || {
+                      level: 0, goldStars: 0, redStars: 0,
+                      upgradingUntil: null, upgradeType: null,
                     };
-                    
+
                     const isUpgrading = !!upg.upgradingUntil && upg.upgradingUntil > now;
                     const canClaim = !!upg.upgradingUntil && upg.upgradingUntil <= now;
                     const timeLeft = isUpgrading ? upg.upgradingUntil! - now : 0;
@@ -200,7 +201,10 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
                         key={itemId}
                         className={`workshop-card ${isUpgrading ? 'upgrading' : ''} ${canClaim ? 'claimable' : ''}`}
                       >
-                        <div className="workshop-card-icon" style={{ background: `${rarityColor}15`, border: `1px solid ${rarityColor}44` }}>
+                        <div
+                          className="workshop-card-icon"
+                          style={{ background: `${rarityColor}15`, border: `1px solid ${rarityColor}44` }}
+                        >
                           <Icon size={22} color={rarityColor} />
                         </div>
 
@@ -311,7 +315,10 @@ export const WorkshopScreen: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
                   return (
                     <div key={itemId} className="workshop-craft-card">
-                      <div className="workshop-card-icon" style={{ background: `${rarityColor}15`, border: `1px solid ${rarityColor}44` }}>
+                      <div
+                        className="workshop-card-icon"
+                        style={{ background: `${rarityColor}15`, border: `1px solid ${rarityColor}44` }}
+                      >
                         <Icon size={22} color={rarityColor} />
                       </div>
                       <div className="workshop-card-info">
