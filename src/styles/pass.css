@@ -1,7 +1,7 @@
 /* src/styles/pass.css */
 
 /* ============================================================
-   OVERLAY — центрирование + safe-area + отступ под нижнее меню
+   OVERLAY — центрирование + Telegram-хедер + отступ под меню
    ============================================================ */
 .pass-overlay {
   position: fixed;
@@ -14,7 +14,8 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  /* 👇 сверху — зона Telegram-хедера (85px), снизу — home-индикатор + меню */
+  padding-top: calc(16px + var(--tg-safe-top, 0px));
   padding-bottom: calc(
     16px + env(safe-area-inset-bottom, 0px) + var(--nav-height, 76px)
   );
@@ -29,8 +30,9 @@
   border-radius: 24px;
   width: 100%;
   max-width: 500px;
+  /* 👇 вычитаем: safe-top (Telegram-хедер) + safe-bottom + меню */
   max-height: calc(
-    100vh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--nav-height, 76px)
+    100vh - 32px - var(--tg-safe-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--nav-height, 76px)
   );
   display: flex;
   flex-direction: column;
@@ -444,7 +446,8 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  /* 👇 та же логика — Telegram-хедер сверху */
+  padding-top: calc(16px + var(--tg-safe-top, 0px));
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
