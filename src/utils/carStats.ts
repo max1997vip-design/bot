@@ -75,3 +75,28 @@ export function getCarRating(stats: CarPhysics): number {
     stats.grip * 3
   );
 }
+
+/**
+ * 🎯 Возвращает множитель к силе клика от текущей машины.
+ * VAZ 2107 = 1.0, Civic = 1.1, ..., Solus = 3.2.
+ */
+export function getClickMultiplier(carId: string): number {
+  const car = CARS[carId] || CARS['vaz-2107'];
+  return car.clickMultiplier || 1.0;
+}
+
+/**
+ * 🎯 Возвращает награду за победу в гонке.
+ */
+export function getRaceReward(carId: string): number {
+  const car = CARS[carId] || CARS['vaz-2107'];
+  return car.raceReward || 1000;
+}
+
+/**
+ * 🎯 Возвращает награду за поражение в гонке.
+ */
+export function getRaceLoseReward(carId: string): number {
+  const car = CARS[carId] || CARS['vaz-2107'];
+  return car.raceLoseReward || 100;
+}

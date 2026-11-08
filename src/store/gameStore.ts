@@ -1,6 +1,7 @@
 // src/store/gameStore.ts
 import { create } from 'zustand';
 import { calculateStats, ITEMS, SELL_PRICES } from '../config/items';
+import { getClickMultiplier } from '../utils/carStats';
 import WebApp from '@twa-dev/sdk';
 import { getInitData } from '../lib/telegram';
 
@@ -259,36 +260,40 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   // ==================== ТАП ====================
   tap: () => {
-    const state = get();
-    const now = Date.now();
-    const tapPower = state.user?.clickLevel || 1;
-
-    let newTapCount = state.tapCountInSecond;
-    let lastSecond = state.lastTapSecond;
-    if (now - lastSecond > 1000) {
-      newTapCount = 1;
-      lastSecond = now;
-    } else {
-      if (newTapCount >= 15) return;
-      newTapCount += 1;
-    }
-
-    set((s) => ({
-      tapCountInSecond: newTapCount,
-      lastTapSecond: lastSecond,
-      balance: s.balance + tapPower,
-      user: s.user
-        ? {
-            ...s.user,
-            totalEarned: s.user.totalEarned + tapPower,
-            totalClicks: (s.user.totalClicks || 0) + 1,
-            earnedFromClicks: (s.user.earnedFromClicks || 0) + tapPower,
-            xp: (s.user.xp || 0) + 1,
-          }
-        : null,
-      unsyncedTaps: s.unsyncedTaps + tapPower,
-      unsyncedClicks: s.unsyncedClicks + 1,
-    }));
+  const state = get();
+  const now = Date.now();
+  
+  // 🎯 Сила клика = clickLevel (линейно) × множитель машины
+  const basePower = state.user?.clickLevel || 1;
+  const carMultiplier = getClickMultiplier(state.user?.activeCarId || 'vaz-2107');
+  const tapPower = Math.floor(basePower * carMultiplier);
+  
+  let newTapCount = state.tapCountInSecond;
+  let lastSecond = state.lastTapSecond;
+  if (now - lastSecond > 1000) {
+    newTapCount = 1;
+    lastSecond = now;
+  } else {
+    if (newTapCount >= 15) return;
+    newTapCount += 1;
+  }
+  
+  set((s) => ({
+    tapCountInSecond: newTapCount,
+    lastTapSecond: lastSecond,
+    balance: s.balance + tapPower,
+    user: s.user
+      ? {
+          ...s.user,
+          totalEarned: s.user.totalEarned + tapPower,
+          totalClicks: (s.user.totalClicks || 0) + 1,
+          earnedFromClicks: (s.user.earnedFromClicks || 0) + tapPower,
+          xp: (s.user.xp || 0) + 1,
+        }
+      : null,
+    unsyncedTaps: s.unsyncedTaps + tapPower,
+    unsyncedClicks: s.unsyncedClicks + 1,
+  }));
   },
 
   // ==================== КЕЙСЫ ====================

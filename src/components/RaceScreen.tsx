@@ -10,6 +10,7 @@ import { playSound } from '../utils/sound';
 import { QuestModal } from './QuestModal';
 import { PassScreen } from './PassScreen';
 import { TintedCarImage } from './TintedCarImage';
+import { getClickMultiplier } from '../utils/carStats';
 import '../styles/race.css';
 import '../styles/races.css';
 
@@ -98,12 +99,14 @@ export function RaceScreen() {
   const activeCar = CARS[activeCarId] || CARS['vaz-2107'];
 
   const clickLevel = user?.clickLevel || 1;
+  const carMultiplier = getClickMultiplier(user?.activeCarId || 'vaz-2107');
+  const effectiveTapPower = Math.floor(clickLevel * carMultiplier);
   const offlineLevel = user?.offlineLevel || 1;
   const clickCost = Math.floor(1000 * Math.pow(1.5, clickLevel - 1));
   const offlineCost = Math.floor(5000 * Math.pow(1.8, offlineLevel - 1));
 
   const canUpgrade = balance >= clickCost || balance >= offlineCost;
-  const hasPassRewards = false; // заглушка
+  const hasPassRewards = false;
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const before = useGameStore.getState().balance;
@@ -123,7 +126,7 @@ export function RaceScreen() {
         id: textIdCounter.current++,
         x: e.clientX,
         y: e.clientY - 50,
-        value: clickLevel
+        value: effectiveTapPower, // 👈 показываем реальную силу клика с множителем
       };
       
       setFloatingTexts(prev => [...prev, newText]);
@@ -137,7 +140,7 @@ export function RaceScreen() {
       if (rejectTimer.current) clearTimeout(rejectTimer.current);
       rejectTimer.current = setTimeout(() => setIsRejected(false), 160);
     }
-  }, [tap, clickLevel]);
+  }, [tap, effectiveTapPower]);
 
   const carStyles = {
     '--left-hl-x': activeCar.leftHeadlight?.x || '30%',
@@ -208,7 +211,6 @@ export function RaceScreen() {
           onPointerDown={handlePointerDown}
         />
 
-        {/* ВЕРТИКАЛЬНАЯ ПАНЕЛЬ ДЕЙСТВИЙ */}
         <div className="race-action-panel">
           <button
             onClick={() => setShowQuests(true)}
@@ -243,7 +245,6 @@ export function RaceScreen() {
         {showQuests && <QuestModal onClose={() => setShowQuests(false)} />}
         {showPass && <PassScreen onClose={() => setShowPass(false)} />}
 
-        {/* МОДАЛКА УЛУЧШЕНИЙ */}
         <AnimatePresence>
           {showUpgrades && (
             <motion.div
@@ -277,9 +278,13 @@ export function RaceScreen() {
                     </div>
                     <div className="race-upgrade-info">
                       <div className="race-upgrade-title">Сила клика</div>
-                      <div className="race-upgrade-desc">+1 ₽ за клик</div>
-                      <div className="race-upgrade-level" style={{ color: 'var(--success)' }}>
-                        Уровень: {clickLevel}
+                      <div className="race-upgrade-desc">
+                        +{effectiveTapPower} ₽ за клик
+                        {carMultiplier > 1 && (
+                          <span style={{ color: '#00d97e', marginLeft: 6 }}>
+                            (×{carMultiplier.toFixed(1)} от машины)
+                          </span>
+                        )}
                       </div>
                     </div>
                     <button

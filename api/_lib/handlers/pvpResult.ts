@@ -5,10 +5,11 @@ import { validateInitData } from '../telegram.js';
 import { eq, sql, and } from 'drizzle-orm';
 import { getOrCreateQuests } from '../quests.js';
 import { getOrCreatePass } from '../pass.js';
-import { checkAndAwardBadges } from './badges.js'; // 👈 ДОБАВЛЕНО
+import { checkAndAwardBadges } from './badges.js';
+import { CARS } from '../../../src/config/cars.js';
 
 export async function pvpResultHandler(req: any, res: any) {
-  const { initData, won, ratingDelta, coinsDelta } = req.body;
+  const { initData, won, ratingDelta } = req.body;
   const validatedData = validateInitData(initData, process.env.BOT_TOKEN!);
   if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -19,14 +20,19 @@ export async function pvpResultHandler(req: any, res: any) {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const safeRating = Math.max(-100, Math.min(100, Math.round(ratingDelta ?? 0)));
-    const safeCoins = Math.max(-10000, Math.min(10000, Math.round(coinsDelta ?? 0)));
+
+    // 🎯 Доход от гонок — зависит от машины
+    const carId = user.activeCarId || 'vaz-2107';
+    const car = CARS[carId] || CARS['vaz-2107'];
+    const raceReward = won ? (car.raceReward || 1000) : 0;
+    const raceLose = !won ? (car.raceLoseReward || 100) : 0;
+    const safeCoins = raceReward - raceLose;
 
     const quests = getOrCreateQuests(user.dailyQuests);
     if (won) {
       quests.progress.win_3 = Math.min(3, (quests.progress.win_3 || 0) + 1);
     }
 
-    // XP для пропуска
     const pass = getOrCreatePass(user.weeklyPass);
     const baseRaceXp = won ? 10 : 2;
     const xpMultiplier = pass.isPremium ? 5 : 1;
@@ -51,15 +57,14 @@ export async function pvpResultHandler(req: any, res: any) {
       }
     }
 
-    // XP для уровня персонажа
     const levelXpReward = won ? 50 : 10;
 
     const statsUpdate = won
       ? {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
           balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
-          totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
-          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`,
+          totalEarned: sql`${users.totalEarned} + ${safeCoins}`,
+          earnedFromRaces: sql`${users.earnedFromRaces} + ${safeCoins}`,
           totalRaces: sql`${users.totalRaces} + 1`,
           totalWins: sql`${users.totalWins} + 1`,
           xp: sql`${users.xp} + ${levelXpReward}`,
@@ -68,9 +73,9 @@ export async function pvpResultHandler(req: any, res: any) {
         }
       : {
           rating: sql`GREATEST(0, ${users.rating} + ${safeRating})`,
-          balance: sql`GREATEST(0, ${users.balance} + ${safeCoins})`,
-          totalEarned: sql`${users.totalEarned} + ${Math.max(0, safeCoins)}`,
-          earnedFromRaces: sql`${users.earnedFromRaces} + ${Math.max(0, safeCoins)}`,
+          balance: sql`${users.balance} + ${safeCoins}`,
+          totalEarned: sql`${users.totalEarned} + ${safeCoins}`,
+          earnedFromRaces: sql`${users.earnedFromRaces} + ${safeCoins}`,
           totalRaces: sql`${users.totalRaces} + 1`,
           totalLosses: sql`${users.totalLosses} + 1`,
           xp: sql`${users.xp} + ${levelXpReward}`,
@@ -84,7 +89,6 @@ export async function pvpResultHandler(req: any, res: any) {
       .where(eq(users.id, userId))
       .returning();
 
-    // 🏅 Проверяем бейджи в фоне (не блокирует ответ)
     checkAndAwardBadges(userId).catch(console.error);
 
     return res.json({

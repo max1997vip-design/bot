@@ -61,7 +61,6 @@ export const ProfileScreen = () => {
     fetchMyBadges();
   }, [getAchievements, fetchMyBadges]);
 
-  // 3 последних достижения
   const recentAchievements = useMemo(() => {
     if (!achievementsList.length) return [];
 
@@ -352,6 +351,18 @@ export const ProfileScreen = () => {
               <span className="mini-value" style={{ fontSize: '12px' }}>
                 {activeCar.name}
               </span>
+              {activeCar.clickMultiplier > 1 && (
+                <span
+                  style={{
+                    fontSize: '9px',
+                    color: '#00d97e',
+                    fontWeight: 800,
+                    marginTop: '2px',
+                  }}
+                >
+                  ×{activeCar.clickMultiplier.toFixed(1)} к клику
+                </span>
+              )}
             </div>
           </div>
         </div>

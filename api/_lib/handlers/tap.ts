@@ -6,7 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 import { ALL_ITEM_IDS, ITEMS, RARITY_DROP_CHANCE } from '../items.js';
 import { getOrCreateQuests } from '../quests.js';
 import { getOrCreatePass } from '../pass.js';
-import { checkAndAwardBadges } from './badges.js'; // 👈 ДОБАВЛЕНО
+import { checkAndAwardBadges } from './badges.js';
 
 export async function tapHandler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -15,7 +15,7 @@ export async function tapHandler(req: any, res: any) {
   if (!validatedData || !validatedData.user) return res.status(401).json({ error: 'Unauthorized' });
 
   const telegramId = validatedData.user.id;
-  if (typeof amount !== 'number' || amount <= 0 || amount > 10000) {
+  if (typeof amount !== 'number' || amount <= 0 || amount > 1_000_000) {
     return res.status(400).json({ error: 'Invalid amount' });
   }
 
@@ -24,6 +24,15 @@ export async function tapHandler(req: any, res: any) {
   try {
     const [user] = await db.select().from(users).where(eq(users.id, telegramId));
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // 🎯 АНТИЧИТ: проверяем, что amount не больше максимально возможного
+    const clickLevel = user.clickLevel || 1;
+    const maxMultiplier = 3.2; // максимальный множитель (Solus)
+    const maxAmount = clickLevel * maxMultiplier * clicksToAdd * 1.1 + 1000;
+    if (amount > maxAmount) {
+      console.warn(`[tap] Suspicious amount from ${telegramId}: ${amount} > ${maxAmount}`);
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
 
     // Реферальный бонус (1%)
     if (user.referredBy && amount > 0) {
@@ -76,7 +85,6 @@ export async function tapHandler(req: any, res: any) {
       }
     }
 
-    // 🏅 Проверяем бейджи в фоне (не блокирует ответ)
     checkAndAwardBadges(telegramId).catch(console.error);
 
     return res.status(200).json({
