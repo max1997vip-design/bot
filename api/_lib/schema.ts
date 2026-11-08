@@ -126,6 +126,7 @@ export const clans = pgTable('clans', {
   isOpen: boolean('is_open').notNull().default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   extraSlots: integer('extra_slots').notNull().default(0),
+  bossDamageLevel: integer('boss_damage_level').notNull().default(0), // 👈 ЗДЕСЬ
 });
 
 export const clanMembers = pgTable('clan_members', {
@@ -225,6 +226,31 @@ export const pvpBattles = pgTable('pvp_battles', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   startedAt: timestamp('started_at'),
   finishedAt: timestamp('finished_at'),
+});
+
+// ============================================================
+// БУСТЫ КЛАНА
+// ============================================================
+export const clanBoosters = pgTable('clan_boosters', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  value: numeric('value', { precision: 5, scale: 3 }).notNull(),
+  activatedBy: bigint('activated_by', { mode: 'number' }).notNull(),
+  activatedAt: timestamp('activated_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
+export const clanBoosterVotes = pgTable('clan_booster_votes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clanId: uuid('clan_id').notNull().references(() => clans.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  initiatedBy: bigint('initiated_by', { mode: 'number' }).notNull(),
+  votes: jsonb('votes').$type<number[]>().notNull().default([]),
+  cost: bigint('cost', { mode: 'number' }).notNull(),
+  status: text('status').notNull().default('pending'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
 });
 
 export type User = typeof users.$inferSelect;

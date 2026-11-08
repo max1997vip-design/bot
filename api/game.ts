@@ -61,6 +61,18 @@ import {
   getMyBattleHandler,
   cancelMatchHandler,
 } from './_lib/handlers/pvpArena.js';
+import {
+  getClanBossHandler,
+  attackClanBossHandler,
+} from './_lib/handlers/clanBoss.js';
+import {
+  initiateBoosterHandler,
+  voteBoosterHandler,
+  instantBoosterHandler,
+  getBoostersHandler,
+  upgradeBossDamageHandler,
+} from './_lib/handlers/clanBoosters.js';
+
 
 export default async function handler(req: any, res: any) {
   const rawAction = req.query.action;
@@ -139,6 +151,14 @@ export default async function handler(req: any, res: any) {
     case 'pvpMatchmake': return matchmakeHandler(req, res);
     case 'getMyBattle': return getMyBattleHandler(req, res);
     case 'pvpCancel': return cancelMatchHandler(req, res);
+    case 'getClanBoss': return getClanBossHandler(req, res);
+    case 'attackClanBoss': return attackClanBossHandler(req, res);
+    case 'initiateBooster': return initiateBoosterHandler(req, res);
+    case 'voteBooster': return voteBoosterHandler(req, res);
+    case 'instantBooster': return instantBoosterHandler(req, res);
+    case 'getBoosters': return getBoostersHandler(req, res);
+    case 'upgradeBossDamage': return upgradeBossDamageHandler(req, res);
+
     default: return res.status(400).json({ error: 'Invalid action' });
   }
 }

@@ -80,6 +80,13 @@ interface GameState {
   lastDroppedItem: any | null;
   history: any[];
   achievementsList: any[];
+  activeBoosters: any[];
+  boosterVotes: any[];
+  initiateBooster: (type: string) => Promise<{ success: boolean; vote?: any; needVotes?: number; error?: string }>;
+  voteBooster: (voteId: string) => Promise<{ success: boolean; activated?: boolean; votes?: number; needVotes?: number; error?: string }>;
+  instantBooster: (type: string) => Promise<{ success: boolean; error?: string }>;
+  fetchBoosters: () => Promise<void>;
+  upgradeBossDamage: () => Promise<{ success: boolean; newBossDamageLevel?: number; error?: string }>;
 
   // Кланы
   myClanInvites: any[];
@@ -249,6 +256,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   clanBoss: null,
   bossDamageStats: [],
   referrals: [],
+  activeBoosters: [],
+  boosterVotes: [],
 
   myClanInvites: [],
   myClanApplications: [],
@@ -1603,5 +1612,91 @@ pvpCancel: async () => {
   } catch {
     return { success: false, error: 'Ошибка сети' };
   }
+  },
+
+  initiateBooster: async (type) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=initiateBooster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, type }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().fetchBoosters();
+      return { success: true, vote: data.vote, needVotes: data.needVotes };
+    }
+    return { success: false, error: data.error };
+  } catch { return { success: false, error: 'Ошибка сети' }; }
+},
+
+voteBooster: async (voteId) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=voteBooster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, voteId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().fetchBoosters();
+      return { success: true, activated: data.activated, votes: data.votes, needVotes: data.needVotes };
+    }
+    return { success: false, error: data.error };
+  } catch { return { success: false, error: 'Ошибка сети' }; }
+},
+
+instantBooster: async (type) => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=instantBooster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, type }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().fetchBoosters();
+      set((s) => ({
+        user: s.user ? { ...s.user, starsBalance: data.newStarsBalance ?? s.user.starsBalance } : null,
+      }));
+      return { success: true };
+    }
+    return { success: false, error: data.error };
+  } catch { return { success: false, error: 'Ошибка сети' }; }
+},
+
+fetchBoosters: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=getBoosters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      set({ activeBoosters: data.active || [], boosterVotes: data.pending || [] });
+    }
+  } catch {}
+},
+
+upgradeBossDamage: async () => {
+  const initData = getInitData();
+  try {
+    const res = await fetch('/api/game?action=upgradeBossDamage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      await get().fetchClanBoss();
+      return { success: true, newBossDamageLevel: data.newBossDamageLevel };
+    }
+    return { success: false, error: data.error };
+  } catch { return { success: false, error: 'Ошибка сети' }; }
   },
 }));
