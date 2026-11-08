@@ -6,7 +6,7 @@ import { eq, sql, and } from 'drizzle-orm';
 import { getOrCreateQuests } from '../quests.js';
 import { getOrCreatePass } from '../pass.js';
 import { checkAndAwardBadges } from './badges.js';
-import { CARS } from '../../../src/config/cars.js';
+import { CARS, RACE_BASE_REWARD, RACE_BASE_LOSE } from '../../../src/config/cars.js';
 
 export async function pvpResultHandler(req: any, res: any) {
   const { initData, won, ratingDelta } = req.body;
@@ -21,11 +21,13 @@ export async function pvpResultHandler(req: any, res: any) {
 
     const safeRating = Math.max(-100, Math.min(100, Math.round(ratingDelta ?? 0)));
 
-    // 🎯 Доход от гонок — зависит от машины
+    // 🎯 Доход от гонок — 500 ₽ × raceMultiplier
     const carId = user.activeCarId || 'vaz-2107';
     const car = CARS[carId] || CARS['vaz-2107'];
-    const raceReward = won ? (car.raceReward || 1000) : 0;
-    const raceLose = !won ? (car.raceLoseReward || 100) : 0;
+    const raceMult = car.raceMultiplier || 1.0;
+
+    const raceReward = won ? Math.floor(RACE_BASE_REWARD * raceMult) : 0;
+    const raceLose = !won ? Math.floor(RACE_BASE_LOSE * raceMult) : 0;
     const safeCoins = raceReward - raceLose;
 
     const quests = getOrCreateQuests(user.dailyQuests);
@@ -105,6 +107,9 @@ export async function pvpResultHandler(req: any, res: any) {
       quests,
       pass: updated.weeklyPass,
       clanTax,
+      // 🎯 Возвращаем награду, чтобы клиент мог показать
+      raceReward,
+      raceLose,
     });
   } catch (error) {
     console.error('[pvpResult]', error);

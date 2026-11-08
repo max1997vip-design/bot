@@ -1,5 +1,5 @@
 // src/utils/carStats.ts
-import { CarConfig, CARS } from '../config/cars';
+import { CarConfig, CARS, RACE_BASE_REWARD, RACE_BASE_LOSE } from '../config/cars';
 import { ITEMS, ItemConfig } from '../config/items';
 import { CarPhysics } from './raceEngine';
 
@@ -11,7 +11,7 @@ interface PartUpgrade {
 
 /**
  * Считает финальные характеристики машины с учётом прокачки.
- * 
+ *
  * Логика:
  *  - baseStats.performance машины (реальные км/ч) — это база.
  *  - Каждая деталь из equipped даёт ПРОЦЕНТНЫЙ бонус.
@@ -25,32 +25,26 @@ export function getFinalCarStats(
 ): CarPhysics {
   const perf = car.performance;
 
-  // Стартовые значения = реальные характеристики машины
   let totalPower = perf.power;
   let totalTopSpeed = perf.topSpeed;
   let totalAccel = perf.accel;
   let totalGrip = perf.grip;
 
-  // Складываем процентные бонусы от всех надетых деталей
   Object.values(equipped).forEach((itemId) => {
     if (!itemId || !ITEMS[itemId]) return;
 
     const item: ItemConfig = ITEMS[itemId];
     const upg = partUpgrades[itemId] || { level: 0, goldStars: 0, redStars: 0 };
 
-    // Множитель прокачки детали (1.0 + бонусы)
-    const levelMult = 1 + upg.level * 0.02;      // +2% за уровень
-    const goldMult = 1 + upg.goldStars * 0.10;   // +10% за золотую звезду
-    const redMult = 1 + upg.redStars * 0.25;     // +25% за красную звезду
+    const levelMult = 1 + upg.level * 0.02;
+    const goldMult = 1 + upg.goldStars * 0.10;
+    const redMult = 1 + upg.redStars * 0.25;
     const totalMult = levelMult * goldMult * redMult;
 
-    // Статы детали — это проценты от базы машины
-    // (engine_3: power=120 → +120% к power, topSpeed=25 → +25% к topSpeed)
     totalPower *= 1 + (item.stats.power / 100) * totalMult;
     totalTopSpeed *= 1 + (item.stats.topSpeed / 100) * totalMult;
-    totalGrip += (item.stats.grip / 100) * totalMult * 50; // grip в 0-100
+    totalGrip += (item.stats.grip / 100) * totalMult * 50;
 
-    // ACCEL: детали, которые дают grip/handling, уменьшают время разгона
     const accelBonus = ((item.stats.grip + item.stats.handling) / 100) * totalMult;
     totalAccel = Math.max(1.0, totalAccel * (1 - accelBonus * 0.15));
   });
@@ -70,15 +64,14 @@ export function getFinalCarStats(
 export function getCarRating(stats: CarPhysics): number {
   return Math.round(
     stats.power * 0.3 +
-    stats.topSpeed * 2 +
-    (10 - stats.accel) * 50 +
-    stats.grip * 3
+      stats.topSpeed * 2 +
+      (10 - stats.accel) * 50 +
+      stats.grip * 3
   );
 }
 
 /**
- * 🎯 Возвращает множитель к силе клика от текущей машины.
- * VAZ 2107 = 1.0, Civic = 1.1, ..., Solus = 3.2.
+ * 🎯 Множитель к силе клика от текущей машины.
  */
 export function getClickMultiplier(carId: string): number {
   const car = CARS[carId] || CARS['vaz-2107'];
@@ -86,17 +79,17 @@ export function getClickMultiplier(carId: string): number {
 }
 
 /**
- * 🎯 Возвращает награду за победу в гонке.
+ * 🎯 Награда за победу в гонке = 500 × raceMultiplier.
  */
 export function getRaceReward(carId: string): number {
   const car = CARS[carId] || CARS['vaz-2107'];
-  return car.raceReward || 1000;
+  return Math.floor(RACE_BASE_REWARD * (car.raceMultiplier || 1.0));
 }
 
 /**
- * 🎯 Возвращает награду за поражение в гонке.
+ * 🎯 Награда за поражение в гонке = 50 × raceMultiplier.
  */
 export function getRaceLoseReward(carId: string): number {
   const car = CARS[carId] || CARS['vaz-2107'];
-  return car.raceLoseReward || 100;
+  return Math.floor(RACE_BASE_LOSE * (car.raceMultiplier || 1.0));
 }
